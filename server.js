@@ -17,6 +17,14 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 let users = [];
 let roomUsers = { general: [], algeria: [], all_countries: [] };
 let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
+
+// ★★★ الجديد: حفظ آخر 100 رسالة لكل غرفة ★★★
+let roomMessages = {
+  general: [],
+  algeria: [],
+  all_countries: []
+};
+
 const secret = 'secretkey';
 const PORT = 3000;
 
@@ -98,6 +106,7 @@ io.on('connection', socket => {
       const decoded = jwt.verify(token, secret);
       username = decoded.username;
 
+      // لو كان في غرفة سابقة، يخرج منها
       if (currentRoom) {
         socket.leave(currentRoom);
         roomCounts[currentRoom]--;
@@ -106,28 +115,58 @@ io.on('connection', socket => {
         io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
       }
 
+      // يدخل الغرفة الجديدة
       currentRoom = room;
       socket.join(room);
       roomCounts[room]++;
+
       const user = users.find(u => u.username === username);
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
 
       roomUsers[room].push({ username, avatar });
+
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
 
+      // ★★★ إرسال آخر 100 رسالة للمستخدم اللي دخل بس ★★★
+      socket.emit('previous messages', roomMessages[room] || []);
+
     } catch (e) {
-      console.log('توكن غير صالح');
+      console.log('توكن غير صالح في الـ join');
     }
   });
 
   socket.on('message', (msg, token) => {
     try {
       const decoded = jwt.verify(token, secret);
-      const user = users.find(u => u.username === decoded.username);
+      const senderUsername = decoded.username;
+      const user = users.find(u => u.username === senderUsername);
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
-      io.to(currentRoom).emit('message', { username: decoded.username, msg, avatar });
-    } catch (e) {}
+
+      if (!currentRoom) return;
+
+      // كائن الرسالة مع الوقت
+      const messageObj = {
+        username: senderUsername,
+        msg: msg.trim(),
+        avatar: avatar,
+        timestamp: new Date().toISOString()
+      };
+
+      // حفظ الرسالة في الذاكرة
+      roomMessages[currentRoom].push(messageObj);
+
+      // الاحتفاظ بآخر 100 رسالة فقط
+      if (roomMessages[currentRoom].length > 100) {
+        roomMessages[currentRoom].shift(); // حذف الأقدم
+      }
+
+      // بث الرسالة لكل الناس في الغرفة
+      io.to(currentRoom).emit('message', messageObj);
+
+    } catch (e) {
+      console.log('توكن غير صالح في الرسالة');
+    }
   });
 
   socket.on('disconnect', () => {
@@ -140,14 +179,14 @@ io.on('connection', socket => {
   });
 });
 
-// تشغيل السيرفر مع عرض الرابط الجاهز
+// تشغيل السيرفر
 http.listen(PORT, '0.0.0.0', () => {
   console.log('=====================================');
   console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
   console.log('');
   console.log('🚀 افتح الشات من الرابط ده مباشرة:');
-  console.log(`   http://localhost:${PORT}/index.html`);
+  console.log(` http://localhost:${PORT}/index.html`);
   console.log('');
-  console.log('   أو اضغط Ctrl + Click على الرابط فوق 👆');
+  console.log(' أو اضغط Ctrl + Click على الرابط فوق 👆');
   console.log('=====================================');
 });
