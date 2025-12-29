@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>البروفايل</title>
+  <link rel="stylesheet" href="profile.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="profile-container">
+    <!-- الخلفية -->
+    <div class="background" id="background">
+      <label for="backgroundInput" class="change-bg">
+        <i class="fas fa-camera"></i>
+      </label>
+      <input type="file" id="backgroundInput" accept="image/*" style="display: none;">
+    </div>
+
+    <!-- الصورة الشخصية -->
+    <div class="avatar-container">
+      <img src="https://via.placeholder.com/150" alt="Avatar" id="avatarImg">
+      <label for="avatarInput" class="change-avatar">
+        <i class="fas fa-camera"></i>
+      </label>
+      <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+    </div>
+
+    <!-- الاسم -->
+    <h1 id="usernameDisplay">Lonely person</h1>
+
+    <!-- التبويبات -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="profile">البروفايل</button>
+      <button class="tab-btn" data-tab="friends">الأصدقاء</button>
+      <button class="tab-btn" data-tab="messages">الرسائل</button>
+      <button class="tab-btn" data-tab="settings">الإعدادات</button>
+      <button class="tab-btn" data-tab="info">معلوماتي</button>
+    </div>
+
+    <!-- المحتوى -->
+    <div class="tab-content">
+      <!-- تبويب البروفايل -->
+      <div id="profile" class="tab-panel active">
+        <h2>تعديل البروفايل</h2>
+        <div class="form-group">
+          <label>تغيير الاسم</label>
+          <input type="text" id="newUsername" placeholder="اسم جديد">
+          <button id="saveUsername">حفظ</button>
+        </div>
+      </div>
+
+      <!-- تبويب الأصدقاء -->
+      <div id="friends" class="tab-panel">
+        <h2>الأصدقاء</h2>
+        <div id="friendsList">
+          <p class="no-friends">لا يوجد أصدقاء حتى الآن</p>
+        </div>
+      </div>
+
+      <!-- باقي التبويبات (رسائل، إعدادات، معلوماتي) -->
+      <div id="messages" class="tab-panel"><h2>الرسائل (قريبًا)</h2></div>
+      <div id="settings" class="tab-panel"><h2>الإعدادات (قريبًا)</h2></div>
+      <div id="info" class="tab-panel"><h2>معلوماتي (قريبًا)</h2></div>
+    </div>
+
+    <!-- زر العودة للشات -->
+    <a href="chat.html?room=general" class="back-btn">عودة للشات</a>
+  </div>
+
+  <script src="profile.js"></script>
+</body>
+</html>
