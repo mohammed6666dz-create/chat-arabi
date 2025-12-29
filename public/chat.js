@@ -10,20 +10,14 @@ let myUsername = '';
 
 socket.emit('join', room, token);
 
-// ★★★ الجديد: استقبال آخر 100 رسالة عند الدخول ★★★
+// ★★★ استقبال آخر 100 رسالة عند الدخول أو refresh ★★★
 socket.on('previous messages', (messages) => {
-  // نمسح الشات أولاً عشان ما يتكررش (مهم جدًا عند الـ refresh)
   document.getElementById('chatWindow').innerHTML = '';
-
-  // نعرض كل الرسائل القديمة بنفس الطريقة
   messages.forEach(({ username, msg, avatar }) => {
     appendMessage(username, msg, avatar);
   });
-
-  // نرجع نعرض رسائل النظام لو فيه (اختياري، بس عشان الشكل يكون كامل)
-  // لو عايز تضيف رسائل نظام قديمة، هتحتاج تخزنها كمان في الباك، بس دلوقتي خلينا نركز على الرسائل العادية
+  scrollToBottom();
 });
-
 
 // تحديث عدد وعرض المتصلين
 socket.on('update users', users => {
@@ -41,7 +35,7 @@ socket.on('update users', users => {
   });
 });
 
-// رسالة عادية (جديدة)
+// رسالة جديدة
 socket.on('message', ({ username, msg, avatar }) => {
   appendMessage(username, msg, avatar);
 });
@@ -66,11 +60,14 @@ document.getElementById('messageForm').onsubmit = e => {
   }
 };
 
+// ★★★ دالة عرض الرسائل مع تمييز رسائلي (يمين + أخضر) والآخرين (يسار + رمادي) ★★★
 function appendMessage(username, msg, avatar) {
   const isMe = username === myUsername;
+
   const div = document.createElement('div');
   div.className = 'message';
-  if (isMe) div.classList.add('my-message');
+  div.classList.add(isMe ? 'my-message' : 'other-message');
+
   div.innerHTML = `
     <img src="${avatar}" alt="${username}">
     <div class="message-content">
@@ -78,6 +75,7 @@ function appendMessage(username, msg, avatar) {
       <p>${msg}</p>
     </div>
   `;
+
   document.getElementById('chatWindow').appendChild(div);
   scrollToBottom();
 }
@@ -87,17 +85,30 @@ function scrollToBottom() {
   chat.scrollTop = chat.scrollHeight;
 }
 
-// تحميل الصورة الشخصية في الهيدر + اسم المستخدم
+// تحميل الأفاتار + اسم المستخدم + ربط كلمة "بروفايل" بـ profile.html
 async function loadMyAvatar() {
   try {
     const res = await fetch('/profile', { headers: { Authorization: token } });
     const user = await res.json();
     myUsername = user.username;
+
     if (user.avatar) {
       document.getElementById('avatar').src = user.avatar;
     }
+
+    // ★★★ ربط كلمة "بروفايل" في الهيدر بـ profile.html ★★★
+    const profileLink = document.getElementById('profileLink');
+    if (profileLink) {
+      profileLink.style.cursor = 'pointer';
+      profileLink.onclick = (e) => {
+        e.preventDefault();
+        window.location.href = 'profile.html'; // أو window.open('profile.html', '_blank'); لو تبويب جديد
+      };
+    }
+
   } catch (e) {
     console.error('فشل تحميل البروفايل');
   }
 }
+
 loadMyAvatar();
