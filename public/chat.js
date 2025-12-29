@@ -95,31 +95,33 @@ async function loadMyAvatar() {
 }
 loadMyAvatar();
 
-// ★★★ فتح نافذة البروفايل عند الضغط على الصورة في الهيدر ★★★
-const profileBtn = document.getElementById('profileBtn');
-const profileModal = document.getElementById('profileModal');
-const closeProfile = document.querySelector('.close-profile');
+// ★★★ فتح نافذة البروفايل - نسخة مضمونة 100% ★★★
+document.addEventListener('DOMContentLoaded', () => {
+  const profileBtn = document.getElementById('profileBtn');
+  const profileModal = document.getElementById('profileModal');
+  const closeProfile = document.querySelector('.close-profile');
 
-if (profileBtn) {
-  profileBtn.style.cursor = 'pointer';
-  profileBtn.onclick = () => {
-    loadProfileModal();
-    profileModal.style.display = 'flex';
-  };
-}
-
-if (closeProfile) {
-  closeProfile.onclick = () => {
-    profileModal.style.display = 'none';
-  };
-}
-
-// إغلاق لو ضغط خارج المودال
-window.onclick = (event) => {
-  if (event.target === profileModal) {
-    profileModal.style.display = 'none';
+  if (profileBtn && profileModal) {
+    profileBtn.style.cursor = 'pointer';
+    profileBtn.addEventListener('click', () => {
+      loadProfileModal();
+      profileModal.style.display = 'flex';
+    });
   }
-};
+
+  if (closeProfile) {
+    closeProfile.addEventListener('click', () => {
+      profileModal.style.display = 'none';
+    });
+  }
+
+  // إغلاق لو ضغط خارج المودال
+  window.addEventListener('click', (event) => {
+    if (event.target === profileModal) {
+      profileModal.style.display = 'none';
+    }
+  });
+});
 
 // تحميل بيانات البروفايل في المودال
 async function loadProfileModal() {
@@ -133,8 +135,8 @@ async function loadProfileModal() {
     if (user.background) {
       document.getElementById('profileBg').style.backgroundImage = `url(${user.background})`;
     } else {
-      document.getElementById('profileBg').style.backgroundColor = '#222';
       document.getElementById('profileBg').style.backgroundImage = 'none';
+      document.getElementById('profileBg').style.backgroundColor = '#222';
     }
 
     const friendsList = document.getElementById('friendsList');
@@ -157,7 +159,7 @@ async function loadProfileModal() {
 }
 
 // رفع الصورة الشخصية
-document.getElementById('avatarInput').onchange = async (e) => {
+document.getElementById('avatarInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
@@ -173,14 +175,14 @@ document.getElementById('avatarInput').onchange = async (e) => {
 
     const data = await res.json();
     document.getElementById('profileAvatar').src = data.avatar + '?t=' + Date.now();
-    document.getElementById('avatar').src = data.avatar + '?t=' + Date.now(); // تحديث في الهيدر
+    document.getElementById('avatar').src = data.avatar + '?t=' + Date.now();
   } catch (e) {
     alert('فشل رفع الصورة');
   }
-};
+});
 
 // رفع الخلفية
-document.getElementById('bgInput').onchange = async (e) => {
+document.getElementById('bgInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
@@ -199,4 +201,4 @@ document.getElementById('bgInput').onchange = async (e) => {
   } catch (e) {
     alert('فشل رفع الخلفية');
   }
-};
+});
