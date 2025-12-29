@@ -38,6 +38,7 @@ header h1 {
   display: flex;
   background: url('https://i.pinimg.com/originals/96/f1/64/96f164103b1e1103f145d2b9c9992f4a.gif') center/cover no-repeat;
   position: relative;
+  min-height: 0; 
 }
 
 .chat-main::before {
@@ -107,6 +108,16 @@ header h1 {
 .message-content p {
   margin: 0;
   font-size: 15px;
+}
+
+.my-message {
+  align-self: flex-end;
+}
+
+.my-message .message-content {
+  background: #075e54;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 4px;
 }
 
 .system-message {
