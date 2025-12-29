@@ -1,4 +1,8 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 body {
   font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -15,7 +19,7 @@ body::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.5); /* طبقة داكنة عشان النصوص والكروت تبان أحسن */
+  background: rgba(0, 0, 0, 0.6);
   z-index: 1;
 }
 
@@ -28,80 +32,161 @@ body::before {
 }
 
 h1 {
-  font-size: 32px;
-  margin-bottom: 60px;
+  font-size: 36px;
+  margin-bottom: 70px;
   color: #4CAF50;
-  text-shadow: 0 0 20px rgba(76, 175, 80, 0.7);
+  text-shadow: 0 0 25px rgba(76, 175, 80, 0.8);
+  letter-spacing: 2px;
 }
 
 .rooms-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 50px;
 }
 
+/* ★★★ الروم كارد الجديد – إطار أنيق جدًا ★★★ */
 .room-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-radius: 30px;
   padding: 50px 30px;
   text-align: center;
-  transition: all 0.4s ease;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(76, 175, 80, 0.15);
+  border: 2px solid rgba(76, 175, 80, 0.3);
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
+/* تأثير لامع داخل الكارد عند الهوفر */
+.room-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(135deg, transparent 40%, rgba(76, 175, 80, 0.1) 50%, transparent 60%);
+  transform: rotate(30deg);
+  transition: all 0.8s;
+  opacity: 0;
+}
+
+.room-card:hover::before {
+  opacity: 1;
+  top: 100%;
+  left: 100%;
+}
+
+/* هوفر قوي وجميل */
 .room-card:hover {
-  transform: translateY(-20px);
-  box-shadow: 0 20px 50px rgba(76, 175, 80, 0.4);
+  transform: translateY(-25px) scale(1.05);
   background: rgba(255, 255, 255, 0.15);
+  border-color: #4CAF50;
+  box-shadow: 
+    0 30px 60px rgba(0, 0, 0, 0.5),
+    0 0 50px rgba(76, 175, 80, 0.5);
 }
 
 .room-icon {
-  font-size: 80px;
-  margin-bottom: 30px;
+  font-size: 90px;
+  margin-bottom: 35px;
   display: block;
   color: #81C784;
-  text-shadow: 0 0 20px rgba(129, 199, 132, 0.6);
+  text-shadow: 0 0 30px rgba(129, 199, 132, 0.8);
+  transition: all 0.4s;
+}
+
+.room-card:hover .room-icon {
+  transform: scale(1.15);
+  color: #A5D6A7;
 }
 
 .room-card h2 {
-  font-size: 28px;
-  margin-bottom: 15px;
+  font-size: 30px;
+  margin-bottom: 20px;
   color: #fff;
-  text-shadow: 0 0 10px rgba(0,0,0,0.4);
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
+/* ★★★ عدد المتصلين – شكل جديد أنيق جدًا ★★★ */
 .online-count {
-  font-size: 18px;
-  margin-bottom: 40px;
-  color: #A5D6A7;
-  text-shadow: 0 0 15px rgba(165, 214, 167, 0.9);
-  animation: glowText 3s infinite alternate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: bold;
+  margin: 30px 0;
+  padding: 12px 30px;
+  background: rgba(76, 175, 80, 0.2);
+  border: 2px solid #4CAF50;
+  border-radius: 50px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+  transition: all 0.4s;
 }
 
-@keyframes glowText {
-  0% { text-shadow: 0 0 10px rgba(165, 214, 167, 0.8); }
-  100% { text-shadow: 0 0 25px rgba(165, 214, 167, 1); }
+.online-count i {
+  font-size: 24px;
+  color: #4CAF50;
 }
 
+.online-count span {
+  color: #C8E6C9;
+  text-shadow: 0 0 15px rgba(200, 230, 201, 0.9);
+}
+
+.room-card:hover .online-count {
+  background: rgba(76, 175, 80, 0.4);
+  transform: scale(1.1);
+  box-shadow: 0 12px 30px rgba(76, 175, 80, 0.5);
+}
+
+/* زر الدخول */
 .enter-btn {
-  background: linear-gradient(45deg, #1e40af, #3b82f6);
+  background: linear-gradient(45deg, #1e40af, #2563eb, #3b82f6);
   color: white;
   border: none;
-  padding: 16px 50px;
-  border-radius: 30px;
-  font-size: 18px;
+  padding: 18px 60px;
+  border-radius: 50px;
+  font-size: 20px;
   font-weight: bold;
   cursor: pointer;
-  width: 80%;
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
-  transition: all 0.3s;
+  width: 85%;
+  margin-top: 20px;
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.enter-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255,255,255,0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.enter-btn:hover::after {
+  width: 300px;
+  height: 300px;
 }
 
 .enter-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 12px 30px rgba(59, 130, 246, 0.6);
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 15px 40px rgba(59, 130, 246, 0.6);
 }
