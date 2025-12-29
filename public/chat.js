@@ -10,13 +10,12 @@ let myUsername = '';
 
 socket.emit('join', room, token);
 
-// ★★★ استقبال آخر 100 رسالة عند الدخول أو refresh ★★★
+// ★★★ استقبال آخر 100 رسالة عند الدخول ★★★
 socket.on('previous messages', (messages) => {
   document.getElementById('chatWindow').innerHTML = '';
   messages.forEach(({ username, msg, avatar }) => {
     appendMessage(username, msg, avatar);
   });
-  scrollToBottom();
 });
 
 // تحديث عدد وعرض المتصلين
@@ -40,7 +39,7 @@ socket.on('message', ({ username, msg, avatar }) => {
   appendMessage(username, msg, avatar);
 });
 
-// رسالة نظام (انضمام / خروج)
+// رسالة نظام
 socket.on('system message', msg => {
   const div = document.createElement('div');
   div.className = 'system-message';
@@ -60,14 +59,11 @@ document.getElementById('messageForm').onsubmit = e => {
   }
 };
 
-// ★★★ دالة عرض الرسائل مع تمييز رسائلي (يمين + أخضر) والآخرين (يسار + رمادي) ★★★
 function appendMessage(username, msg, avatar) {
   const isMe = username === myUsername;
-
   const div = document.createElement('div');
   div.className = 'message';
-  div.classList.add(isMe ? 'my-message' : 'other-message');
-
+  if (isMe) div.classList.add('my-message');
   div.innerHTML = `
     <img src="${avatar}" alt="${username}">
     <div class="message-content">
@@ -75,7 +71,6 @@ function appendMessage(username, msg, avatar) {
       <p>${msg}</p>
     </div>
   `;
-
   document.getElementById('chatWindow').appendChild(div);
   scrollToBottom();
 }
@@ -85,30 +80,123 @@ function scrollToBottom() {
   chat.scrollTop = chat.scrollHeight;
 }
 
-// تحميل الأفاتار + اسم المستخدم + ربط كلمة "بروفايل" بـ profile.html
+// تحميل الأفاتار في الهيدر
 async function loadMyAvatar() {
   try {
     const res = await fetch('/profile', { headers: { Authorization: token } });
     const user = await res.json();
     myUsername = user.username;
-
     if (user.avatar) {
       document.getElementById('avatar').src = user.avatar;
     }
-
-    // ★★★ ربط كلمة "بروفايل" في الهيدر بـ profile.html ★★★
-    const profileLink = document.getElementById('profileLink');
-    if (profileLink) {
-      profileLink.style.cursor = 'pointer';
-      profileLink.onclick = (e) => {
-        e.preventDefault();
-        window.location.href = 'profile.html'; // أو window.open('profile.html', '_blank'); لو تبويب جديد
-      };
-    }
-
   } catch (e) {
     console.error('فشل تحميل البروفايل');
   }
 }
-
 loadMyAvatar();
+
+// ★★★ فتح نافذة البروفايل عند الضغط على الصورة في الهيدر ★★★
+const profileBtn = document.getElementById('profileBtn');
+const profileModal = document.getElementById('profileModal');
+const closeProfile = document.querySelector('.close-profile');
+
+if (profileBtn) {
+  profileBtn.style.cursor = 'pointer';
+  profileBtn.onclick = () => {
+    loadProfileModal();
+    profileModal.style.display = 'flex';
+  };
+}
+
+if (closeProfile) {
+  closeProfile.onclick = () => {
+    profileModal.style.display = 'none';
+  };
+}
+
+// إغلاق لو ضغط خارج المودال
+window.onclick = (event) => {
+  if (event.target === profileModal) {
+    profileModal.style.display = 'none';
+  }
+};
+
+// تحميل بيانات البروفايل في المودال
+async function loadProfileModal() {
+  try {
+    const res = await fetch('/profile', { headers: { Authorization: token } });
+    const user = await res.json();
+
+    document.getElementById('profileUsername').textContent = user.username || 'مستخدم';
+    document.getElementById('profileAvatar').src = user.avatar || 'https://via.placeholder.com/150';
+
+    if (user.background) {
+      document.getElementById('profileBg').style.backgroundImage = `url(${user.background})`;
+    } else {
+      document.getElementById('profileBg').style.backgroundColor = '#222';
+      document.getElementById('profileBg').style.backgroundImage = 'none';
+    }
+
+    const friendsList = document.getElementById('friendsList');
+    if (user.friends && user.friends.length > 0) {
+      friendsList.innerHTML = '';
+      user.friends.forEach(friend => {
+        const p = document.createElement('p');
+        p.textContent = friend;
+        p.style.color = '#A5D6A7';
+        p.style.margin = '8px 0';
+        friendsList.appendChild(p);
+      });
+    } else {
+      friendsList.innerHTML = '<p class="no-friends">لا يوجد أصدقاء حتى الآن</p>';
+    }
+
+  } catch (e) {
+    console.error('خطأ في تحميل البروفايل');
+  }
+}
+
+// رفع الصورة الشخصية
+document.getElementById('avatarInput').onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('avatar', file);
+
+  try {
+    const res = await fetch('/upload-avatar', {
+      method: 'POST',
+      headers: { Authorization: token },
+      body: formData
+    });
+
+    const data = await res.json();
+    document.getElementById('profileAvatar').src = data.avatar + '?t=' + Date.now();
+    document.getElementById('avatar').src = data.avatar + '?t=' + Date.now(); // تحديث في الهيدر
+  } catch (e) {
+    alert('فشل رفع الصورة');
+  }
+};
+
+// رفع الخلفية
+document.getElementById('bgInput').onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('background', file);
+
+  try {
+    const res = await fetch('/upload-background', {
+      method: 'POST',
+      headers: { Authorization: token },
+      body: formData
+    });
+
+    const data = await res.json();
+    document.getElementById('profileBg').style.backgroundImage = `url(${data.background}?t=${Date.now()})`;
+  } catch (e) {
+    alert('فشل رفع الخلفية');
+  }
+};
