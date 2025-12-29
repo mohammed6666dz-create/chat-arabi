@@ -52,8 +52,10 @@ document.getElementById('messageForm').onsubmit = e => {
 };
 
 function appendMessage(username, msg, avatar) {
+  const isMe = username === myUsername;
   const div = document.createElement('div');
   div.className = 'message';
+  if (isMe) div.classList.add('my-message');
   div.innerHTML = `
     <img src="${avatar}" alt="${username}">
     <div class="message-content">
