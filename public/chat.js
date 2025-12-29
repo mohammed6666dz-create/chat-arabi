@@ -10,6 +10,21 @@ let myUsername = '';
 
 socket.emit('join', room, token);
 
+// ★★★ الجديد: استقبال آخر 100 رسالة عند الدخول ★★★
+socket.on('previous messages', (messages) => {
+  // نمسح الشات أولاً عشان ما يتكررش (مهم جدًا عند الـ refresh)
+  document.getElementById('chatWindow').innerHTML = '';
+
+  // نعرض كل الرسائل القديمة بنفس الطريقة
+  messages.forEach(({ username, msg, avatar }) => {
+    appendMessage(username, msg, avatar);
+  });
+
+  // نرجع نعرض رسائل النظام لو فيه (اختياري، بس عشان الشكل يكون كامل)
+  // لو عايز تضيف رسائل نظام قديمة، هتحتاج تخزنها كمان في الباك، بس دلوقتي خلينا نركز على الرسائل العادية
+});
+
+
 // تحديث عدد وعرض المتصلين
 socket.on('update users', users => {
   document.getElementById('userCount').innerText = users.length;
@@ -26,7 +41,7 @@ socket.on('update users', users => {
   });
 });
 
-// رسالة عادية
+// رسالة عادية (جديدة)
 socket.on('message', ({ username, msg, avatar }) => {
   appendMessage(username, msg, avatar);
 });
@@ -72,7 +87,7 @@ function scrollToBottom() {
   chat.scrollTop = chat.scrollHeight;
 }
 
-// تحميل الصورة الشخصية في الهيدر
+// تحميل الصورة الشخصية في الهيدر + اسم المستخدم
 async function loadMyAvatar() {
   try {
     const res = await fetch('/profile', { headers: { Authorization: token } });
@@ -81,6 +96,8 @@ async function loadMyAvatar() {
     if (user.avatar) {
       document.getElementById('avatar').src = user.avatar;
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error('فشل تحميل البروفايل');
+  }
 }
 loadMyAvatar();
