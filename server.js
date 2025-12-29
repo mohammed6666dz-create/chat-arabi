@@ -5,25 +5,26 @@ const io = require('socket.io')(http);
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
 const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
 
+// تأكد من وجود مجلد uploads
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+
+const upload = multer({ dest: uploadDir });
+
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(uploadDir));
 
 let users = [];
 let roomUsers = { general: [], algeria: [], all_countries: [] };
 let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
 
-// ★★★ الجديد: حفظ آخر 100 رسالة لكل غرفة ★★★
-let roomMessages = {
-  general: [],
-  algeria: [],
-  all_countries: []
-};
+// حفظ آخر 100 رسالة لكل غرفة
+let roomMessages = { general: [], algeria: [], all_countries: [] };
 
 const secret = 'secretkey';
 const PORT = 3000;
@@ -78,7 +79,9 @@ app.get('/profile', verifyToken, (req, res) => {
 // Upload avatar
 app.post('/upload-avatar', verifyToken, upload.single('avatar'), (req, res) => {
   const user = users.find(u => u.username === req.user.username);
-  if (req.file) user.avatar = '/uploads/' + req.file.filename;
+  if (!req.file) return res.status(400).json({ msg: 'فشل في رفع الصورة: لم يتم استلام الملف' });
+
+  user.avatar = '/uploads/' + req.file.filename;
   saveUsers();
   res.json({ avatar: user.avatar });
 });
@@ -86,7 +89,9 @@ app.post('/upload-avatar', verifyToken, upload.single('avatar'), (req, res) => {
 // Upload background
 app.post('/upload-background', verifyToken, upload.single('background'), (req, res) => {
   const user = users.find(u => u.username === req.user.username);
-  if (req.file) user.background = '/uploads/' + req.file.filename;
+  if (!req.file) return res.status(400).json({ msg: 'فشل في رفع الصورة: لم يتم استلام الملف' });
+
+  user.background = '/uploads/' + req.file.filename;
   saveUsers();
   res.json({ background: user.background });
 });
@@ -106,7 +111,6 @@ io.on('connection', socket => {
       const decoded = jwt.verify(token, secret);
       username = decoded.username;
 
-      // لو كان في غرفة سابقة، يخرج منها
       if (currentRoom) {
         socket.leave(currentRoom);
         roomCounts[currentRoom]--;
@@ -115,20 +119,16 @@ io.on('connection', socket => {
         io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
       }
 
-      // يدخل الغرفة الجديدة
       currentRoom = room;
       socket.join(room);
       roomCounts[room]++;
 
       const user = users.find(u => u.username === username);
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
-
       roomUsers[room].push({ username, avatar });
 
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
-
-      // ★★★ إرسال آخر 100 رسالة للمستخدم اللي دخل بس ★★★
       socket.emit('previous messages', roomMessages[room] || []);
 
     } catch (e) {
@@ -145,7 +145,6 @@ io.on('connection', socket => {
 
       if (!currentRoom) return;
 
-      // كائن الرسالة مع الوقت
       const messageObj = {
         username: senderUsername,
         msg: msg.trim(),
@@ -153,15 +152,9 @@ io.on('connection', socket => {
         timestamp: new Date().toISOString()
       };
 
-      // حفظ الرسالة في الذاكرة
       roomMessages[currentRoom].push(messageObj);
+      if (roomMessages[currentRoom].length > 100) roomMessages[currentRoom].shift();
 
-      // الاحتفاظ بآخر 100 رسالة فقط
-      if (roomMessages[currentRoom].length > 100) {
-        roomMessages[currentRoom].shift(); // حذف الأقدم
-      }
-
-      // بث الرسالة لكل الناس في الغرفة
       io.to(currentRoom).emit('message', messageObj);
 
     } catch (e) {
@@ -183,10 +176,7 @@ io.on('connection', socket => {
 http.listen(PORT, '0.0.0.0', () => {
   console.log('=====================================');
   console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
-  console.log('');
-  console.log('🚀 افتح الشات من الرابط ده مباشرة:');
+  console.log('🚀 افتح الشات من الرابط:');
   console.log(` http://localhost:${PORT}/index.html`);
-  console.log('');
-  console.log(' أو اضغط Ctrl + Click على الرابط فوق 👆');
   console.log('=====================================');
 });
