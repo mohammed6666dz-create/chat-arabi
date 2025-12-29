@@ -10,7 +10,7 @@ let myUsername = '';
 
 socket.emit('join', room, token);
 
-// ★★★ استقبال آخر 100 رسالة عند الدخول ★★★
+// استقبال آخر 100 رسالة
 socket.on('previous messages', (messages) => {
   document.getElementById('chatWindow').innerHTML = '';
   messages.forEach(({ username, msg, avatar }) => {
@@ -18,7 +18,7 @@ socket.on('previous messages', (messages) => {
   });
 });
 
-// تحديث عدد وعرض المتصلين
+// تحديث المتصلين
 socket.on('update users', users => {
   document.getElementById('userCount').innerText = users.length;
   const list = document.getElementById('usersList');
@@ -95,7 +95,7 @@ async function loadMyAvatar() {
 }
 loadMyAvatar();
 
-// ★★★ فتح نافذة البروفايل - نسخة مضمونة 100% ★★★
+// فتح نافذة البروفايل - مضمون 100%
 document.addEventListener('DOMContentLoaded', () => {
   const profileBtn = document.getElementById('profileBtn');
   const profileModal = document.getElementById('profileModal');
@@ -115,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // إغلاق لو ضغط خارج المودال
   window.addEventListener('click', (event) => {
     if (event.target === profileModal) {
       profileModal.style.display = 'none';
@@ -123,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// تحميل بيانات البروفايل في المودال
+// تحميل بيانات البروفايل
 async function loadProfileModal() {
   try {
     const res = await fetch('/profile', { headers: { Authorization: token } });
@@ -177,7 +176,7 @@ document.getElementById('avatarInput').addEventListener('change', async (e) => {
     document.getElementById('profileAvatar').src = data.avatar + '?t=' + Date.now();
     document.getElementById('avatar').src = data.avatar + '?t=' + Date.now();
   } catch (e) {
-    alert('فشل رفع الصورة');
+    alert('فشل رفع الصورة - تأكد من السيرفر');
   }
 });
 
@@ -199,6 +198,6 @@ document.getElementById('bgInput').addEventListener('change', async (e) => {
     const data = await res.json();
     document.getElementById('profileBg').style.backgroundImage = `url(${data.background}?t=${Date.now()})`;
   } catch (e) {
-    alert('فشل رفع الخلفية');
+    alert('فشل رفع الخلفية - تأكد من السيرفر');
   }
 });
