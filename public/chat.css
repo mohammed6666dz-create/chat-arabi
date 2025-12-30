@@ -1,4 +1,9 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, sans-serif;
   background: #0b141a;
@@ -8,27 +13,114 @@ body {
   flex-direction: column;
   overflow: hidden;
 }
+
+/* ================== الهيدر المحدث ================== */
 header {
-  background: #075e54;
+  background: linear-gradient(90deg, #075e54 0%, #128c7e 100%);
   color: white;
-  padding: 12px 16px;
+  padding: 10px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 3px 12px rgba(7,94,84,0.4);
   z-index: 10;
 }
-header h1 {
-  font-size: 20px;
-  font-weight: 400;
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
+
+.header-left h1 {
+  font-size: 18px;              /* صغرناه كما طلبت */
+  font-weight: 500;
+  margin: 0;
+  color: #e0f7fa;
+}
+
+.btn-leave {
+  background: rgba(231, 76, 60, 0.9);
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.25s;
+}
+
+.btn-leave:hover {
+  background: #c0392b;
+  transform: translateY(-1px);
+}
+
+.btn-leave i {
+  font-size: 1.1rem;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-icons {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  background: rgba(255,255,255,0.15);
+  color: white;
+  border: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.icon-btn:hover {
+  background: rgba(255,255,255,0.3);
+  transform: scale(1.1);
+}
+
+.icon-btn .badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff3b30;
+  color: white;
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(255,59,48,0.6);
+}
+
 #profileBtn img {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid #fff;
+  border: 2px solid rgba(255,255,255,0.9);
   cursor: pointer;
+  transition: transform 0.2s;
 }
+
+#profileBtn img:hover {
+  transform: scale(1.08);
+}
+
+/* ================== الشات الرئيسي ================== */
 .chat-main {
   flex: 1;
   display: flex;
@@ -36,6 +128,7 @@ header h1 {
   position: relative;
   min-height: 0;
 }
+
 .chat-main::before {
   content: '';
   position: absolute;
@@ -43,6 +136,7 @@ header h1 {
   background: rgba(11,20,26,0.85);
   z-index: 1;
 }
+
 #chatWindow {
   flex: 3;
   padding: 20px;
@@ -52,7 +146,24 @@ header h1 {
   flex-direction: column;
   gap: 12px;
   position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: #075e54 rgba(11,20,26,0.5);
 }
+
+#chatWindow::-webkit-scrollbar {
+  width: 6px;
+}
+
+#chatWindow::-webkit-scrollbar-track {
+  background: rgba(11,20,26,0.5);
+}
+
+#chatWindow::-webkit-scrollbar-thumb {
+  background: #075e54;
+  border-radius: 10px;
+}
+
+/* الرسائل */
 .message {
   display: flex;
   align-items: flex-end;
@@ -60,11 +171,24 @@ header h1 {
   max-width: 70%;
   align-self: flex-start;
 }
+
+.my-message {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.my-message .message-content {
+  background: #075e54 !important;
+  border-bottom-left-radius: 18px !important;
+  border-bottom-right-radius: 4px !important;
+}
+
 .message img {
   width: 42px;
   height: 42px;
   border-radius: 50%;
 }
+
 .message-content {
   background: #005c4b;
   color: white;
@@ -74,24 +198,19 @@ header h1 {
   max-width: 100%;
   box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
+
 .message-content strong {
   font-size: 13px;
   opacity: 0.9;
   display: block;
   margin-bottom: 4px;
 }
+
 .message-content p {
   margin: 0;
   font-size: 15px;
 }
-.my-message {
-  align-self: flex-end;
-}
-.my-message .message-content {
-  background: #075e54;
-  border-bottom-left-radius: 18px;
-  border-bottom-right-radius: 4px;
-}
+
 .system-message {
   align-self: center;
   background: rgba(255,255,255,0.15);
@@ -101,6 +220,8 @@ header h1 {
   font-size: 13px;
   backdrop-filter: blur(5px);
 }
+
+/* لوحة المتصلين */
 #usersPanel {
   flex: 1;
   background: rgba(7,13,18,0.9);
@@ -109,12 +230,14 @@ header h1 {
   border-left: 1px solid rgba(255,255,255,0.1);
   overflow-y: auto;
 }
+
 #usersPanel h3 {
   color: #fff;
   text-align: center;
   margin-bottom: 20px;
   font-size: 17px;
 }
+
 .user-item {
   display: flex;
   align-items: center;
@@ -125,17 +248,22 @@ header h1 {
   margin-bottom: 8px;
   transition: background 0.3s;
 }
+
 .user-item:hover {
   background: rgba(255,255,255,0.1);
 }
+
 .user-item img {
   width: 40px;
   height: 40px;
   border-radius: 50%;
 }
+
 .user-item span {
   font-size: 15px;
 }
+
+/* نموذج الإرسال */
 #messageForm {
   display: flex;
   padding: 10px 16px;
@@ -143,6 +271,7 @@ header h1 {
   gap: 10px;
   z-index: 10;
 }
+
 #messageInput {
   flex: 1;
   padding: 12px 18px;
@@ -152,9 +281,11 @@ header h1 {
   color: white;
   font-size: 15px;
 }
+
 #messageInput::placeholder {
   color: #888;
 }
+
 #messageForm button {
   background: #075e54;
   color: white;
@@ -166,7 +297,7 @@ header h1 {
   font-size: 20px;
 }
 
-/* نافذة البروفايل - تصميم فخم ومتناسق تمام */
+/* ================== مودال البروفايل (راجع تمامًا كما كان) ================== */
 .profile-modal {
   display: none;
   position: fixed;
