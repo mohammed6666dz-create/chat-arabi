@@ -8,16 +8,36 @@ if (!room) window.location.href = 'rooms.html';
 
 let myUsername = '';
 
-// استقبال آخر 100 رسالة (previous messages)
+// طلب الانضمام للغرفة
+socket.emit('join', room, token);
+
+// استقبال آخر 100 رسالة عند الدخول
 socket.on('previous messages', (messages) => {
-  document.getElementById('chatWindow').innerHTML = '';
+  const chatWindow = document.getElementById('chatWindow');
+  chatWindow.innerHTML = ''; // مسح أي محتوى قديم
+
   messages.forEach(({ username, msg, avatar }) => {
-    appendMessage(username, msg, avatar);
+    appendMessage(username, msg, avatar, username === myUsername);
   });
+
   scrollToBottom();
 });
 
-// تحديث المتصلين
+// استقبال رسالة جديدة
+socket.on('message', ({ username, msg, avatar }) => {
+  appendMessage(username, msg, avatar, username === myUsername);
+});
+
+// رسائل النظام (انضمام، خروج، إلخ)
+socket.on('system message', msg => {
+  const div = document.createElement('div');
+  div.className = 'system-message';
+  div.textContent = msg;
+  document.getElementById('chatWindow').appendChild(div);
+  scrollToBottom();
+});
+
+// تحديث قائمة المتصلين
 socket.on('update users', users => {
   document.getElementById('userCount').innerText = users.length;
   const list = document.getElementById('usersList');
@@ -33,20 +53,6 @@ socket.on('update users', users => {
   });
 });
 
-// رسالة جديدة
-socket.on('message', ({ username, msg, avatar }) => {
-  appendMessage(username, msg, avatar);
-});
-
-// رسالة نظام
-socket.on('system message', msg => {
-  const div = document.createElement('div');
-  div.className = 'system-message';
-  div.textContent = msg;
-  document.getElementById('chatWindow').appendChild(div);
-  scrollToBottom();
-});
-
 // إرسال رسالة
 document.getElementById('messageForm').onsubmit = e => {
   e.preventDefault();
@@ -58,175 +64,43 @@ document.getElementById('messageForm').onsubmit = e => {
   }
 };
 
-// عرض الرسالة (مع دعم my-message لليمين/يسار)
-function appendMessage(username, msg, avatar) {
-  const isMe = username === myUsername;
-  const div = document.createElement('div');
-  div.className = `message ${isMe ? 'my-message' : ''}`;
-  div.innerHTML = `
+// دالة عرض الرسالة (الرئيسية)
+function appendMessage(username, msg, avatar, isMe = false) {
+  const chatWindow = document.getElementById('chatWindow');
+  const messageDiv = document.createElement('div');
+  
+  messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
+  messageDiv.innerHTML = `
     <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}">
     <div class="message-content">
       <strong>${username}</strong>
       <p>${msg}</p>
     </div>
   `;
-  document.getElementById('chatWindow').appendChild(div);
+
+  chatWindow.appendChild(messageDiv);
   scrollToBottom();
 }
 
+// التمرير التلقائي لأسفل
 function scrollToBottom() {
-  const chat = document.getElementById('chatWindow');
-  chat.scrollTop = chat.scrollHeight;
+  const chatWindow = document.getElementById('chatWindow');
+  chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-// تحميل البروفايل والأفاتار في الهيدر
-async function loadMyAvatar() {
+// تحميل اسم المستخدم وصورته
+async function loadMyProfile() {
   try {
-    const res = await fetch('/profile', { headers: { Authorization: token } });
+    const res = await fetch('/profile', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     const user = await res.json();
     myUsername = user.username;
     if (user.avatar) {
       document.getElementById('avatar').src = user.avatar;
     }
-  } catch (e) {
-    console.error('فشل تحميل البروفايل');
+  } catch (err) {
+    console.error('فشل تحميل البروفايل:', err);
   }
 }
-loadMyAvatar();
-
-// زر خروج من الغرفة
-document.getElementById('leaveRoomBtn').addEventListener('click', () => {
-  if (confirm('هل أنت متأكد من الخروج من الغرفة؟')) {
-    document.getElementById('chatWindow').innerHTML = `
-      <div style="text-align:center; color:#aaa; padding:50px; font-size:18px;">
-        تم الخروج من الغرفة<br>
-        يمكنك اختيار غرفة أخرى من القائمة
-      </div>
-    `;
-    document.getElementById('messageForm').style.display = 'none';
-    document.getElementById('usersList').innerHTML = '';
-    document.getElementById('userCount').innerText = '0';
-  }
-});
-
-// فتح/إغلاق مودال البروفايل
-document.addEventListener('DOMContentLoaded', () => {
-  const profileBtn = document.getElementById('profileBtn');
-  const profileModal = document.getElementById('profileModal');
-  const closeProfile = document.querySelector('.close-profile');
-
-  if (profileBtn && profileModal) {
-    profileBtn.addEventListener('click', () => {
-      loadProfileModal();
-      profileModal.style.display = 'flex';
-    });
-  }
-
-  if (closeProfile) {
-    closeProfile.addEventListener('click', () => {
-      profileModal.style.display = 'none';
-    });
-  }
-
-  window.addEventListener('click', (event) => {
-    if (event.target === profileModal) {
-      profileModal.style.display = 'none';
-    }
-  });
-});
-
-// تحميل بيانات المودال (الأصدقاء + الصور + الخلفية)
-async function loadProfileModal() {
-  try {
-    const res = await fetch('/profile', { headers: { Authorization: token } });
-    const user = await res.json();
-    document.getElementById('profileUsername').textContent = user.username || 'مستخدم';
-    document.getElementById('profileAvatar').src = user.avatar || 'https://via.placeholder.com/150';
-    if (user.background) {
-      document.getElementById('profileBg').style.backgroundImage = `url(${user.background})`;
-    } else {
-      document.getElementById('profileBg').style.backgroundImage = 'none';
-      document.getElementById('profileBg').style.backgroundColor = '#222';
-    }
-    const friendsList = document.getElementById('friendsList');
-    if (user.friends && user.friends.length > 0) {
-      friendsList.innerHTML = '';
-      user.friends.forEach(friend => {
-        const p = document.createElement('p');
-        p.textContent = friend;
-        p.style.color = '#A5D6A7';
-        p.style.margin = '8px 0';
-        friendsList.appendChild(p);
-      });
-    } else {
-      friendsList.innerHTML = '<p class="no-friends">لا يوجد أصدقاء حتى الآن</p>';
-    }
-  } catch (e) {
-    console.error('خطأ في تحميل البروفايل');
-  }
-}
-
-// رفع الصورة الشخصية
-document.getElementById('avatarInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const formData = new FormData();
-  formData.append('avatar', file);
-  try {
-    const res = await fetch('/upload-avatar', {
-      method: 'POST',
-      headers: { Authorization: token },
-      body: formData
-    });
-    const data = await res.json();
-    document.getElementById('profileAvatar').src = data.avatar + '?t=' + Date.now();
-    document.getElementById('avatar').src = data.avatar + '?t=' + Date.now();
-  } catch (e) {
-    alert('فشل رفع الصورة - تأكد من السيرفر');
-  }
-});
-
-// رفع الخلفية
-document.getElementById('bgInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const formData = new FormData();
-  formData.append('background', file);
-  try {
-    const res = await fetch('/upload-background', {
-      method: 'POST',
-      headers: { Authorization: token },
-      body: formData
-    });
-    const data = await res.json();
-    document.getElementById('profileBg').style.backgroundImage = `url(${data.background}?t=${Date.now()})`;
-  } catch (e) {
-    alert('فشل رفع الخلفية - تأكد من السيرفر');
-  }
-});
-
-// تفعيل الأيقونات في الهيدر (مثال أولي)
-document.querySelectorAll('.icon-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const action = btn.dataset.action;
-    switch (action) {
-      case 'home':
-        window.location.href = 'rooms.html'; // العودة لقائمة الغرف
-        break;
-      case 'messages':
-        alert('سيتم فتح الرسائل الخاصة قريبًا');
-        break;
-      case 'requests':
-        alert('عرض طلبات الأصدقاء');
-        break;
-      case 'notifications':
-        alert('عرض الإشعارات');
-        break;
-      case 'reports':
-        alert('صفحة الإبلاغات');
-        break;
-      default:
-        console.log('Action:', action);
-    }
-  });
-});
+loadMyProfile();
