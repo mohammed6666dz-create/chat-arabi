@@ -10,9 +10,38 @@
 </head>
 <body>
   <header>
-    <h1>شات عربي</h1>
-    <div id="profileBtn">
-      <img id="avatar" src="https://via.placeholder.com/40" alt="بروفايل">
+    <div class="header-left">
+      <h1>شات عربي</h1>
+      <button id="leaveRoomBtn" class="btn-leave" title="خروج من الغرفة">
+        <i class="fas fa-sign-out-alt"></i> خروج
+      </button>
+    </div>
+
+    <div class="header-right">
+      <div class="header-icons">
+        <button class="icon-btn" title="الرئيسية" data-action="home">
+          <i class="fas fa-home"></i>
+        </button>
+        <button class="icon-btn" title="الرسائل الخاصة" data-action="messages">
+          <i class="fas fa-envelope"></i>
+          <span class="badge" id="msgBadge">0</span>
+        </button>
+        <button class="icon-btn" title="طلبات الأصدقاء" data-action="requests">
+          <i class="fas fa-user-plus"></i>
+          <span class="badge" id="requestsBadge">0</span>
+        </button>
+        <button class="icon-btn" title="الإشعارات" data-action="notifications">
+          <i class="fas fa-bell"></i>
+          <span class="badge" id="notifBadge">0</span>
+        </button>
+        <button class="icon-btn" title="الإبلاغات" data-action="reports">
+          <i class="fas fa-flag"></i>
+        </button>
+      </div>
+
+      <div id="profileBtn">
+        <img id="avatar" src="https://via.placeholder.com/40" alt="بروفايل">
+      </div>
     </div>
   </header>
 
@@ -29,20 +58,16 @@
     <button type="submit">إرسال</button>
   </form>
 
-  <!-- نافذة البروفايل (Modal) -->
+  <!-- مودال البروفايل (راجع زي ما كان) -->
   <div id="profileModal" class="profile-modal">
     <div class="profile-modal-content">
-      <span class="close-profile">&times;</span>
-
-      <!-- الخلفية -->
+      <span class="close-profile">×</span>
       <div class="profile-bg" id="profileBg">
         <label for="bgInput" class="change-bg">
           <i class="fas fa-camera"></i>
         </label>
         <input type="file" id="bgInput" accept="image/*" style="display: none;">
       </div>
-
-      <!-- الصورة الشخصية -->
       <div class="profile-avatar">
         <img src="https://via.placeholder.com/150" id="profileAvatar" alt="صورة البروفايل">
         <label for="avatarInput" class="change-avatar">
@@ -50,10 +75,7 @@
         </label>
         <input type="file" id="avatarInput" accept="image/*" style="display: none;">
       </div>
-
       <h2 id="profileUsername">جاري التحميل...</h2>
-
-      <!-- قسم الأصدقاء -->
       <div class="friends-section">
         <h3>الأصدقاء</h3>
         <div id="friendsList">
