@@ -8,9 +8,7 @@ if (!room) window.location.href = 'rooms.html';
 
 let myUsername = '';
 
-socket.emit('join', room, token);
-
-// استقبال آخر 100 رسالة
+// استقبال آخر 100 رسالة (previous messages)
 socket.on('previous messages', (messages) => {
   document.getElementById('chatWindow').innerHTML = '';
   messages.forEach(({ username, msg, avatar }) => {
@@ -60,6 +58,7 @@ document.getElementById('messageForm').onsubmit = e => {
   }
 };
 
+// عرض الرسالة (مع دعم my-message لليمين/يسار)
 function appendMessage(username, msg, avatar) {
   const isMe = username === myUsername;
   const div = document.createElement('div');
@@ -80,13 +79,15 @@ function scrollToBottom() {
   chat.scrollTop = chat.scrollHeight;
 }
 
-// تحميل البروفايل
+// تحميل البروفايل والأفاتار في الهيدر
 async function loadMyAvatar() {
   try {
     const res = await fetch('/profile', { headers: { Authorization: token } });
     const user = await res.json();
     myUsername = user.username;
-    if (user.avatar) document.getElementById('avatar').src = user.avatar;
+    if (user.avatar) {
+      document.getElementById('avatar').src = user.avatar;
+    }
   } catch (e) {
     console.error('فشل تحميل البروفايل');
   }
@@ -134,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// تحميل بيانات المودال
+// تحميل بيانات المودال (الأصدقاء + الصور + الخلفية)
 async function loadProfileModal() {
   try {
     const res = await fetch('/profile', { headers: { Authorization: token } });
@@ -181,7 +182,7 @@ document.getElementById('avatarInput').addEventListener('change', async (e) => {
     document.getElementById('profileAvatar').src = data.avatar + '?t=' + Date.now();
     document.getElementById('avatar').src = data.avatar + '?t=' + Date.now();
   } catch (e) {
-    alert('فشل رفع الصورة');
+    alert('فشل رفع الصورة - تأكد من السيرفر');
   }
 });
 
@@ -200,6 +201,32 @@ document.getElementById('bgInput').addEventListener('change', async (e) => {
     const data = await res.json();
     document.getElementById('profileBg').style.backgroundImage = `url(${data.background}?t=${Date.now()})`;
   } catch (e) {
-    alert('فشل رفع الخلفية');
+    alert('فشل رفع الخلفية - تأكد من السيرفر');
   }
+});
+
+// تفعيل الأيقونات في الهيدر (مثال أولي)
+document.querySelectorAll('.icon-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const action = btn.dataset.action;
+    switch (action) {
+      case 'home':
+        window.location.href = 'rooms.html'; // العودة لقائمة الغرف
+        break;
+      case 'messages':
+        alert('سيتم فتح الرسائل الخاصة قريبًا');
+        break;
+      case 'requests':
+        alert('عرض طلبات الأصدقاء');
+        break;
+      case 'notifications':
+        alert('عرض الإشعارات');
+        break;
+      case 'reports':
+        alert('صفحة الإبلاغات');
+        break;
+      default:
+        console.log('Action:', action);
+    }
+  });
 });
