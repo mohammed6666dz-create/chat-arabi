@@ -5,26 +5,18 @@ const io = require('socket.io')(http);
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
-const upload = multer({ dest: 'public/uploads/' });
+const upload = multer({ dest: 'uploads/' });
 const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 let users = [];
 let roomUsers = { general: [], algeria: [], all_countries: [] };
 let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
-
-// حفظ آخر 100 رسالة لكل غرفة (في الذاكرة فقط)
-let roomMessages = {
-  general: [],
-  algeria: [],
-  all_countries: []
-};
-
 const secret = 'secretkey';
 const PORT = 3000;
 
@@ -117,48 +109,25 @@ io.on('connection', socket => {
       currentRoom = room;
       socket.join(room);
       roomCounts[room]++;
-
       const user = users.find(u => u.username === username);
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
 
       roomUsers[room].push({ username, avatar });
-
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
 
-      socket.emit('previous messages', roomMessages[room] || []);
-
     } catch (e) {
-      console.log('توكن غير صالح في الـ join');
+      console.log('توكن غير صالح');
     }
   });
 
   socket.on('message', (msg, token) => {
     try {
       const decoded = jwt.verify(token, secret);
-      const senderUsername = decoded.username;
-      const user = users.find(u => u.username === senderUsername);
+      const user = users.find(u => u.username === decoded.username);
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
-
-      if (!currentRoom) return;
-
-      const messageObj = {
-        username: senderUsername,
-        msg: msg.trim(),
-        avatar: avatar,
-        timestamp: new Date().toISOString()
-      };
-
-      roomMessages[currentRoom].push(messageObj);
-      if (roomMessages[currentRoom].length > 100) {
-        roomMessages[currentRoom].shift();
-      }
-
-      io.to(currentRoom).emit('message', messageObj);
-
-    } catch (e) {
-      console.log('توكن غير صالح في الرسالة');
-    }
+      io.to(currentRoom).emit('message', { username: decoded.username, msg, avatar });
+    } catch (e) {}
   });
 
   socket.on('disconnect', () => {
@@ -171,9 +140,14 @@ io.on('connection', socket => {
   });
 });
 
+// تشغيل السيرفر مع عرض الرابط الجاهز
 http.listen(PORT, '0.0.0.0', () => {
   console.log('=====================================');
-  console.log('✅ السيرفر يعمل على port ' + PORT);
-  console.log('http://localhost:' + PORT);
+  console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
+  console.log('');
+  console.log('🚀 افتح الشات من الرابط ده مباشرة:');
+  console.log(`   http://localhost:${PORT}/index.html`);
+  console.log('');
+  console.log('   أو اضغط Ctrl + Click على الرابط فوق 👆');
   console.log('=====================================');
 });
