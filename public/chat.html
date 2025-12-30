@@ -6,10 +6,41 @@
   <title>الشات - شات عربي</title>
   <link rel="stylesheet" href="chat.css">
   <script src="/socket.io/socket.io.js"></script>
+  <style>
+    /* أنماط سريعة لزر الخروج */
+    #logoutBtn {
+      background-color: #e63946;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-left: 16px;          /* مسافة بين العنوان والزر */
+    }
+    #logoutBtn:hover {
+      background-color: #c51d34;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+    }
+  </style>
 </head>
 <body>
+
   <header>
-    <h1>شات عربي</h1>
+    <div class="header-left">
+      <h1>شات عربي</h1>
+      <button id="logoutBtn">خروج</button>
+    </div>
+    
     <div id="profileBtn">
       <img id="avatar" src="https://via.placeholder.com/40" alt="بروفايل">
     </div>
@@ -17,7 +48,6 @@
 
   <div class="chat-main">
     <div id="chatWindow"></div>
-
     <div id="usersPanel">
       <h3>المتصلون <span id="userCount">0</span></h3>
       <div id="usersList"></div>
@@ -29,8 +59,26 @@
     <button type="submit">إرسال</button>
   </form>
 
-  <!-- Modal البروفايل (نفس القديم لو عايز، أو أضفه لاحقًا) -->
-
   <script src="chat.js"></script>
+
+  <!-- كود زر الخروج -->
+  <script>
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+      // مسح بيانات تسجيل الدخول (عدّل حسب اللي تستخدمه فعليًا)
+      localStorage.removeItem('username');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('token');
+      // أو sessionStorage.clear(); إذا كنت تستخدم session
+
+      // إشعار السيرفر (اختياري)
+      if (typeof socket !== 'undefined') {
+        socket.emit('disconnect');   // أو 'userLogout' إذا عندك حدث مخصص
+      }
+
+      // الرجوع لصفحة الغرف / الدخول / الرئيسية
+      window.location.href = 'index.html';     // ← غيّرها لاسم الصفحة اللي تبي (مثل login.html أو rooms.html)
+    });
+  </script>
+
 </body>
 </html>
