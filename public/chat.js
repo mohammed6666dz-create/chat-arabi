@@ -93,7 +93,7 @@ async function loadMyAvatar() {
 }
 loadMyAvatar();
 
-// زر الخروج
+// زر خروج من الغرفة
 document.getElementById('leaveRoomBtn').addEventListener('click', () => {
   if (confirm('هل أنت متأكد من الخروج من الغرفة؟')) {
     document.getElementById('chatWindow').innerHTML = `
@@ -105,24 +105,101 @@ document.getElementById('leaveRoomBtn').addEventListener('click', () => {
     document.getElementById('messageForm').style.display = 'none';
     document.getElementById('usersList').innerHTML = '';
     document.getElementById('userCount').innerText = '0';
-    // إعادة توجيه اختياري
-    // setTimeout(() => { window.location.href = 'rooms.html'; }, 2000);
   }
 });
 
-// الأيقونات (مثال أولي - يمكن توسيعها)
-document.querySelectorAll('.icon-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const action = btn.dataset.action;
-    if (action === 'home') {
-      window.location.href = 'rooms.html';
-    } else if (action === 'private-messages') {
-      alert('سيتم فتح الدردشة الخاصة قريبًا');
-    } else {
-      alert(`تم الضغط على ${action}`);
+// فتح/إغلاق مودال البروفايل
+document.addEventListener('DOMContentLoaded', () => {
+  const profileBtn = document.getElementById('profileBtn');
+  const profileModal = document.getElementById('profileModal');
+  const closeProfile = document.querySelector('.close-profile');
+
+  if (profileBtn && profileModal) {
+    profileBtn.addEventListener('click', () => {
+      loadProfileModal();
+      profileModal.style.display = 'flex';
+    });
+  }
+
+  if (closeProfile) {
+    closeProfile.addEventListener('click', () => {
+      profileModal.style.display = 'none';
+    });
+  }
+
+  window.addEventListener('click', (event) => {
+    if (event.target === profileModal) {
+      profileModal.style.display = 'none';
     }
   });
 });
 
-// باقي الكود (البروفايل، رفع الصور، إلخ) كما هو عندك...
-// ... (انسخ باقي الجزء الخاص بالـ modal ورفع الصور من الكود اللي بعته)
+// تحميل بيانات المودال
+async function loadProfileModal() {
+  try {
+    const res = await fetch('/profile', { headers: { Authorization: token } });
+    const user = await res.json();
+    document.getElementById('profileUsername').textContent = user.username || 'مستخدم';
+    document.getElementById('profileAvatar').src = user.avatar || 'https://via.placeholder.com/150';
+    if (user.background) {
+      document.getElementById('profileBg').style.backgroundImage = `url(${user.background})`;
+    } else {
+      document.getElementById('profileBg').style.backgroundImage = 'none';
+      document.getElementById('profileBg').style.backgroundColor = '#222';
+    }
+    const friendsList = document.getElementById('friendsList');
+    if (user.friends && user.friends.length > 0) {
+      friendsList.innerHTML = '';
+      user.friends.forEach(friend => {
+        const p = document.createElement('p');
+        p.textContent = friend;
+        p.style.color = '#A5D6A7';
+        p.style.margin = '8px 0';
+        friendsList.appendChild(p);
+      });
+    } else {
+      friendsList.innerHTML = '<p class="no-friends">لا يوجد أصدقاء حتى الآن</p>';
+    }
+  } catch (e) {
+    console.error('خطأ في تحميل البروفايل');
+  }
+}
+
+// رفع الصورة الشخصية
+document.getElementById('avatarInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('avatar', file);
+  try {
+    const res = await fetch('/upload-avatar', {
+      method: 'POST',
+      headers: { Authorization: token },
+      body: formData
+    });
+    const data = await res.json();
+    document.getElementById('profileAvatar').src = data.avatar + '?t=' + Date.now();
+    document.getElementById('avatar').src = data.avatar + '?t=' + Date.now();
+  } catch (e) {
+    alert('فشل رفع الصورة');
+  }
+});
+
+// رفع الخلفية
+document.getElementById('bgInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('background', file);
+  try {
+    const res = await fetch('/upload-background', {
+      method: 'POST',
+      headers: { Authorization: token },
+      body: formData
+    });
+    const data = await res.json();
+    document.getElementById('profileBg').style.backgroundImage = `url(${data.background}?t=${Date.now()})`;
+  } catch (e) {
+    alert('فشل رفع الخلفية');
+  }
+});
