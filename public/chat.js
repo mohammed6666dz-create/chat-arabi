@@ -16,6 +16,7 @@ socket.on('previous messages', (messages) => {
   messages.forEach(({ username, msg, avatar }) => {
     appendMessage(username, msg, avatar);
   });
+  scrollToBottom();
 });
 
 // تحديث المتصلين
@@ -27,7 +28,7 @@ socket.on('update users', users => {
     const div = document.createElement('div');
     div.className = 'user-item';
     div.innerHTML = `
-      <img src="${user.avatar}" alt="${user.username}">
+      <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
       <span>${user.username}</span>
     `;
     list.appendChild(div);
@@ -62,10 +63,9 @@ document.getElementById('messageForm').onsubmit = e => {
 function appendMessage(username, msg, avatar) {
   const isMe = username === myUsername;
   const div = document.createElement('div');
-  div.className = 'message';
-  if (isMe) div.classList.add('my-message');
+  div.className = `message ${isMe ? 'my-message' : ''}`;
   div.innerHTML = `
-    <img src="${avatar}" alt="${username}">
+    <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}">
     <div class="message-content">
       <strong>${username}</strong>
       <p>${msg}</p>
@@ -80,124 +80,49 @@ function scrollToBottom() {
   chat.scrollTop = chat.scrollHeight;
 }
 
-// تحميل الأفاتار في الهيدر
+// تحميل البروفايل
 async function loadMyAvatar() {
   try {
     const res = await fetch('/profile', { headers: { Authorization: token } });
     const user = await res.json();
     myUsername = user.username;
-    if (user.avatar) {
-      document.getElementById('avatar').src = user.avatar;
-    }
+    if (user.avatar) document.getElementById('avatar').src = user.avatar;
   } catch (e) {
     console.error('فشل تحميل البروفايل');
   }
 }
 loadMyAvatar();
 
-// فتح نافذة البروفايل - مضمون 100%
-document.addEventListener('DOMContentLoaded', () => {
-  const profileBtn = document.getElementById('profileBtn');
-  const profileModal = document.getElementById('profileModal');
-  const closeProfile = document.querySelector('.close-profile');
-
-  if (profileBtn && profileModal) {
-    profileBtn.style.cursor = 'pointer';
-    profileBtn.addEventListener('click', () => {
-      loadProfileModal();
-      profileModal.style.display = 'flex';
-    });
+// زر الخروج
+document.getElementById('leaveRoomBtn').addEventListener('click', () => {
+  if (confirm('هل أنت متأكد من الخروج من الغرفة؟')) {
+    document.getElementById('chatWindow').innerHTML = `
+      <div style="text-align:center; color:#aaa; padding:50px; font-size:18px;">
+        تم الخروج من الغرفة<br>
+        يمكنك اختيار غرفة أخرى من القائمة
+      </div>
+    `;
+    document.getElementById('messageForm').style.display = 'none';
+    document.getElementById('usersList').innerHTML = '';
+    document.getElementById('userCount').innerText = '0';
+    // إعادة توجيه اختياري
+    // setTimeout(() => { window.location.href = 'rooms.html'; }, 2000);
   }
+});
 
-  if (closeProfile) {
-    closeProfile.addEventListener('click', () => {
-      profileModal.style.display = 'none';
-    });
-  }
-
-  window.addEventListener('click', (event) => {
-    if (event.target === profileModal) {
-      profileModal.style.display = 'none';
+// الأيقونات (مثال أولي - يمكن توسيعها)
+document.querySelectorAll('.icon-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const action = btn.dataset.action;
+    if (action === 'home') {
+      window.location.href = 'rooms.html';
+    } else if (action === 'private-messages') {
+      alert('سيتم فتح الدردشة الخاصة قريبًا');
+    } else {
+      alert(`تم الضغط على ${action}`);
     }
   });
 });
 
-// تحميل بيانات البروفايل
-async function loadProfileModal() {
-  try {
-    const res = await fetch('/profile', { headers: { Authorization: token } });
-    const user = await res.json();
-
-    document.getElementById('profileUsername').textContent = user.username || 'مستخدم';
-    document.getElementById('profileAvatar').src = user.avatar || 'https://via.placeholder.com/150';
-
-    if (user.background) {
-      document.getElementById('profileBg').style.backgroundImage = `url(${user.background})`;
-    } else {
-      document.getElementById('profileBg').style.backgroundImage = 'none';
-      document.getElementById('profileBg').style.backgroundColor = '#222';
-    }
-
-    const friendsList = document.getElementById('friendsList');
-    if (user.friends && user.friends.length > 0) {
-      friendsList.innerHTML = '';
-      user.friends.forEach(friend => {
-        const p = document.createElement('p');
-        p.textContent = friend;
-        p.style.color = '#A5D6A7';
-        p.style.margin = '8px 0';
-        friendsList.appendChild(p);
-      });
-    } else {
-      friendsList.innerHTML = '<p class="no-friends">لا يوجد أصدقاء حتى الآن</p>';
-    }
-
-  } catch (e) {
-    console.error('خطأ في تحميل البروفايل');
-  }
-}
-
-// رفع الصورة الشخصية
-document.getElementById('avatarInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append('avatar', file);
-
-  try {
-    const res = await fetch('/upload-avatar', {
-      method: 'POST',
-      headers: { Authorization: token },
-      body: formData
-    });
-
-    const data = await res.json();
-    document.getElementById('profileAvatar').src = data.avatar + '?t=' + Date.now();
-    document.getElementById('avatar').src = data.avatar + '?t=' + Date.now();
-  } catch (e) {
-    alert('فشل رفع الصورة - تأكد من السيرفر');
-  }
-});
-
-// رفع الخلفية
-document.getElementById('bgInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append('background', file);
-
-  try {
-    const res = await fetch('/upload-background', {
-      method: 'POST',
-      headers: { Authorization: token },
-      body: formData
-    });
-
-    const data = await res.json();
-    document.getElementById('profileBg').style.backgroundImage = `url(${data.background}?t=${Date.now()})`;
-  } catch (e) {
-    alert('فشل رفع الخلفية - تأكد من السيرفر');
-  }
-});
+// باقي الكود (البروفايل، رفع الصور، إلخ) كما هو عندك...
+// ... (انسخ باقي الجزء الخاص بالـ modal ورفع الصور من الكود اللي بعته)
