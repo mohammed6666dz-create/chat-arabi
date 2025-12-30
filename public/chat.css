@@ -1,9 +1,4 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: 'Segoe UI', Tahoma, sans-serif;
   background: #0b141a;
@@ -14,119 +9,36 @@ body {
   overflow: hidden;
 }
 
-/* ================== الهيدر المحدث ================== */
 header {
-  background: linear-gradient(90deg, #075e54 0%, #128c7e 100%);
+  background: #075e54;
   color: white;
-  padding: 10px 16px;
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 3px 12px rgba(7,94,84,0.4);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   z-index: 10;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.header-left h1 {
-  font-size: 18px;              /* صغرناه كما طلبت */
-  font-weight: 500;
-  margin: 0;
-  color: #e0f7fa;
-}
-
-.btn-leave {
-  background: rgba(231, 76, 60, 0.9);
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.25s;
-}
-
-.btn-leave:hover {
-  background: #c0392b;
-  transform: translateY(-1px);
-}
-
-.btn-leave i {
-  font-size: 1.1rem;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-icons {
-  display: flex;
-  gap: 8px;
-}
-
-.icon-btn {
-  background: rgba(255,255,255,0.15);
-  color: white;
-  border: none;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  font-size: 1.1rem;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s;
-}
-
-.icon-btn:hover {
-  background: rgba(255,255,255,0.3);
-  transform: scale(1.1);
-}
-
-.icon-btn .badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: #ff3b30;
-  color: white;
-  font-size: 10px;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(255,59,48,0.6);
+header h1 {
+  font-size: 20px;
+  font-weight: 400;
 }
 
 #profileBtn img {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.9);
+  border: 2px solid #fff;
   cursor: pointer;
-  transition: transform 0.2s;
 }
 
-#profileBtn img:hover {
-  transform: scale(1.08);
-}
-
-/* ================== الشات الرئيسي ================== */
 .chat-main {
   flex: 1;
   display: flex;
   background: url('https://i.pinimg.com/originals/96/f1/64/96f164103b1e1103f145d2b9c9992f4a.gif') center/cover no-repeat;
   position: relative;
-  min-height: 0;
+  min-height: 0; 
 }
 
 .chat-main::before {
@@ -146,41 +58,28 @@ header {
   flex-direction: column;
   gap: 12px;
   position: relative;
-  scrollbar-width: thin;
-  scrollbar-color: #075e54 rgba(11,20,26,0.5);
 }
 
-#chatWindow::-webkit-scrollbar {
-  width: 6px;
+#emptyChatMessage {
+  text-align: center;
+  color: #fff;
+  opacity: 0.8;
+  font-size: 18px;
+  margin: auto;
 }
 
-#chatWindow::-webkit-scrollbar-track {
-  background: rgba(11,20,26,0.5);
+#emptyChatMessage span {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 20px;
 }
 
-#chatWindow::-webkit-scrollbar-thumb {
-  background: #075e54;
-  border-radius: 10px;
-}
-
-/* الرسائل */
 .message {
   display: flex;
   align-items: flex-end;
   gap: 8px;
   max-width: 70%;
   align-self: flex-start;
-}
-
-.my-message {
-  align-self: flex-end;
-  flex-direction: row-reverse;
-}
-
-.my-message .message-content {
-  background: #075e54 !important;
-  border-bottom-left-radius: 18px !important;
-  border-bottom-right-radius: 4px !important;
 }
 
 .message img {
@@ -211,6 +110,16 @@ header {
   font-size: 15px;
 }
 
+.my-message {
+  align-self: flex-end;
+}
+
+.my-message .message-content {
+  background: #075e54;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 4px;
+}
+
 .system-message {
   align-self: center;
   background: rgba(255,255,255,0.15);
@@ -221,7 +130,6 @@ header {
   backdrop-filter: blur(5px);
 }
 
-/* لوحة المتصلين */
 #usersPanel {
   flex: 1;
   background: rgba(7,13,18,0.9);
@@ -263,7 +171,6 @@ header {
   font-size: 15px;
 }
 
-/* نموذج الإرسال */
 #messageForm {
   display: flex;
   padding: 10px 16px;
@@ -295,143 +202,4 @@ header {
   border-radius: 50%;
   cursor: pointer;
   font-size: 20px;
-}
-
-/* ================== مودال البروفايل (راجع تمامًا كما كان) ================== */
-.profile-modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.9);
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 0.4s ease;
-}
-
-.profile-modal-content {
-  background: #0b141a;
-  border-radius: 25px;
-  width: 90%;
-  max-width: 460px;
-  padding: 30px;
-  text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-  border: 2px solid #075e54;
-  position: relative;
-}
-
-.close-profile {
-  position: absolute;
-  top: 15px;
-  left: 20px;
-  font-size: 32px;
-  color: #aaa;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.close-profile:hover {
-  color: #fff;
-}
-
-.profile-bg {
-  height: 200px;
-  background: #222 center/cover no-repeat;
-  border-radius: 22px;
-  margin-bottom: 20px;
-  position: relative;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-}
-
-.change-bg {
-  position: absolute;
-  bottom: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(7, 94, 84, 0.9);
-  padding: 12px 30px;
-  border-radius: 50px;
-  cursor: pointer;
-  font-size: 16px;
-  color: white;
-  font-weight: bold;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-  transition: 0.3s;
-}
-
-.change-bg:hover {
-  background: #075e54;
-  transform: translateX(-50%) scale(1.05);
-}
-
-.profile-avatar {
-  width: 160px;
-  height: 160px;
-  margin: -80px auto 0;
-  position: relative;
-  z-index: 2;
-}
-
-#profileAvatar {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 6px solid #075e54;
-  object-fit: cover;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-}
-
-.change-avatar {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background: #075e54;
-  padding: 14px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 20px;
-  color: white;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-  transition: 0.3s;
-}
-
-.change-avatar:hover {
-  transform: scale(1.15);
-}
-
-#profileUsername {
-  margin: 20px 0;
-  font-size: 30px;
-  color: #fff;
-  font-weight: bold;
-  text-shadow: 0 0 15px rgba(7, 94, 84, 0.8);
-}
-
-.friends-section {
-  margin-top: 30px;
-  background: rgba(7, 13, 18, 0.9);
-  padding: 25px;
-  border-radius: 18px;
-  border: 1px solid rgba(7, 94, 84, 0.5);
-}
-
-.friends-section h3 {
-  color: #075e54;
-  margin-bottom: 20px;
-  font-size: 20px;
-}
-
-.no-friends {
-  color: #aaa;
-  font-size: 18px;
-  font-style: italic;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
 }
