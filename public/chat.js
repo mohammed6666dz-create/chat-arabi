@@ -1,7 +1,9 @@
-=const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 if (!token) window.location.href = 'index.html';
 
-const socket = io();
+// تأكد من الاتصال بالسيرفر
+const socket = io('http://localhost:3000'); // أو غير الرابط لو السيرفر على عنوان تاني
+
 const params = new URLSearchParams(window.location.search);
 const room = params.get('room');
 if (!room) window.location.href = 'rooms.html';
@@ -10,7 +12,7 @@ let myUsername = '';
 
 socket.emit('join', room, token);
 
-// استقبال آخر 100 رسالة عند الدخول
+// استقبال آخر 100 رسالة
 socket.on('previous messages', (messages) => {
   document.getElementById('chatWindow').innerHTML = '';
   messages.forEach(({ username, msg, avatar }) => {
@@ -19,7 +21,7 @@ socket.on('previous messages', (messages) => {
   scrollToBottom();
 });
 
-// تحديث المتصلين في الغرفة
+// تحديث المتصلين
 socket.on('update users', (users) => {
   document.getElementById('userCount').innerText = users.length;
   const list = document.getElementById('usersList');
@@ -41,7 +43,7 @@ socket.on('message', ({ username, msg, avatar }) => {
 });
 
 // رسالة نظام (انضمام / خروج)
-socket.on('system message', msg => {
+socket.on('system message', (msg) => {
   const div = document.createElement('div');
   div.className = 'system-message';
   div.textContent = msg;
@@ -49,18 +51,17 @@ socket.on('system message', msg => {
   scrollToBottom();
 });
 
-// إرسال رسالة
-document.getElementById('messageForm').onsubmit = e => {
-  e.preventDefault();
+// إرسال رسالة (حل مشكلة الـ reload)
+document.getElementById('messageForm').addEventListener('submit', (e) => {
+  e.preventDefault(); // ده اللي يمنع reload الصفحة
   const input = document.getElementById('messageInput');
   const msg = input.value.trim();
   if (msg) {
     socket.emit('message', msg, token);
     input.value = '';
   }
-};
+});
 
-// عرض الرسالة مع الصورة والاسم
 function appendMessage(username, msg, avatar) {
   const isMe = username === myUsername;
   const div = document.createElement('div');
@@ -96,108 +97,3 @@ async function loadMyAvatar() {
   }
 }
 loadMyAvatar();
-
-// فتح نافذة البروفايل
-document.addEventListener('DOMContentLoaded', () => {
-  const profileBtn = document.getElementById('profileBtn');
-  const profileModal = document.getElementById('profileModal');
-  const closeProfile = document.querySelector('.close-profile');
-
-  if (profileBtn && profileModal) {
-    profileBtn.addEventListener('click', () => {
-      loadProfileModal();
-      profileModal.style.display = 'flex';
-    });
-  }
-
-  if (closeProfile) {
-    closeProfile.addEventListener('click', () => {
-      profileModal.style.display = 'none';
-    });
-  }
-
-  window.addEventListener('click', (event) => {
-    if (event.target === profileModal) {
-      profileModal.style.display = 'none';
-    }
-  });
-});
-
-// تحميل بيانات البروفايل في النافذة
-async function loadProfileModal() {
-  try {
-    const res = await fetch('/profile', { headers: { Authorization: token } });
-    const user = await res.json();
-
-    document.getElementById('profileUsername').textContent = user.username || 'مستخدم';
-    document.getElementById('profileAvatar').src = user.avatar || 'https://via.placeholder.com/150';
-
-    if (user.background) {
-      document.getElementById('profileBg').style.backgroundImage = `url(${user.background})`;
-    } else {
-      document.getElementById('profileBg').style.backgroundImage = 'none';
-      document.getElementById('profileBg').style.backgroundColor = '#222';
-    }
-
-    const friendsList = document.getElementById('friendsList');
-    if (user.friends && user.friends.length > 0) {
-      friendsList.innerHTML = '';
-      user.friends.forEach(friend => {
-        const p = document.createElement('p');
-        p.textContent = friend;
-        p.style.color = '#A5D6A7';
-        p.style.margin = '8px 0';
-        friendsList.appendChild(p);
-      });
-    } else {
-      friendsList.innerHTML = '<p class="no-friends">لا يوجد أصدقاء حتى الآن</p>';
-    }
-  } catch (e) {
-    console.error('خطأ في تحميل البروفايل');
-  }
-}
-
-// رفع الصورة الشخصية
-document.getElementById('avatarInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append('avatar', file);
-
-  try {
-    const res = await fetch('/upload-avatar', {
-      method: 'POST',
-      headers: { Authorization: token },
-      body: formData
-    });
-
-    const data = await res.json();
-    document.getElementById('profileAvatar').src = data.avatar + '?t=' + Date.now();
-    document.getElementById('avatar').src = data.avatar + '?t=' + Date.now();
-  } catch (e) {
-    alert('فشل رفع الصورة - تأكد من السيرفر');
-  }
-});
-
-// رفع الخلفية
-document.getElementById('bgInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append('background', file);
-
-  try {
-    const res = await fetch('/upload-background', {
-      method: 'POST',
-      headers: { Authorization: token },
-      body: formData
-    });
-
-    const data = await res.json();
-    document.getElementById('profileBg').style.backgroundImage = `url(${data.background}?t=${Date.now()})`;
-  } catch (e) {
-    alert('فشل رفع الخلفية - تأكد من السيرفر');
-  }
-});
