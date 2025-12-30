@@ -1,7 +1,21 @@
 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 if (!token) window.location.href = 'index.html';
 
-const socket = io('http://localhost:3000');
+// اتصال صريح بالسيرفر + تصحيح
+const socket = io('http://localhost:3000', {
+  transports: ['websocket'], // نجبره على websocket عشان يتجنب مشاكل الـ polling
+  reconnection: true,
+  reconnectionAttempts: 5
+});
+
+// تصحيح الاتصال
+socket.on('connect', () => {
+  console.log('اتصلت بالسيرفر بنجاح! Socket ID:', socket.id);
+});
+
+socket.on('connect_error', (err) => {
+  console.error('مشكلة اتصال بالسيرفر:', err.message);
+});
 
 const params = new URLSearchParams(window.location.search);
 const room = params.get('room');
@@ -13,6 +27,7 @@ socket.emit('join', room, token);
 
 // آخر 100 رسالة
 socket.on('previous messages', (messages) => {
+  console.log('وصلت آخر الرسائل:', messages.length);
   document.getElementById('chatWindow').innerHTML = '';
   messages.forEach(m => appendMessage(m.username, m.msg, m.avatar));
   scrollToBottom();
@@ -20,6 +35,7 @@ socket.on('previous messages', (messages) => {
 
 // المتصلين
 socket.on('update users', (users) => {
+  console.log('تحديث المتصلين:', users.length);
   document.getElementById('userCount').innerText = users.length;
   const list = document.getElementById('usersList');
   list.innerHTML = '';
@@ -36,11 +52,13 @@ socket.on('update users', (users) => {
 
 // رسالة جديدة
 socket.on('message', (data) => {
+  console.log('رسالة جديدة وصلت:', data);
   appendMessage(data.username, data.msg, data.avatar);
 });
 
 // رسالة نظام
 socket.on('system message', (msg) => {
+  console.log('رسالة نظام:', msg);
   const div = document.createElement('div');
   div.className = 'system-message';
   div.textContent = msg;
@@ -48,12 +66,13 @@ socket.on('system message', (msg) => {
   scrollToBottom();
 });
 
-// إرسال
+// إرسال رسالة (مع منع reload)
 document.getElementById('messageForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const input = document.getElementById('messageInput');
   const msg = input.value.trim();
   if (msg) {
+    console.log('بأرسل رسالة:', msg);
     socket.emit('message', msg, token);
     input.value = '';
   }
@@ -91,98 +110,3 @@ async function loadMyAvatar() {
   }
 }
 loadMyAvatar();
-
-// فتح نافذة البروفايل
-document.addEventListener('DOMContentLoaded', () => {
-  const profileBtn = document.getElementById('profileBtn');
-  const profileModal = document.getElementById('profileModal');
-  const closeProfile = document.querySelector('.close-profile');
-
-  if (profileBtn && profileModal) {
-    profileBtn.addEventListener('click', () => {
-      loadProfileModal();
-      profileModal.style.display = 'flex';
-    });
-  }
-
-  if (closeProfile) {
-    closeProfile.addEventListener('click', () => profileModal.style.display = 'none');
-  }
-
-  window.addEventListener('click', e => {
-    if (e.target === profileModal) profileModal.style.display = 'none';
-  });
-});
-
-async function loadProfileModal() {
-  try {
-    const res = await fetch('/profile', { headers: { Authorization: token } });
-    const user = await res.json();
-
-    document.getElementById('profileUsername').textContent = user.username || 'مستخدم';
-    document.getElementById('profileAvatar').src = user.avatar || 'https://via.placeholder.com/150';
-
-    if (user.background) {
-      document.getElementById('profileBg').style.backgroundImage = `url(${user.background})`;
-    } else {
-      document.getElementById('profileBg').style.backgroundColor = '#222';
-    }
-
-    const friendsList = document.getElementById('friendsList');
-    if (user.friends && user.friends.length > 0) {
-      friendsList.innerHTML = '';
-      user.friends.forEach(f => {
-        const p = document.createElement('p');
-        p.textContent = f;
-        friendsList.appendChild(p);
-      });
-    } else {
-      friendsList.innerHTML = '<p class="no-friends">لا يوجد أصدقاء حتى الآن</p>';
-    }
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-// رفع الصورة
-document.getElementById('avatarInput').addEventListener('change', async e => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append('avatar', file);
-
-  try {
-    const res = await fetch('/upload-avatar', {
-      method: 'POST',
-      headers: { Authorization: token },
-      body: formData
-    });
-    const data = await res.json();
-    document.getElementById('profileAvatar').src = data.avatar + '?t=' + Date.now();
-    document.getElementById('avatar').src = data.avatar + '?t=' + Date.now();
-  } catch (e) {
-    alert('فشل رفع الصورة');
-  }
-});
-
-// رفع الخلفية
-document.getElementById('bgInput').addEventListener('change', async e => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append('background', file);
-
-  try {
-    const res = await fetch('/upload-background', {
-      method: 'POST',
-      headers: { Authorization: token },
-      body: formData
-    });
-    const data = await res.json();
-    document.getElementById('profileBg').style.backgroundImage = `url(${data.background}?t=${Date.now()})`;
-  } catch (e) {
-    alert('فشل رفع الخلفية');
-  }
-});
