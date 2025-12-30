@@ -9,60 +9,83 @@ const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
 
-// إعداد مجلد الرفع
+// إعدادات الملفات والمجلدات
 const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
 const upload = multer({ dest: uploadDir });
 
+// Middleware
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(uploadDir));
 
-const secret = 'your_secret_key_change_this_please'; // غيّرها لشيء أقوى
+// تخزين البيانات (في الذاكرة + ملف json)
+let users = [];
+const secret = 'secretkey'; // يُفضل تغييره إلى قيمة أكثر أماناً في الإنتاج
 const PORT = 3000;
 
-// هيكلة الغرف الأصلية
-let roomUsers = {
+// الغرف المتاحة
+const roomUsers = {
     general: [],
     algeria: [],
     all_countries: []
 };
 
-let roomCounts = {
+const roomCounts = {
     general: 0,
     algeria: 0,
     all_countries: 0
 };
 
-let roomMessages = {
+const roomMessages = {
     general: [],
     algeria: [],
     all_countries: []
 };
 
-let users = [];
-
+// قراءة المستخدمين من الملف عند بدء التشغيل
 function loadUsers() {
     if (fs.existsSync('users.json')) {
-        users = JSON.parse(fs.readFileSync('users.json', 'utf8'));
+        try {
+            users = JSON.parse(fs.readFileSync('users.json', 'utf8'));
+        } catch (error) {
+            console.error('خطأ في قراءة users.json:', error);
+            users = [];
+        }
     }
 }
-loadUsers();
 
 function saveUsers() {
-    fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
+    try {
+        fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
+    } catch (error) {
+        console.error('خطأ في حفظ users.json:', error);
+    }
 }
 
-// Register
+loadUsers();
+
+// ======================
+//        Routes
+// ======================
+
+// تسجيل مستخدم جديد
 app.post('/register', (req, res) => {
     const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({ msg: 'يجب إدخال اسم المستخدم وكلمة المرور' });
+    }
+
     if (users.find(u => u.username === username)) {
-        return res.status(400).json({ msg: 'اسم المستخدم موجود مسبقاً' });
+        return res.status(400).json({ msg: 'المستخدم موجود مسبقاً' });
     }
 
     const passwordHash = bcrypt.hashSync(password, 10);
+    
     const newUser = {
-        id: Date.now().toString(),
         username,
         passwordHash,
         avatar: '',
@@ -72,146 +95,178 @@ app.post('/register', (req, res) => {
 
     users.push(newUser);
     saveUsers();
+
     res.json({ msg: 'تم التسجيل بنجاح' });
 });
 
-// Login
+// تسجيل الدخول
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    const user = users.find(u => u.username === username);
 
+    const user = users.find(u => u.username === username);
+    
     if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
         return res.status(400).json({ msg: 'بيانات خاطئة' });
     }
 
-    const token = jwt.sign({ id: user.id, username }, secret, { expiresIn: '7d' });
+    const token = jwt.sign({ username }, secret, { expiresIn: '7d' });
     res.json({ token });
 });
 
+// التحقق من التوكن (middleware)
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ msg: 'Token مطلوب' });
+    if (!authHeader) {
+        return res.status(401).json({ msg: 'لا يوجد توكن' });
+    }
 
-    const token = authHeader.split(' ')[1];
-    if (!token) return res.status(401).json({ msg: 'Token غير صالح' });
+    // دعم صيغتين: Bearer token أو token فقط
+    const token = authHeader.startsWith('Bearer ') 
+        ? authHeader.split(' ')[1] 
+        : authHeader;
 
     try {
         const decoded = jwt.verify(token, secret);
         req.user = decoded;
         next();
-    } catch (err) {
-        res.status(401).json({ msg: 'Token غير صالح' });
+    } catch (e) {
+        res.status(401).json({ msg: 'توكن غير صالح' });
     }
 };
 
-// Profile
+// عرض بيانات الملف الشخصي
 app.get('/profile', verifyToken, (req, res) => {
-    const user = users.find(u => u.id === req.user.id);
-    if (!user) return res.status(404).json({ msg: 'المستخدم غير موجود' });
-
-    res.json({
-        id: user.id,
-        username: user.username,
-        avatar: user.avatar,
-        background: user.background,
-        friends: user.friends
-    });
+    const user = users.find(u => u.username === req.user.username);
+    if (!user) {
+        return res.status(404).json({ msg: 'المستخدم غير موجود' });
+    }
+    res.json(user);
 });
 
-// رفع الصور
+// رفع صورة الملف الشخصي
 app.post('/upload-avatar', verifyToken, upload.single('avatar'), (req, res) => {
-    const user = users.find(u => u.id === req.user.id);
-    if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع ملف' });
+    const user = users.find(u => u.username === req.user.username);
+    
+    if (!req.file) {
+        return res.status(400).json({ msg: 'فشل في رفع الصورة: لم يتم استلام الملف' });
+    }
+
     user.avatar = '/uploads/' + req.file.filename;
     saveUsers();
     res.json({ avatar: user.avatar });
 });
 
+// رفع صورة الخلفية
 app.post('/upload-background', verifyToken, upload.single('background'), (req, res) => {
-    const user = users.find(u => u.id === req.user.id);
-    if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع ملف' });
+    const user = users.find(u => u.username === req.user.username);
+    
+    if (!req.file) {
+        return res.status(400).json({ msg: 'فشل في رفع الصورة: لم يتم استلام الملف' });
+    }
+
     user.background = '/uploads/' + req.file.filename;
     saveUsers();
     res.json({ background: user.background });
 });
 
-// Socket.io
+// عدد المستخدمين في كل غرفة (اختياري)
+app.get('/room-counts', (req, res) => {
+    res.json(roomCounts);
+});
+
+// ======================
+//       Socket.io
+// ======================
+
 io.on('connection', socket => {
     let currentRoom = null;
-    let currentUser = null;
+    let username = null;
 
+    // الانضمام إلى غرفة
     socket.on('join', (room, token) => {
         try {
             const decoded = jwt.verify(token, secret);
-            currentUser = { id: decoded.id, username: decoded.username };
+            username = decoded.username;
 
-            // خروج من الغرفة السابقة إن وجدت
-            if (currentRoom && roomUsers[currentRoom]) {
+            // الخروج من الغرفة السابقة إن وجدت
+            if (currentRoom) {
                 socket.leave(currentRoom);
                 roomCounts[currentRoom]--;
-                roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.id !== currentUser.id);
+                roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
                 io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
-                io.to(currentRoom).emit('system message', `${currentUser.username} غادر الغرفة`);
+                io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
             }
 
-            // الانضمام للغرفة الجديدة
             currentRoom = room;
             socket.join(room);
 
-            if (!roomUsers[room]) roomUsers[room] = [];
-            if (!roomCounts[room]) roomCounts[room] = 0;
-
             roomCounts[room]++;
-            const userData = {
-                id: currentUser.id,
-                username: currentUser.username,
-                avatar: users.find(u => u.id === currentUser.id)?.avatar || 'https://via.placeholder.com/40'
-            };
+            const user = users.find(u => u.username === username);
+            const avatar = user?.avatar || 'https://via.placeholder.com/40';
 
-            roomUsers[room].push(userData);
+            roomUsers[room].push({ username, avatar });
 
             io.to(room).emit('update users', roomUsers[room]);
-            io.to(room).emit('system message', `${currentUser.username} انضم إلى الغرفة`);
+            io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
+
+            // إرسال آخر الرسائل
             socket.emit('previous messages', roomMessages[room] || []);
 
-        } catch (err) {
+        } catch (e) {
+            console.log('توكن غير صالح في الـ join:', e.message);
             socket.emit('error', 'توكن غير صالح');
         }
     });
 
-    socket.on('message', (msg) => {
-        if (!currentRoom || !currentUser) return;
+    // إرسال رسالة
+    socket.on('message', (msg, token) => {
+        try {
+            const decoded = jwt.verify(token, secret);
+            const senderUsername = decoded.username;
 
-        const user = users.find(u => u.id === currentUser.id);
-        const avatar = user?.avatar || 'https://via.placeholder.com/40';
+            if (!currentRoom) return;
 
-        const messageObj = {
-            username: currentUser.username,
-            msg: msg.trim(),
-            avatar,
-            timestamp: new Date().toISOString()
-        };
+            const user = users.find(u => u.username === senderUsername);
+            const avatar = user?.avatar || 'https://via.placeholder.com/40';
 
-        if (!roomMessages[currentRoom]) roomMessages[currentRoom] = [];
-        roomMessages[currentRoom].push(messageObj);
-        if (roomMessages[currentRoom].length > 100) roomMessages[currentRoom].shift();
+            const messageObj = {
+                username: senderUsername,
+                msg: msg.trim(),
+                avatar,
+                timestamp: new Date().toISOString()
+            };
 
-        io.to(currentRoom).emit('message', messageObj);
+            roomMessages[currentRoom].push(messageObj);
+
+            // الحفاظ على آخر 100 رسالة فقط
+            if (roomMessages[currentRoom].length > 100) {
+                roomMessages[currentRoom].shift();
+            }
+
+            io.to(currentRoom).emit('message', messageObj);
+
+        } catch (e) {
+            console.log('توكن غير صالح في الرسالة:', e.message);
+        }
     });
 
+    // عند قطع الاتصال
     socket.on('disconnect', () => {
-        if (currentRoom && currentUser && roomUsers[currentRoom]) {
+        if (currentRoom && username) {
             roomCounts[currentRoom]--;
-            roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.id !== currentUser.id);
+            roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
+            
             io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
-            io.to(currentRoom).emit('system message', `${currentUser.username} غادر الغرفة`);
+            io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
         }
     });
 });
 
+// تشغيل السيرفر
 http.listen(PORT, '0.0.0.0', () => {
     console.log('=====================================');
-    console.log(`السيرفر يعمل على المنفذ: ${PORT}`);
-    console.log('الغرف المتاحة: general, algeria, all_countries');
+    console.log('✅ السيرفر يعمل بنجاح على المنفذ:', PORT);
+    console.log('   الرابط: http://localhost:' + PORT);
+    console.log('   الغرف المتاحة: general, algeria, all_countries');
     console.log('=====================================');
 });
