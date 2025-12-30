@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>الشات - شات عربي</title>
   <link rel="stylesheet" href="chat.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
@@ -18,6 +17,7 @@
 
   <div class="chat-main">
     <div id="chatWindow"></div>
+
     <div id="usersPanel">
       <h3>المتصلون <span id="userCount">0</span></h3>
       <div id="usersList"></div>
@@ -29,36 +29,7 @@
     <button type="submit">إرسال</button>
   </form>
 
-  <!-- نافذة البروفايل (Modal) -->
-  <div id="profileModal" class="profile-modal">
-    <div class="profile-modal-content">
-      <span class="close-profile">&times;</span>
-
-      <div class="profile-bg" id="profileBg">
-        <label for="bgInput" class="change-bg">
-          <i class="fas fa-camera"></i>
-        </label>
-        <input type="file" id="bgInput" accept="image/*" style="display: none;">
-      </div>
-
-      <div class="profile-avatar">
-        <img src="https://via.placeholder.com/150" id="profileAvatar" alt="صورة البروفايل">
-        <label for="avatarInput" class="change-avatar">
-          <i class="fas fa-camera"></i>
-        </label>
-        <input type="file" id="avatarInput" accept="image/*" style="display: none;">
-      </div>
-
-      <h2 id="profileUsername">جاري التحميل...</h2>
-
-      <div class="friends-section">
-        <h3>الأصدقاء</h3>
-        <div id="friendsList">
-          <p class="no-friends">لا يوجد أصدقاء حتى الآن</p>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Modal البروفايل (نفس القديم لو عايز، أو أضفه لاحقًا) -->
 
   <script src="chat.js"></script>
 </body>
