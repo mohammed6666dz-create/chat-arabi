@@ -20,10 +20,38 @@ header {
   z-index: 10;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
 header h1 {
   font-size: 22px;
   font-weight: 500;
   margin: 0;
+}
+
+.header-icons {
+  display: flex;
+  gap: 12px;
+}
+
+.icon-btn {
+  background: rgba(255,255,255,0.15);
+  color: white;
+  border: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.icon-btn:hover {
+  background: rgba(255,255,255,0.3);
+  transform: scale(1.1);
 }
 
 #profileBtn img {
@@ -67,20 +95,6 @@ header h1 {
   flex-direction: column;
   gap: 12px;
   position: relative;
-}
-
-#emptyChatMessage {
-  text-align: center;
-  color: #fff;
-  opacity: 0.8;
-  font-size: 18px;
-  margin: auto;
-}
-
-#emptyChatMessage span {
-  font-size: 40px;
-  display: block;
-  margin-bottom: 20px;
 }
 
 .message {
@@ -164,6 +178,7 @@ header h1 {
   color: #fff;
   margin-bottom: 8px;
   transition: background 0.3s;
+  cursor: pointer;
 }
 
 .user-item:hover {
@@ -219,7 +234,7 @@ header h1 {
   transform: scale(1.1);
 }
 
-/* لوحة البروفايل الصغيرة الأنيقة */
+/* لوحة البروفايل الشخصية */
 .profile-panel {
   display: none;
   position: fixed;
@@ -232,12 +247,6 @@ header h1 {
   border: 1px solid rgba(7,94,84,0.5);
   overflow: hidden;
   z-index: 1000;
-  animation: fadeInScale 0.3s ease;
-}
-
-@keyframes fadeInScale {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
 }
 
 .profile-header {
@@ -314,4 +323,144 @@ header h1 {
   margin: 0 0 10px;
   font-size: 18px;
   font-weight: 600;
+}
+
+/* لوحة ملف المستخدم */
+.user-profile-panel {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
+  background: #0f1a24;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+  z-index: 1000;
+  border: 1px solid #075e54;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.profile-actions button {
+  flex: 1;
+  padding: 10px;
+  background: #075e54;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.profile-actions button:hover {
+  background: #128c7e;
+}
+
+/* الشات الخاص الصغير على اليمين */
+.private-chat-panel {
+  display: none;
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  width: 340px;
+  height: 500px;
+  background: #0f1a24;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+  border: 1px solid #075e54;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.private-header {
+  background: #075e54;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.private-chat-window {
+  height: calc(100% - 100px);
+  padding: 10px;
+  overflow-y: auto;
+  background: #1a2a3a;
+}
+
+#privateMessageForm {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  padding: 10px;
+  background: #1e2a33;
+}
+
+#privateMessageInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 20px;
+  background: #2a3942;
+  color: white;
+}
+
+#privateMessageForm button {
+  margin-left: 8px;
+  padding: 8px 16px;
+  background: #075e54;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+/* طلبات الصداقة */
+.friend-requests-panel {
+  display: none;
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  width: 340px;
+  background: #0f1a24;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+  border: 1px solid #075e54;
+  z-index: 1000;
+}
+
+.friend-requests-list {
+  padding: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.friend-request {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.friend-request img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.friend-request button {
+  margin-left: auto;
+  padding: 6px 12px;
+  background: #075e54;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
 }
