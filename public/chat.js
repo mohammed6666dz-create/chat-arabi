@@ -2,30 +2,25 @@ const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 if (!token) {
   window.location.href = 'index.html';
 }
-
 const socket = io();
 const params = new URLSearchParams(window.location.search);
 const room = params.get('room');
 if (!room) {
   window.location.href = 'rooms.html';
 }
-
 let myUsername = '';
 let myAvatar = 'https://via.placeholder.com/40'; // صورة افتراضية
-
 // الانضمام للغرفة
 socket.emit('join', room, token);
-
 // استقبال آخر 100 رسالة
 socket.on('previous messages', (messages) => {
   const chatWindow = document.getElementById('chatWindow');
   chatWindow.innerHTML = ''; // مسح المحتوى القديم
-  messages.forEach(({ username, msg, avatar }) => {
-    appendMessage(username, msg, avatar, username === myUsername);
+  messages.forEach(({ username, msg, avatar, rank }) => {
+    appendMessage(username, msg, avatar, username === myUsername, rank || 'ضيف');
   });
   scrollToBottom();
 });
-
 // تحديث قائمة المتصلين
 socket.on('update users', (users) => {
   document.getElementById('userCount').innerText = users.length;
@@ -36,17 +31,15 @@ socket.on('update users', (users) => {
     div.className = 'user-item';
     div.innerHTML = `
       <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
-      <span>${user.username}</span>
+      <span>[${user.rank || 'ضيف'}] ${user.username}</span>
     `;
     list.appendChild(div);
   });
 });
-
 // رسالة جديدة
-socket.on('message', ({ username, msg, avatar }) => {
-  appendMessage(username, msg, avatar, username === myUsername);
+socket.on('message', ({ username, msg, avatar, rank }) => {
+  appendMessage(username, msg, avatar, username === myUsername, rank || 'ضيف');
 });
-
 // رسائل النظام
 socket.on('system message', (msg) => {
   const div = document.createElement('div');
@@ -55,7 +48,6 @@ socket.on('system message', (msg) => {
   document.getElementById('chatWindow').appendChild(div);
   scrollToBottom();
 });
-
 // إرسال رسالة
 document.getElementById('messageForm').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -66,39 +58,40 @@ document.getElementById('messageForm').addEventListener('submit', (e) => {
     input.value = '';
   }
 });
-
 // دالة عرض الرسالة
-function appendMessage(username, msg, avatar, isMe = false) {
+function appendMessage(username, msg, avatar, isMe = false, rank = 'ضيف') {
   const chatWindow = document.getElementById('chatWindow');
   const messageDiv = document.createElement('div');
   messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
 
+  // ألوان الرتب (يمكنك تغييرها)
+  let rankColor = '#888888'; // افتراضي (رمادي)
+  if (rank === 'صاحب الموقع') rankColor = '#ff0000'; // أحمر قوي
+  else if (rank === 'أدمن') rankColor = '#00ff00'; // أخضر
+  else if (rank === 'بريميوم') rankColor = '#ffd700'; // ذهبي
+  else if (rank === 'عضو') rankColor = '#00bfff'; // أزرق فاتح
+
   messageDiv.innerHTML = `
     <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}">
     <div class="message-content">
-      <strong>${username}</strong>
+      <strong style="color: ${rankColor};">[${rank}] ${username}</strong>
       <p>${msg}</p>
     </div>
   `;
-
   chatWindow.appendChild(messageDiv);
   scrollToBottom();
 }
-
 function scrollToBottom() {
   const chatWindow = document.getElementById('chatWindow');
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
-
 // تحميل بيانات المستخدم
 async function loadMyProfile() {
   try {
     const res = await fetch('/profile', {
       headers: { Authorization: token }
     });
-
     if (!res.ok) throw new Error('فشل جلب البروفايل');
-
     const user = await res.json();
     myUsername = user.username;
     myAvatar = user.avatar || 'https://via.placeholder.com/40';
@@ -108,7 +101,6 @@ async function loadMyProfile() {
   }
 }
 loadMyProfile();
-
 // زر البروفايل (يفتح اللوحة الصغيرة الأنيقة فوق)
 document.getElementById('profileBtn').addEventListener('click', () => {
   const panel = document.getElementById('profilePanel');
@@ -117,12 +109,10 @@ document.getElementById('profileBtn').addEventListener('click', () => {
     loadProfile(); // تحميل البيانات
   }
 });
-
 // إغلاق اللوحة
 document.getElementById('closePanel').addEventListener('click', () => {
   document.getElementById('profilePanel').style.display = 'none';
 });
-
 // تحميل بيانات اللوحة
 async function loadProfile() {
   try {
@@ -134,7 +124,6 @@ async function loadProfile() {
     console.error('فشل تحميل البروفايل');
   }
 }
-
 // رفع الصورة الشخصية داخل اللوحة
 document.getElementById('avatarUpload').addEventListener('change', async (e) => {
   const file = e.target.files[0];
@@ -154,7 +143,6 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
     alert('فشل رفع الصورة');
   }
 });
-
 // زر الخروج (Logout) - ينقل لصفحة rooms.html
 document.addEventListener('DOMContentLoaded', () => {
   const logoutBtn = document.createElement('button');
@@ -170,15 +158,12 @@ document.addEventListener('DOMContentLoaded', () => {
     cursor: pointer;
     margin-left: 16px;
   `;
-
   const header = document.querySelector('header');
   if (header) {
     header.appendChild(logoutBtn);
   }
-
   logoutBtn.addEventListener('click', () => {
     if (!confirm('هل أنت متأكد من تسجيل الخروج؟')) return;
-
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
     socket.emit('leave', room, token);
