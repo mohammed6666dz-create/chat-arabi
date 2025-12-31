@@ -11,7 +11,7 @@ if (!room) {
 }
 
 let myUsername = '';
-let myAvatar = 'https://via.placeholder.com/40'; // صورة افتراضية
+let myAvatar = 'https://via.placeholder.com/40';
 
 // الانضمام للغرفة
 socket.emit('join', room, token);
@@ -19,9 +19,9 @@ socket.emit('join', room, token);
 // استقبال آخر 100 رسالة
 socket.on('previous messages', (messages) => {
   const chatWindow = document.getElementById('chatWindow');
-  chatWindow.innerHTML = ''; // مسح المحتوى القديم
-  messages.forEach(({ username, msg, avatar, rank }) => {
-    appendMessage(username, msg, avatar, username === myUsername, rank || 'ضيف');
+  chatWindow.innerHTML = '';
+  messages.forEach(({ username, msg, avatar }) => {
+    appendMessage(username, msg, avatar, username === myUsername);
   });
   scrollToBottom();
 });
@@ -36,15 +36,16 @@ socket.on('update users', (users) => {
     div.className = 'user-item';
     div.innerHTML = `
       <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
-      <span>[${user.rank || 'ضيف'}] ${user.username}</span>
+      <span>${user.username}</span>
     `;
+    div.onclick = () => openUserActions(user.username);
     list.appendChild(div);
   });
 });
 
 // رسالة جديدة
-socket.on('message', ({ username, msg, avatar, rank }) => {
-  appendMessage(username, msg, avatar, username === myUsername, rank || 'ضيف');
+socket.on('message', ({ username, msg, avatar }) => {
+  appendMessage(username, msg, avatar, username === myUsername);
 });
 
 // رسائل النظام
@@ -67,27 +68,17 @@ document.getElementById('messageForm').addEventListener('submit', (e) => {
   }
 });
 
-// دالة عرض الرسالة (مع الرتبه ولون مختلف)
-function appendMessage(username, msg, avatar, isMe = false, rank = 'ضيف') {
+function appendMessage(username, msg, avatar, isMe = false) {
   const chatWindow = document.getElementById('chatWindow');
   const messageDiv = document.createElement('div');
   messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
-
-  // ألوان الرتب (يمكنك تغييرها)
-  let rankColor = '#888888'; // افتراضي (رمادي)
-  if (rank === 'صاحب الموقع') rankColor = '#ff0000'; // أحمر قوي
-  else if (rank === 'أدمن') rankColor = '#00ff00'; // أخضر
-  else if (rank === 'بريميوم') rankColor = '#ffd700'; // ذهبي
-  else if (rank === 'عضو') rankColor = '#00bfff'; // أزرق فاتح
-
   messageDiv.innerHTML = `
     <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}">
     <div class="message-content">
-      <strong style="color: ${rankColor};">[${rank}] ${username}</strong>
+      <strong>${username}</strong>
       <p>${msg}</p>
     </div>
   `;
-
   chatWindow.appendChild(messageDiv);
   scrollToBottom();
 }
@@ -114,12 +105,12 @@ async function loadMyProfile() {
 }
 loadMyProfile();
 
-// فتح/إغلاق لوحة البروفايل الصغيرة الأنيقة
+// فتح لوحة البروفايل الشخصية
 document.getElementById('profileBtn').addEventListener('click', () => {
   const panel = document.getElementById('profilePanel');
   panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
   if (panel.style.display === 'block') {
-    loadProfile(); // تحميل البيانات
+    loadProfile();
   }
 });
 
@@ -140,7 +131,7 @@ async function loadProfile() {
   }
 }
 
-// رفع الصورة الشخصية داخل اللوحة
+// رفع الصورة الشخصية
 document.getElementById('avatarUpload').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -160,33 +151,68 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
   }
 });
 
-// زر الخروج (Logout) - ينقل لصفحة rooms.html
-document.addEventListener('DOMContentLoaded', () => {
-  const logoutBtn = document.createElement('button');
-  logoutBtn.id = 'logoutBtn';
-  logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> خروج';
-  logoutBtn.style.cssText = `
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    cursor: pointer;
-    margin-left: 16px;
-  `;
+// فتح لوحة أفعال المستخدم
+function openUserActions(username) {
+  document.getElementById('userProfileUsername').textContent = username;
+  document.getElementById('userProfilePanel').style.display = 'block';
+}
 
-  const header = document.querySelector('header');
-  if (header) {
-    header.appendChild(logoutBtn);
+// زر فحص الملف
+document.getElementById('viewProfileBtn').onclick = () => {
+  alert('ملف المستخدم (سيتم إضافة تفاصيل أكثر قريبًا)');
+};
+
+// زر التحدث في الخاص
+document.getElementById('privateChatBtn').onclick = () => {
+  document.getElementById('userProfilePanel').style.display = 'none';
+  document.getElementById('privateChatPanel').style.display = 'block';
+  document.getElementById('privateChatTitle').textContent = 'دردشة مع ' + document.getElementById('userProfileUsername').textContent;
+};
+
+// زر إرسال طلب صداقة
+document.getElementById('sendFriendReqBtn').onclick = () => {
+  alert('تم إرسال طلب الصداقة!');
+  document.getElementById('userProfilePanel').style.display = 'none';
+};
+
+// إغلاق لوحة المستخدم
+document.getElementById('closeUserPanel').addEventListener('click', () => {
+  document.getElementById('userProfilePanel').style.display = 'none';
+});
+
+// إغلاق الشات الخاص
+document.getElementById('closePrivateChat').addEventListener('click', () => {
+  document.getElementById('privateChatPanel').style.display = 'none';
+});
+
+// إرسال رسالة خاصة (مثال بسيط)
+document.getElementById('privateMessageForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const input = document.getElementById('privateMessageInput');
+  const msg = input.value.trim();
+  if (msg) {
+    const chat = document.getElementById('privateChatWindow');
+    const div = document.createElement('div');
+    div.innerHTML = `<p><strong>أنت:</strong> ${msg}</p>`;
+    chat.appendChild(div);
+    input.value = '';
+    chat.scrollTop = chat.scrollHeight;
   }
+});
 
-  logoutBtn.addEventListener('click', () => {
-    if (!confirm('هل أنت متأكد من تسجيل الخروج؟')) return;
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('token');
-    socket.emit('leave', room, token);
-    socket.disconnect();
-    window.location.href = 'rooms.html';
-  });
+// الأزرار في الهيدر
+document.getElementById('privateMsgBtn').addEventListener('click', () => {
+  alert('الرسائل الخاصة (قريبًا ستظهر قائمة الرسائل)');
+});
+document.getElementById('friendReqBtn').addEventListener('click', () => {
+  document.getElementById('friendRequestsPanel').style.display = 'block';
+});
+document.getElementById('notificationsBtn').addEventListener('click', () => {
+  alert('لا توجد إشعارات جديدة');
+});
+document.getElementById('reportsBtn').addEventListener('click', () => {
+  alert('صفحة الإبلاغات (قريبًا)');
+});
+document.getElementById('closeFriendReq').addEventListener('click', () => {
+  document.getElementById('friendRequestsPanel').style.display = 'none';
 });
