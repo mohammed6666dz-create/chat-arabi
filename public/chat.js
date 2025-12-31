@@ -118,7 +118,7 @@ document.getElementById('closeMyProfile').addEventListener('click', () => {
 // فتح لوحة أفعال المستخدم عند الضغط على صورته
 function openUserActions(username) {
   document.getElementById('userUsername').textContent = username;
-  document.getElementById('userAvatar').src = 'https://via.placeholder.com/90'; // هنا يمكن جلب الصورة من السيرفر
+  document.getElementById('userAvatar').src = 'https://via.placeholder.com/90';
   document.getElementById('userProfilePanel').style.display = 'block';
 }
 
@@ -150,7 +150,7 @@ document.getElementById('closePrivateChat').addEventListener('click', () => {
   document.getElementById('privateChatPanel').style.display = 'none';
 });
 
-// إرسال رسالة خاصة (مثال بسيط - يمكن تحسينه لاحقًا)
+// إرسال رسالة خاصة
 document.getElementById('privateChatForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const input = document.getElementById('privateChatInput');
