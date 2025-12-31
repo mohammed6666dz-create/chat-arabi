@@ -12,7 +12,6 @@ if (!room) {
 
 let myUsername = '';
 let myAvatar = 'https://via.placeholder.com/40'; // صورة افتراضية
-let myRank = 'ضيف'; // الرتبه الافتراضية
 
 // الانضمام للغرفة
 socket.emit('join', room, token);
@@ -21,8 +20,8 @@ socket.emit('join', room, token);
 socket.on('previous messages', (messages) => {
   const chatWindow = document.getElementById('chatWindow');
   chatWindow.innerHTML = ''; // مسح المحتوى القديم
-  messages.forEach(({ username, msg, avatar, rank }) => {
-    appendMessage(username, msg, avatar, username === myUsername, rank || 'ضيف');
+  messages.forEach(({ username, msg, avatar }) => {
+    appendMessage(username, msg, avatar, username === myUsername);
   });
   scrollToBottom();
 });
@@ -37,15 +36,15 @@ socket.on('update users', (users) => {
     div.className = 'user-item';
     div.innerHTML = `
       <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
-      <span>[${user.rank || 'ضيف'}] ${user.username}</span>
+      <span>${user.username}</span>
     `;
     list.appendChild(div);
   });
 });
 
 // رسالة جديدة
-socket.on('message', ({ username, msg, avatar, rank }) => {
-  appendMessage(username, msg, avatar, username === myUsername, rank || 'ضيف');
+socket.on('message', ({ username, msg, avatar }) => {
+  appendMessage(username, msg, avatar, username === myUsername);
 });
 
 // رسائل النظام
@@ -68,8 +67,8 @@ document.getElementById('messageForm').addEventListener('submit', (e) => {
   }
 });
 
-// دالة عرض الرسالة (مع الرتبه)
-function appendMessage(username, msg, avatar, isMe = false, rank = 'ضيف') {
+// دالة عرض الرسالة
+function appendMessage(username, msg, avatar, isMe = false) {
   const chatWindow = document.getElementById('chatWindow');
   const messageDiv = document.createElement('div');
   messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
@@ -77,7 +76,7 @@ function appendMessage(username, msg, avatar, isMe = false, rank = 'ضيف') {
   messageDiv.innerHTML = `
     <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}">
     <div class="message-content">
-      <strong>[${rank}] ${username}</strong>
+      <strong>${username}</strong>
       <p>${msg}</p>
     </div>
   `;
@@ -91,7 +90,7 @@ function scrollToBottom() {
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-// تحميل بيانات المستخدم (الاسم + الصورة + الرتبه)
+// تحميل بيانات المستخدم
 async function loadMyProfile() {
   try {
     const res = await fetch('/profile', {
@@ -103,7 +102,6 @@ async function loadMyProfile() {
     const user = await res.json();
     myUsername = user.username;
     myAvatar = user.avatar || 'https://via.placeholder.com/40';
-    myRank = user.rank || 'ضيف';
     document.getElementById('avatar').src = myAvatar;
   } catch (err) {
     console.error('خطأ في تحميل البروفايل:', err);
@@ -111,32 +109,50 @@ async function loadMyProfile() {
 }
 loadMyProfile();
 
-// زر تغيير الخلفية (كاميرا) - موجود لكن ما يشتغل إلا لو صاحب الموقع
-document.getElementById('bgChangeBtn').addEventListener('click', () => {
-  // يمكنك إضافة شرط هنا لو تبي يشتغل بس لصاحب الموقع
-  document.getElementById('backgroundUpload').click();
+// زر البروفايل (يفتح اللوحة الصغيرة الأنيقة فوق)
+document.getElementById('profileBtn').addEventListener('click', () => {
+  const panel = document.getElementById('profilePanel');
+  panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+  if (panel.style.display === 'block') {
+    loadProfile(); // تحميل البيانات
+  }
 });
 
-document.getElementById('backgroundUpload').addEventListener('change', (e) => {
+// إغلاق اللوحة
+document.getElementById('closePanel').addEventListener('click', () => {
+  document.getElementById('profilePanel').style.display = 'none';
+});
+
+// تحميل بيانات اللوحة
+async function loadProfile() {
+  try {
+    const res = await fetch('/profile', { headers: { Authorization: token } });
+    const user = await res.json();
+    document.getElementById('profileUsername').textContent = user.username || 'مستخدم';
+    if (user.avatar) document.getElementById('profileAvatar').src = user.avatar;
+  } catch (e) {
+    console.error('فشل تحميل البروفايل');
+  }
+}
+
+// رفع الصورة الشخصية داخل اللوحة
+document.getElementById('avatarUpload').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    document.querySelector('.chat-main').style.backgroundImage = `url(${event.target.result})`;
-    document.querySelector('.chat-main').style.backgroundSize = 'cover';
-    document.querySelector('.chat-main').style.backgroundPosition = 'center';
-  };
-  reader.readAsDataURL(file);
-});
-
-// فتح/إغلاق مودال البروفايل (ما يعمل شي داخل المودال)
-document.getElementById('profileBtn').addEventListener('click', () => {
-  document.getElementById('profileModal').style.display = 'flex';
-});
-
-document.getElementById('closeProfile').addEventListener('click', () => {
-  document.getElementById('profileModal').style.display = 'none';
+  const formData = new FormData();
+  formData.append('avatar', file);
+  try {
+    const res = await fetch('/upload-avatar', {
+      method: 'POST',
+      headers: { Authorization: token },
+      body: formData
+    });
+    const data = await res.json();
+    document.getElementById('profileAvatar').src = data.avatar + '?t=' + Date.now();
+    document.getElementById('avatar').src = data.avatar + '?t=' + Date.now();
+  } catch (e) {
+    alert('فشل رفع الصورة');
+  }
 });
 
 // زر الخروج (Logout) - ينقل لصفحة rooms.html
@@ -167,6 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionStorage.removeItem('token');
     socket.emit('leave', room, token);
     socket.disconnect();
-    window.location.href = 'rooms.html'; // ← ينقل لصفحة الرومات
+    window.location.href = 'rooms.html';
   });
 });
