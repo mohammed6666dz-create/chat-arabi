@@ -43,19 +43,9 @@ socket.on('update users', (users) => {
   });
 });
 
-// رسالة عامة
+// رسالة جديدة
 socket.on('message', ({ username, msg, avatar }) => {
   appendMessage(username, msg, avatar, username === myUsername);
-});
-
-// رسالة خاصة (جديد)
-socket.on('private message', ({ from, msg, avatar }) => {
-  if (currentPrivateChat === from) {
-    appendPrivateMessage(from, msg, avatar, false);
-  } else {
-    // إشعار بسيط (يمكن تطويره لاحقًا)
-    console.log(`رسالة خاصة من ${from}: ${msg}`);
-  }
 });
 
 // رسائل النظام
@@ -67,7 +57,7 @@ socket.on('system message', (msg) => {
   scrollToBottom();
 });
 
-// إرسال رسالة عامة
+// إرسال رسالة
 document.getElementById('messageForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const input = document.getElementById('messageInput');
@@ -109,8 +99,6 @@ async function loadMyProfile() {
     myUsername = user.username;
     myAvatar = user.avatar || 'https://via.placeholder.com/40';
     document.getElementById('avatar').src = myAvatar;
-    document.getElementById('myProfileAvatar').src = myAvatar;
-    document.getElementById('myProfileUsername').textContent = myUsername;
   } catch (err) {
     console.error('خطأ في تحميل البروفايل:', err);
   }
@@ -130,11 +118,8 @@ document.getElementById('closeMyProfile').addEventListener('click', () => {
 // فتح لوحة أفعال المستخدم عند الضغط على صورة شخص
 function openUserActions(username) {
   document.getElementById('userUsername').textContent = username;
-  document.getElementById('userAvatar').src = 'https://via.placeholder.com/90'; // هنا يمكن جلب الصورة من السيرفر
+  document.getElementById('userAvatar').src = 'https://via.placeholder.com/90';
   document.getElementById('userProfilePanel').style.display = 'block';
-
-  // حفظ اسم الشخص المحدد للشات الخاص
-  currentPrivateChat = username;
 }
 
 // زر فحص الملف
@@ -142,11 +127,11 @@ document.getElementById('viewUserProfileBtn').onclick = () => {
   alert('ملف المستخدم (سيتم إضافة تفاصيل أكثر قريبًا)');
 };
 
-// زر مراسلة خاصة
+// زر التحدث في الخاص
 document.getElementById('startPrivateChatBtn').onclick = () => {
   document.getElementById('userProfilePanel').style.display = 'none';
   document.getElementById('privateChatPanel').style.display = 'block';
-  document.getElementById('privateChatWith').textContent = 'دردشة مع ' + currentPrivateChat;
+  document.getElementById('privateChatWith').textContent = 'دردشة مع ' + document.getElementById('userUsername').textContent;
 };
 
 // زر إضافة صديق
@@ -170,34 +155,29 @@ document.getElementById('privateChatForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const input = document.getElementById('privateChatInput');
   const msg = input.value.trim();
-  if (msg && currentPrivateChat) {
-    // إرسال للسيرفر
-    socket.emit('private message', { to: currentPrivateChat, msg });
-    appendPrivateMessage(myUsername, msg, myAvatar, true);
+  if (msg) {
+    const chat = document.getElementById('privateChatMessages');
+    const div = document.createElement('div');
+    div.innerHTML = `<p><strong>أنت:</strong> ${msg}</p>`;
+    chat.appendChild(div);
     input.value = '';
+    chat.scrollTop = chat.scrollHeight;
   }
 });
 
-// عرض الرسالة الخاصة
-function appendPrivateMessage(username, msg, avatar, isMe) {
-  const chat = document.getElementById('privateChatMessages');
-  const div = document.createElement('div');
-  div.className = isMe ? 'my-private-message' : 'private-message';
-  div.innerHTML = `
-    <img src="${avatar || 'https://via.placeholder.com/30'}" alt="${username}">
-    <div class="private-content">
-      <strong>${username}</strong>
-      <p>${msg}</p>
-    </div>
-  `;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-// استقبال رسالة خاصة
-socket.on('private message', ({ from, msg, avatar }) => {
-  if (currentPrivateChat === from) {
-    appendPrivateMessage(from, msg, avatar, false);
-  }
-  // يمكن إضافة إشعار هنا لاحقًا
+// الأزرار في الهيدر
+document.getElementById('privateMsgBtn').addEventListener('click', () => {
+  alert('الرسائل الخاصة (قريبًا ستظهر قائمة الرسائل)');
+});
+document.getElementById('friendReqBtn').addEventListener('click', () => {
+  document.getElementById('friendRequestsPanel').style.display = 'block';
+});
+document.getElementById('notificationsBtn').addEventListener('click', () => {
+  alert('لا توجد إشعارات جديدة');
+});
+document.getElementById('reportsBtn').addEventListener('click', () => {
+  alert('صفحة الإبلاغات (قريبًا)');
+});
+document.getElementById('closeFriendReq').addEventListener('click', () => {
+  document.getElementById('friendRequestsPanel').style.display = 'none';
 });
