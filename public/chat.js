@@ -107,75 +107,40 @@ loadMyProfile();
 
 // فتح لوحة البروفايل الشخصية
 document.getElementById('profileBtn').addEventListener('click', () => {
-  const panel = document.getElementById('profilePanel');
-  panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
-  if (panel.style.display === 'block') {
-    loadProfile();
-  }
+  document.getElementById('myProfilePanel').style.display = 'block';
 });
 
-// إغلاق اللوحة
-document.getElementById('closePanel').addEventListener('click', () => {
-  document.getElementById('profilePanel').style.display = 'none';
+// إغلاق لوحة البروفايل
+document.getElementById('closeMyProfile').addEventListener('click', () => {
+  document.getElementById('myProfilePanel').style.display = 'none';
 });
 
-// تحميل بيانات اللوحة
-async function loadProfile() {
-  try {
-    const res = await fetch('/profile', { headers: { Authorization: token } });
-    const user = await res.json();
-    document.getElementById('profileUsername').textContent = user.username || 'مستخدم';
-    if (user.avatar) document.getElementById('profileAvatar').src = user.avatar;
-  } catch (e) {
-    console.error('فشل تحميل البروفايل');
-  }
-}
-
-// رفع الصورة الشخصية
-document.getElementById('avatarUpload').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const formData = new FormData();
-  formData.append('avatar', file);
-  try {
-    const res = await fetch('/upload-avatar', {
-      method: 'POST',
-      headers: { Authorization: token },
-      body: formData
-    });
-    const data = await res.json();
-    document.getElementById('profileAvatar').src = data.avatar + '?t=' + Date.now();
-    document.getElementById('avatar').src = data.avatar + '?t=' + Date.now();
-  } catch (e) {
-    alert('فشل رفع الصورة');
-  }
-});
-
-// فتح لوحة أفعال المستخدم
+// فتح لوحة أفعال المستخدم عند الضغط على صورته
 function openUserActions(username) {
-  document.getElementById('userProfileUsername').textContent = username;
+  document.getElementById('userUsername').textContent = username;
+  document.getElementById('userAvatar').src = 'https://via.placeholder.com/90'; // هنا يمكن جلب الصورة من السيرفر
   document.getElementById('userProfilePanel').style.display = 'block';
 }
 
 // زر فحص الملف
-document.getElementById('viewProfileBtn').onclick = () => {
+document.getElementById('viewUserProfileBtn').onclick = () => {
   alert('ملف المستخدم (سيتم إضافة تفاصيل أكثر قريبًا)');
 };
 
 // زر التحدث في الخاص
-document.getElementById('privateChatBtn').onclick = () => {
+document.getElementById('startPrivateChatBtn').onclick = () => {
   document.getElementById('userProfilePanel').style.display = 'none';
   document.getElementById('privateChatPanel').style.display = 'block';
-  document.getElementById('privateChatTitle').textContent = 'دردشة مع ' + document.getElementById('userProfileUsername').textContent;
+  document.getElementById('privateChatWith').textContent = 'دردشة مع ' + document.getElementById('userUsername').textContent;
 };
 
-// زر إرسال طلب صداقة
-document.getElementById('sendFriendReqBtn').onclick = () => {
+// زر إضافة صديق
+document.getElementById('addFriendBtn').onclick = () => {
   alert('تم إرسال طلب الصداقة!');
   document.getElementById('userProfilePanel').style.display = 'none';
 };
 
-// إغلاق لوحة المستخدم
+// إغلاق لوحة ملف المستخدم
 document.getElementById('closeUserPanel').addEventListener('click', () => {
   document.getElementById('userProfilePanel').style.display = 'none';
 });
@@ -185,13 +150,13 @@ document.getElementById('closePrivateChat').addEventListener('click', () => {
   document.getElementById('privateChatPanel').style.display = 'none';
 });
 
-// إرسال رسالة خاصة (مثال بسيط)
-document.getElementById('privateMessageForm').addEventListener('submit', (e) => {
+// إرسال رسالة خاصة (مثال بسيط - يمكن تحسينه لاحقًا)
+document.getElementById('privateChatForm').addEventListener('submit', (e) => {
   e.preventDefault();
-  const input = document.getElementById('privateMessageInput');
+  const input = document.getElementById('privateChatInput');
   const msg = input.value.trim();
   if (msg) {
-    const chat = document.getElementById('privateChatWindow');
+    const chat = document.getElementById('privateChatMessages');
     const div = document.createElement('div');
     div.innerHTML = `<p><strong>أنت:</strong> ${msg}</p>`;
     chat.appendChild(div);
