@@ -32,11 +32,11 @@ function loadUsers() {
   }
 
   // ────────────────────────────────────────────────
-  // إنشاء حساب صاحب الموقع تلقائيًا لو ما كان موجود
-  if (!users.find(u => u.rank === 'صاحب الموقع')) {
-    const ownerPassword = bcrypt.hashSync('owner123', 10); // غير كلمة السر فورًا!!
+  // إنشاء حساب صاحب الموقع (mohamed-dz) تلقائيًا لو ما كان موجود
+  if (!users.find(u => u.username === 'mohamed-dz')) {
+    const ownerPassword = bcrypt.hashSync('mohokok12', 10); // كلمة السر mohokok12
     users.push({
-      username: 'owner',
+      username: 'mohamed-dz',
       passwordHash: ownerPassword,
       avatar: '',
       background: '',
@@ -44,8 +44,8 @@ function loadUsers() {
       rank: 'صاحب الموقع'
     });
     saveUsers();
-    console.log('تم إنشاء حساب صاحب الموقع تلقائيًا: username: owner | password: owner123');
-    console.log('غير كلمة السر فورًا من users.json!');
+    console.log('تم إنشاء حساب صاحب الموقع تلقائيًا: username: mohamed-dz | password: mohokok12');
+    console.log('غير كلمة السر فورًا من users.json لو هتستخدم الموقع على الإنترنت!');
   }
   // ────────────────────────────────────────────────
 }
@@ -60,11 +60,11 @@ app.post('/register', (req, res) => {
   const { username, password } = req.body;
   if (users.find(u => u.username === username)) return res.status(400).json({ msg: 'المستخدم موجود' });
   const passwordHash = bcrypt.hashSync(password, 10);
-  users.push({ 
-    username, 
-    passwordHash, 
-    avatar: '', 
-    background: '', 
+  users.push({
+    username,
+    passwordHash,
+    avatar: '',
+    background: '',
     friends: [],
     rank: 'ضيف' // ──── الإضافة الجديدة ────
   });
@@ -133,21 +133,16 @@ app.post('/change-rank', verifyToken, (req, res) => {
   if (!changer || changer.rank !== 'صاحب الموقع') {
     return res.status(403).json({ msg: 'غير مصرح لك' });
   }
-
   const { targetUsername, newRank } = req.body;
   if (!['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'].includes(newRank)) {
     return res.status(400).json({ msg: 'رتبه غير صالحة' });
   }
-
   const target = users.find(u => u.username === targetUsername);
   if (!target) return res.status(404).json({ msg: 'المستخدم غير موجود' });
-
   target.rank = newRank;
   saveUsers();
-
   // إشعار الجميع (اختياري)
   io.emit('rank update', { username: targetUsername, rank: newRank });
-
   res.json({ msg: 'تم تغيير الرتبه بنجاح' });
 });
 // ────────────────────────────────────────────────
@@ -203,8 +198,8 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
   console.log('');
   console.log('🚀 افتح الشات من الرابط ده مباشرة:');
-  console.log(`   http://localhost:${PORT}/index.html`);
+  console.log(` http://localhost:${PORT}/index.html`);
   console.log('');
-  console.log('   أو اضغط Ctrl + Click على الرابط فوق 👆');
+  console.log(' أو اضغط Ctrl + Click على الرابط فوق 👆');
   console.log('=====================================');
 });
