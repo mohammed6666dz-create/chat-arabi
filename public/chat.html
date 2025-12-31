@@ -27,25 +27,38 @@
     </div>
   </header>
 
+  <div class="chat-main">
+    <div id="chatWindow"></div>
+    <div id="usersPanel">
+      <h3>المتصلون <span id="userCount">0</span></h3>
+      <div id="usersList"></div>
+    </div>
+  </div>
+
+  <form id="messageForm">
+    <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
+    <button type="submit">إرسال</button>
+  </form>
+
   <!-- لوحة البروفايل الشخصية -->
-  <div id="profilePanel" class="profile-panel">
+  <div id="myProfilePanel" class="profile-panel">
     <div class="profile-header">
       <h3>بروفايلك</h3>
-      <span id="closePanel" class="close-panel">×</span>
+      <span id="closeMyProfile" class="close-panel">×</span>
     </div>
     <div class="profile-body">
       <div class="avatar-container">
-        <img id="profileAvatar" src="https://via.placeholder.com/90" alt="صورتك">
+        <img id="myProfileAvatar" src="https://via.placeholder.com/90" alt="صورتك">
         <label for="avatarUpload" class="change-avatar">
           <i class="fas fa-camera"></i>
         </label>
         <input type="file" id="avatarUpload" accept="image/*" style="display:none;">
       </div>
-      <h4 id="profileUsername">اسم المستخدم</h4>
+      <h4 id="myProfileUsername">اسم المستخدم</h4>
     </div>
   </div>
 
-  <!-- لوحة ملف المستخدم -->
+  <!-- لوحة ملف المستخدم (عند الضغط على صورة شخص) -->
   <div id="userProfilePanel" class="user-profile-panel">
     <div class="profile-header">
       <h3>ملف المستخدم</h3>
@@ -75,7 +88,7 @@
     </form>
   </div>
 
-  <!-- طلبات الصداقة -->
+  <!-- طلبات الصداقة (مع عداد) -->
   <div id="friendRequestsPanel" class="friend-requests-panel">
     <div class="profile-header">
       <h3>طلبات الصداقة</h3>
