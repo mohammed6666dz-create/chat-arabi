@@ -1,222 +1,210 @@
-const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-if (!token) {
-  window.location.href = 'index.html';
-}
+const express = require('express');
+const app = express();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
+const fs = require('fs');
+const path = require('path');
+const bodyParser = require('body-parser');
 
-const socket = io();
-const params = new URLSearchParams(window.location.search);
-const room = params.get('room');
-if (!room) {
-  window.location.href = 'rooms.html';
-}
+app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-let myUsername = '';
-let myAvatar = 'https://via.placeholder.com/40'; // صورة افتراضية
+let users = [];
+let roomUsers = { general: [], algeria: [], all_countries: [] };
+let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
 
-// الانضمام للغرفة
-socket.emit('join', room, token);
+// ────────────────────────────────────────────────
+// إضافة الرتب (بدون تغيير أي سطر سابق)
+const RANKS = ['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'];
+// ────────────────────────────────────────────────
 
-// استقبال آخر 100 رسالة
-socket.on('previous messages', (messages) => {
-  const chatWindow = document.getElementById('chatWindow');
-  chatWindow.innerHTML = ''; // مسح المحتوى القديم
-  messages.forEach(({ username, msg, avatar }) => {
-    appendMessage(username, msg, avatar, username === myUsername);
-  });
-  scrollToBottom();
-});
+const secret = 'secretkey';
+const PORT = 3000;
 
-// تحديث قائمة المتصلين
-socket.on('update users', (users) => {
-  document.getElementById('userCount').innerText = users.length;
-  const list = document.getElementById('usersList');
-  list.innerHTML = '';
-  users.forEach(user => {
-    const div = document.createElement('div');
-    div.className = 'user-item';
-    div.innerHTML = `
-      <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
-      <span>${user.username}</span>
-    `;
-    list.appendChild(div);
-  });
-});
-
-// رسالة جديدة
-socket.on('message', ({ username, msg, avatar }) => {
-  appendMessage(username, msg, avatar, username === myUsername);
-});
-
-// رسائل النظام
-socket.on('system message', (msg) => {
-  const div = document.createElement('div');
-  div.className = 'system-message';
-  div.textContent = msg;
-  document.getElementById('chatWindow').appendChild(div);
-  scrollToBottom();
-});
-
-// إرسال رسالة
-document.getElementById('messageForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const input = document.getElementById('messageInput');
-  const msg = input.value.trim();
-  if (msg) {
-    socket.emit('message', msg, token);
-    input.value = '';
+function loadUsers() {
+  if (fs.existsSync('users.json')) {
+    users = JSON.parse(fs.readFileSync('users.json'));
   }
-});
 
-// دالة عرض الرسالة (الرئيسية)
-function appendMessage(username, msg, avatar, isMe = false) {
-  const chatWindow = document.getElementById('chatWindow');
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
-
-  messageDiv.innerHTML = `
-    <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}">
-    <div class="message-content">
-      <strong>${username}</strong>
-      <p>${msg}</p>
-    </div>
-  `;
-
-  chatWindow.appendChild(messageDiv);
-  scrollToBottom();
-}
-
-function scrollToBottom() {
-  const chatWindow = document.getElementById('chatWindow');
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-}
-
-// تحميل بيانات المستخدم (الاسم + الصورة)
-async function loadMyProfile() {
-  try {
-    const res = await fetch('/profile', {
-      headers: { Authorization: token }
+  // ────────────────────────────────────────────────
+  // إنشاء حساب صاحب الموقع تلقائيًا لو ما كان موجود
+  if (!users.find(u => u.rank === 'صاحب الموقع')) {
+    const ownerPassword = bcrypt.hashSync('owner123', 10); // غير كلمة السر فورًا!!
+    users.push({
+      username: 'owner',
+      passwordHash: ownerPassword,
+      avatar: '',
+      background: '',
+      friends: [],
+      rank: 'صاحب الموقع'
     });
-
-    if (!res.ok) throw new Error('فشل جلب البروفايل');
-
-    const user = await res.json();
-    myUsername = user.username;
-    myAvatar = user.avatar || 'https://via.placeholder.com/40';
-    document.getElementById('avatar').src = myAvatar;
-  } catch (err) {
-    console.error('خطأ في تحميل البروفايل:', err);
+    saveUsers();
+    console.log('تم إنشاء حساب صاحب الموقع تلقائيًا: username: owner | password: owner123');
+    console.log('غير كلمة السر فورًا من users.json!');
   }
+  // ────────────────────────────────────────────────
 }
-loadMyProfile();
+loadUsers();
 
-// زر تغيير الخلفية (كاميرا)
-document.getElementById('bgChangeBtn').addEventListener('click', () => {
-  document.getElementById('backgroundUpload').click();
-});
-
-document.getElementById('backgroundUpload').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    document.querySelector('.chat-main').style.backgroundImage = `url(${event.target.result})`;
-    document.querySelector('.chat-main').style.backgroundSize = 'cover';
-    document.querySelector('.chat-main').style.backgroundPosition = 'center';
-  };
-  reader.readAsDataURL(file);
-});
-
-// فتح/إغلاق مودال البروفايل
-document.getElementById('profileBtn').addEventListener('click', () => {
-  document.getElementById('profileModal').style.display = 'flex';
-  loadProfile(); // تحميل البيانات
-});
-
-document.getElementById('closeProfile').addEventListener('click', () => {
-  document.getElementById('profileModal').style.display = 'none';
-});
-
-// تحميل بيانات المودال
-async function loadProfile() {
-  try {
-    const res = await fetch('/profile', { headers: { Authorization: token } });
-    const user = await res.json();
-    document.getElementById('profileUsername').textContent = user.username || 'مستخدم';
-    if (user.avatar) document.getElementById('profileAvatar').src = user.avatar;
-    if (user.background) document.getElementById('profileBg').style.backgroundImage = `url(${user.background})`;
-  } catch (e) {
-    console.error('فشل تحميل البروفايل');
-  }
+function saveUsers() {
+  fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
 }
 
-// رفع الصورة الشخصية
-document.getElementById('avatarInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const formData = new FormData();
-  formData.append('avatar', file);
-  try {
-    const res = await fetch('/upload-avatar', {
-      method: 'POST',
-      headers: { Authorization: token },
-      body: formData
-    });
-    const data = await res.json();
-    document.getElementById('profileAvatar').src = data.avatar + '?t=' + Date.now();
-    document.getElementById('avatar').src = data.avatar + '?t=' + Date.now();
-  } catch (e) {
-    alert('فشل رفع الصورة');
-  }
-});
-
-// رفع الخلفية
-document.getElementById('bgInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const formData = new FormData();
-  formData.append('background', file);
-  try {
-    const res = await fetch('/upload-background', {
-      method: 'POST',
-      headers: { Authorization: token },
-      body: formData
-    });
-    const data = await res.json();
-    document.getElementById('profileBg').style.backgroundImage = `url(${data.background}?t=${Date.now()})`;
-  } catch (e) {
-    alert('فشل رفع الخلفية');
-  }
-});
-
-// زر الخروج (Logout)
-document.addEventListener('DOMContentLoaded', () => {
-  const logoutBtn = document.createElement('button');
-  logoutBtn.id = 'logoutBtn';
-  logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> خروج';
-  logoutBtn.style.cssText = `
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    cursor: pointer;
-    margin-left: 16px;
-  `;
-
-  const header = document.querySelector('header');
-  if (header) {
-    header.appendChild(logoutBtn);
-  }
-
-  logoutBtn.addEventListener('click', () => {
-    if (!confirm('هل أنت متأكد من تسجيل الخروج؟')) return;
-
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('token');
-    socket.emit('leave', room, token);
-    socket.disconnect();
-    window.location.href = 'rooms.html';
+// Register
+app.post('/register', (req, res) => {
+  const { username, password } = req.body;
+  if (users.find(u => u.username === username)) return res.status(400).json({ msg: 'المستخدم موجود' });
+  const passwordHash = bcrypt.hashSync(password, 10);
+  users.push({ 
+    username, 
+    passwordHash, 
+    avatar: '', 
+    background: '', 
+    friends: [],
+    rank: 'ضيف' // ──── الإضافة الجديدة ────
   });
+  saveUsers();
+  res.json({ msg: 'تم التسجيل بنجاح' });
+});
+
+// Login
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  const user = users.find(u => u.username === username);
+  if (!user || !bcrypt.compareSync(password, user.passwordHash)) return res.status(400).json({ msg: 'بيانات خاطئة' });
+  const token = jwt.sign({ username }, secret, { expiresIn: '7d' });
+  res.json({ token });
+});
+
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization;
+  if (!token) return res.status(401).json({ msg: 'لا توكن' });
+  try {
+    req.user = jwt.verify(token, secret);
+    next();
+  } catch (e) {
+    res.status(401).json({ msg: 'توكن غير صالح' });
+  }
+};
+
+// Profile
+app.get('/profile', verifyToken, (req, res) => {
+  const user = users.find(u => u.username === req.user.username);
+  res.json({
+    username: user.username,
+    passwordHash: user.passwordHash,
+    avatar: user.avatar,
+    background: user.background,
+    friends: user.friends,
+    rank: user.rank || 'ضيف' // ──── الإضافة الجديدة ────
+  });
+});
+
+// Upload avatar
+app.post('/upload-avatar', verifyToken, upload.single('avatar'), (req, res) => {
+  const user = users.find(u => u.username === req.user.username);
+  if (req.file) user.avatar = '/uploads/' + req.file.filename;
+  saveUsers();
+  res.json({ avatar: user.avatar });
+});
+
+// Upload background
+app.post('/upload-background', verifyToken, upload.single('background'), (req, res) => {
+  const user = users.find(u => u.username === req.user.username);
+  if (req.file) user.background = '/uploads/' + req.file.filename;
+  saveUsers();
+  res.json({ background: user.background });
+});
+
+// Room counts
+app.get('/room-counts', (req, res) => {
+  res.json(roomCounts);
+});
+
+// ────────────────────────────────────────────────
+// إضافة: تغيير رتبة مستخدم (لصاحب الموقع فقط)
+app.post('/change-rank', verifyToken, (req, res) => {
+  const changer = users.find(u => u.username === req.user.username);
+  if (!changer || changer.rank !== 'صاحب الموقع') {
+    return res.status(403).json({ msg: 'غير مصرح لك' });
+  }
+
+  const { targetUsername, newRank } = req.body;
+  if (!['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'].includes(newRank)) {
+    return res.status(400).json({ msg: 'رتبه غير صالحة' });
+  }
+
+  const target = users.find(u => u.username === targetUsername);
+  if (!target) return res.status(404).json({ msg: 'المستخدم غير موجود' });
+
+  target.rank = newRank;
+  saveUsers();
+
+  // إشعار الجميع (اختياري)
+  io.emit('rank update', { username: targetUsername, rank: newRank });
+
+  res.json({ msg: 'تم تغيير الرتبه بنجاح' });
+});
+// ────────────────────────────────────────────────
+
+// Socket.io
+io.on('connection', socket => {
+  let currentRoom = null;
+  let username = null;
+  socket.on('join', (room, token) => {
+    try {
+      const decoded = jwt.verify(token, secret);
+      username = decoded.username;
+      if (currentRoom) {
+        socket.leave(currentRoom);
+        roomCounts[currentRoom]--;
+        roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
+        io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
+        io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
+      }
+      currentRoom = room;
+      socket.join(room);
+      roomCounts[room]++;
+      const user = users.find(u => u.username === username);
+      const avatar = user?.avatar || 'https://via.placeholder.com/40';
+      roomUsers[room].push({ username, avatar });
+      io.to(room).emit('update users', roomUsers[room]);
+      io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
+    } catch (e) {
+      console.log('توكن غير صالح');
+    }
+  });
+  socket.on('message', (msg, token) => {
+    try {
+      const decoded = jwt.verify(token, secret);
+      const user = users.find(u => u.username === decoded.username);
+      const avatar = user?.avatar || 'https://via.placeholder.com/40';
+      io.to(currentRoom).emit('message', { username: decoded.username, msg, avatar });
+    } catch (e) {}
+  });
+  socket.on('disconnect', () => {
+    if (currentRoom && username) {
+      roomCounts[currentRoom]--;
+      roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
+      io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
+      io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
+    }
+  });
+});
+
+// تشغيل السيرفر مع عرض الرابط الجاهز
+http.listen(PORT, '0.0.0.0', () => {
+  console.log('=====================================');
+  console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
+  console.log('');
+  console.log('🚀 افتح الشات من الرابط ده مباشرة:');
+  console.log(`   http://localhost:${PORT}/index.html`);
+  console.log('');
+  console.log('   أو اضغط Ctrl + Click على الرابط فوق 👆');
+  console.log('=====================================');
 });
