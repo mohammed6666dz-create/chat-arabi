@@ -5,15 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>الشات - شات عربي</title>
   <link rel="stylesheet" href="chat.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
   <header>
-    <h1>شات عربي</h1>
-    <div id="profileBtn">
-      <img id="avatar" src="https://via.placeholder.com/40" alt="بروفايل">
+    <div class="header-left">
+      <h1>شات عربي</h1>
+      <button id="leaveRoomBtn" class="btn-leave" title="خروج من الغرفة">
+        <i class="fas fa-sign-out-alt"></i> خروج
+      </button>
+    </div>
+
+    <div class="header-right">
+      <!-- زر الكاميرا لتغيير الخلفية -->
+      <button id="bgChangeBtn" title="تغيير خلفية الشات" class="bg-btn">
+        <i class="fas fa-camera"></i>
+      </button>
+
+      <div id="profileBtn">
+        <img id="avatar" src="https://via.placeholder.com/40" alt="بروفايل">
+      </div>
     </div>
   </header>
+
   <div class="chat-main">
     <div id="chatWindow"></div>
     <div id="usersPanel">
@@ -21,10 +36,36 @@
       <div id="usersList"></div>
     </div>
   </div>
+
   <form id="messageForm">
     <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
     <button type="submit">إرسال</button>
   </form>
+
+  <!-- حقل رفع الخلفية مخفي -->
+  <input type="file" id="backgroundUpload" accept="image/*" style="display: none;">
+
+  <!-- مودال البروفايل -->
+  <div id="profileModal" class="profile-modal" style="display:none;">
+    <div class="profile-content">
+      <span class="close-btn" id="closeProfile">×</span>
+      <div class="profile-bg" id="profileBg">
+        <label for="bgUpload" class="bg-label">
+          <i class="fas fa-camera"></i> تغيير الخلفية
+        </label>
+        <input type="file" id="bgUpload" accept="image/*" style="display:none;">
+      </div>
+      <div class="profile-avatar-container">
+        <img id="profileAvatar" src="https://via.placeholder.com/120" alt="صورة شخصية">
+        <label for="avatarUpload" class="avatar-label">
+          <i class="fas fa-camera"></i>
+        </label>
+        <input type="file" id="avatarUpload" accept="image/*" style="display:none;">
+      </div>
+      <h2 id="profileName">اسم المستخدم</h2>
+    </div>
+  </div>
+
   <script src="chat.js"></script>
 </body>
 </html>
