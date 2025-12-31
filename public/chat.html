@@ -16,6 +16,24 @@
     </div>
   </header>
 
+  <!-- لوحة البروفايل الصغيرة الأنيقة فوق -->
+  <div id="profilePanel" class="profile-panel">
+    <div class="profile-header">
+      <h3>بروفايلك</h3>
+      <span id="closePanel" class="close-panel">×</span>
+    </div>
+    <div class="profile-body">
+      <div class="avatar-container">
+        <img id="profileAvatar" src="https://via.placeholder.com/90" alt="صورتك">
+        <label for="avatarUpload" class="change-avatar">
+          <i class="fas fa-camera"></i>
+        </label>
+        <input type="file" id="avatarUpload" accept="image/*" style="display:none;">
+      </div>
+      <h4 id="profileUsername">اسم المستخدم</h4>
+    </div>
+  </div>
+
   <div class="chat-main">
     <div id="chatWindow"></div>
     <div id="usersPanel">
@@ -28,19 +46,6 @@
     <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
     <button type="submit">إرسال</button>
   </form>
-
-  <!-- لوحة البروفايل الصغيرة الأنيقة (بدل المودال الكبير) -->
-  <div id="profilePanel" class="profile-panel">
-    <div class="profile-header">
-      <h3>بروفايل</h3>
-      <span id="closePanel" class="close-panel">×</span>
-    </div>
-    <div class="profile-body">
-      <img id="profileAvatar" src="https://via.placeholder.com/80" alt="صورة شخصية">
-      <h4 id="profileUsername">اسم المستخدم</h4>
-      <p>مرحباً بك</p>
-    </div>
-  </div>
 
   <script src="chat.js"></script>
 </body>
