@@ -17,6 +17,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 let users = [];
 let roomUsers = { general: [], algeria: [], all_countries: [] };
 let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
+
+// ────────────────────────────────────────────────
+// إضافة الرتب (بدون تغيير أي سطر سابق)
+const RANKS = ['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'];
+// ────────────────────────────────────────────────
+
 const secret = 'secretkey';
 const PORT = 3000;
 
@@ -24,6 +30,24 @@ function loadUsers() {
   if (fs.existsSync('users.json')) {
     users = JSON.parse(fs.readFileSync('users.json'));
   }
+
+  // ────────────────────────────────────────────────
+  // إنشاء حساب صاحب الموقع تلقائيًا لو ما كان موجود
+  if (!users.find(u => u.rank === 'صاحب الموقع')) {
+    const ownerPassword = bcrypt.hashSync('owner123', 10); // غير كلمة السر فورًا!!
+    users.push({
+      username: 'owner',
+      passwordHash: ownerPassword,
+      avatar: '',
+      background: '',
+      friends: [],
+      rank: 'صاحب الموقع'
+    });
+    saveUsers();
+    console.log('تم إنشاء حساب صاحب الموقع تلقائيًا: username: owner | password: owner123');
+    console.log('غير كلمة السر فورًا من users.json!');
+  }
+  // ────────────────────────────────────────────────
 }
 loadUsers();
 
@@ -36,7 +60,14 @@ app.post('/register', (req, res) => {
   const { username, password } = req.body;
   if (users.find(u => u.username === username)) return res.status(400).json({ msg: 'المستخدم موجود' });
   const passwordHash = bcrypt.hashSync(password, 10);
-  users.push({ username, passwordHash, avatar: '', background: '', friends: [] });
+  users.push({ 
+    username, 
+    passwordHash, 
+    avatar: '', 
+    background: '', 
+    friends: [],
+    rank: 'ضيف' // ──── الإضافة الجديدة ────
+  });
   saveUsers();
   res.json({ msg: 'تم التسجيل بنجاح' });
 });
@@ -64,7 +95,14 @@ const verifyToken = (req, res, next) => {
 // Profile
 app.get('/profile', verifyToken, (req, res) => {
   const user = users.find(u => u.username === req.user.username);
-  res.json(user || {});
+  res.json({
+    username: user.username,
+    passwordHash: user.passwordHash,
+    avatar: user.avatar,
+    background: user.background,
+    friends: user.friends,
+    rank: user.rank || 'ضيف' // ──── الإضافة الجديدة ────
+  });
 });
 
 // Upload avatar
@@ -88,16 +126,40 @@ app.get('/room-counts', (req, res) => {
   res.json(roomCounts);
 });
 
+// ────────────────────────────────────────────────
+// إضافة: تغيير رتبة مستخدم (لصاحب الموقع فقط)
+app.post('/change-rank', verifyToken, (req, res) => {
+  const changer = users.find(u => u.username === req.user.username);
+  if (!changer || changer.rank !== 'صاحب الموقع') {
+    return res.status(403).json({ msg: 'غير مصرح لك' });
+  }
+
+  const { targetUsername, newRank } = req.body;
+  if (!['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'].includes(newRank)) {
+    return res.status(400).json({ msg: 'رتبه غير صالحة' });
+  }
+
+  const target = users.find(u => u.username === targetUsername);
+  if (!target) return res.status(404).json({ msg: 'المستخدم غير موجود' });
+
+  target.rank = newRank;
+  saveUsers();
+
+  // إشعار الجميع (اختياري)
+  io.emit('rank update', { username: targetUsername, rank: newRank });
+
+  res.json({ msg: 'تم تغيير الرتبه بنجاح' });
+});
+// ────────────────────────────────────────────────
+
 // Socket.io
 io.on('connection', socket => {
   let currentRoom = null;
   let username = null;
-
   socket.on('join', (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
       username = decoded.username;
-
       if (currentRoom) {
         socket.leave(currentRoom);
         roomCounts[currentRoom]--;
@@ -105,22 +167,18 @@ io.on('connection', socket => {
         io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
         io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
       }
-
       currentRoom = room;
       socket.join(room);
       roomCounts[room]++;
       const user = users.find(u => u.username === username);
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
-
       roomUsers[room].push({ username, avatar });
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
-
     } catch (e) {
       console.log('توكن غير صالح');
     }
   });
-
   socket.on('message', (msg, token) => {
     try {
       const decoded = jwt.verify(token, secret);
@@ -129,7 +187,6 @@ io.on('connection', socket => {
       io.to(currentRoom).emit('message', { username: decoded.username, msg, avatar });
     } catch (e) {}
   });
-
   socket.on('disconnect', () => {
     if (currentRoom && username) {
       roomCounts[currentRoom]--;
