@@ -30,7 +30,6 @@ function loadUsers() {
   if (fs.existsSync('users.json')) {
     users = JSON.parse(fs.readFileSync('users.json'));
   }
-
   // ────────────────────────────────────────────────
   // إنشاء حساب صاحب الموقع (mohamed-dz) تلقائيًا لو ما كان موجود
   if (!users.find(u => u.username === 'mohamed-dz')) {
@@ -174,6 +173,7 @@ io.on('connection', socket => {
       console.log('توكن غير صالح');
     }
   });
+
   socket.on('message', (msg, token) => {
     try {
       const decoded = jwt.verify(token, secret);
@@ -182,6 +182,31 @@ io.on('connection', socket => {
       io.to(currentRoom).emit('message', { username: decoded.username, msg, avatar });
     } catch (e) {}
   });
+
+  // ────────────────────────────────────────────────
+  // الرسائل الخاصة (الإضافة الجديدة فقط)
+  socket.on('private message', ({ to, msg }) => {
+    try {
+      const decoded = jwt.verify(token, secret);
+      const sender = decoded.username;
+      const senderUser = users.find(u => u.username === sender);
+      const avatar = senderUser?.avatar || 'https://via.placeholder.com/40';
+
+      // إرسال للمرسل
+      socket.emit('private message', { from: sender, msg, avatar });
+
+      // إرسال للمستلم (ابحث عن الـ socket الخاص به)
+      io.sockets.sockets.forEach((s) => {
+        if (s.decoded && s.decoded.username === to) {
+          s.emit('private message', { from: sender, msg, avatar });
+        }
+      });
+    } catch (e) {
+      console.log('خطأ في الرسالة الخاصة:', e);
+    }
+  });
+  // ────────────────────────────────────────────────
+
   socket.on('disconnect', () => {
     if (currentRoom && username) {
       roomCounts[currentRoom]--;
