@@ -12,6 +12,7 @@ if (!room) {
 
 let myUsername = '';
 let myAvatar = 'https://via.placeholder.com/40';
+let currentPrivateChat = null;
 
 // الانضمام للغرفة
 socket.emit('join', room, token);
@@ -43,7 +44,7 @@ socket.on('update users', (users) => {
   });
 });
 
-// رسالة جديدة
+// رسالة عامة
 socket.on('message', ({ username, msg, avatar }) => {
   appendMessage(username, msg, avatar, username === myUsername);
 });
@@ -57,7 +58,7 @@ socket.on('system message', (msg) => {
   scrollToBottom();
 });
 
-// إرسال رسالة
+// إرسال رسالة عامة
 document.getElementById('messageForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const input = document.getElementById('messageInput');
@@ -88,7 +89,7 @@ function scrollToBottom() {
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-// تحميل بيانات المستخدم
+// تحميل بيانات المستخدم + الصورة
 async function loadMyProfile() {
   try {
     const res = await fetch('/profile', {
@@ -98,16 +99,19 @@ async function loadMyProfile() {
     const user = await res.json();
     myUsername = user.username;
     myAvatar = user.avatar || 'https://via.placeholder.com/40';
-    document.getElementById('avatar').src = myAvatar;
+    document.getElementById('avatar').src = myAvatar + '?t=' + new Date().getTime();
+    document.getElementById('myProfileAvatar').src = myAvatar + '?t=' + new Date().getTime();
+    document.getElementById('myProfileUsername').textContent = myUsername;
   } catch (err) {
     console.error('خطأ في تحميل البروفايل:', err);
   }
 }
 loadMyProfile();
 
-// فتح لوحة البروفايل الشخصية
+// فتح لوحة البروفايل
 document.getElementById('profileBtn').addEventListener('click', () => {
   document.getElementById('myProfilePanel').style.display = 'block';
+  loadMyProfile(); // تحديث الصورة
 });
 
 // إغلاق لوحة البروفايل
@@ -115,26 +119,50 @@ document.getElementById('closeMyProfile').addEventListener('click', () => {
   document.getElementById('myProfilePanel').style.display = 'none';
 });
 
-// فتح لوحة أفعال المستخدم عند الضغط على صورة شخص
+// رفع الصورة الشخصية
+document.getElementById('avatarUpload').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('avatar', file);
+  try {
+    const res = await fetch('/upload-avatar', {
+      method: 'POST',
+      headers: { Authorization: token },
+      body: formData
+    });
+    const data = await res.json();
+    if (data.avatar) {
+      const timestamp = new Date().getTime();
+      myAvatar = data.avatar;
+      document.getElementById('profileAvatar').src = data.avatar + '?t=' + timestamp;
+      document.getElementById('avatar').src = data.avatar + '?t=' + timestamp;
+      alert('تم رفع الصورة بنجاح!');
+    } else {
+      alert('فشل رفع الصورة: ' + (data.msg || 'خطأ غير معروف'));
+    }
+  } catch (e) {
+    console.error('خطأ في رفع الصورة:', e);
+    alert('فشل الاتصال بالسيرفر');
+  }
+});
+
+// فتح لوحة أفعال المستخدم
 function openUserActions(username) {
   document.getElementById('userUsername').textContent = username;
   document.getElementById('userAvatar').src = 'https://via.placeholder.com/90';
   document.getElementById('userProfilePanel').style.display = 'block';
+  currentPrivateChat = username;
 }
 
-// زر فحص الملف
-document.getElementById('viewUserProfileBtn').onclick = () => {
-  alert('ملف المستخدم (سيتم إضافة تفاصيل أكثر قريبًا)');
-};
-
-// زر التحدث في الخاص
+// فتح الشات الخاص
 document.getElementById('startPrivateChatBtn').onclick = () => {
   document.getElementById('userProfilePanel').style.display = 'none';
   document.getElementById('privateChatPanel').style.display = 'block';
-  document.getElementById('privateChatWith').textContent = 'دردشة مع ' + document.getElementById('userUsername').textContent;
+  document.getElementById('privateChatWith').textContent = 'دردشة مع ' + currentPrivateChat;
 };
 
-// زر إضافة صديق
+// إرسال طلب صداقة (مثال بسيط)
 document.getElementById('addFriendBtn').onclick = () => {
   alert('تم إرسال طلب الصداقة!');
   document.getElementById('userProfilePanel').style.display = 'none';
@@ -155,29 +183,34 @@ document.getElementById('privateChatForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const input = document.getElementById('privateChatInput');
   const msg = input.value.trim();
-  if (msg) {
-    const chat = document.getElementById('privateChatMessages');
-    const div = document.createElement('div');
-    div.innerHTML = `<p><strong>أنت:</strong> ${msg}</p>`;
-    chat.appendChild(div);
+  if (msg && currentPrivateChat) {
+    socket.emit('private message', { to: currentPrivateChat, msg });
+    appendPrivateMessage(myUsername, msg, myAvatar, true);
     input.value = '';
-    chat.scrollTop = chat.scrollHeight;
   }
 });
 
-// الأزرار في الهيدر
-document.getElementById('privateMsgBtn').addEventListener('click', () => {
-  alert('الرسائل الخاصة (قريبًا ستظهر قائمة الرسائل)');
-});
-document.getElementById('friendReqBtn').addEventListener('click', () => {
-  document.getElementById('friendRequestsPanel').style.display = 'block';
-});
-document.getElementById('notificationsBtn').addEventListener('click', () => {
-  alert('لا توجد إشعارات جديدة');
-});
-document.getElementById('reportsBtn').addEventListener('click', () => {
-  alert('صفحة الإبلاغات (قريبًا)');
-});
-document.getElementById('closeFriendReq').addEventListener('click', () => {
-  document.getElementById('friendRequestsPanel').style.display = 'none';
+// عرض الرسالة الخاصة
+function appendPrivateMessage(username, msg, avatar, isMe) {
+  const chat = document.getElementById('privateChatMessages');
+  const div = document.createElement('div');
+  div.className = isMe ? 'my-private-message' : 'private-message';
+  div.innerHTML = `
+    <img src="${avatar || 'https://via.placeholder.com/30'}" alt="${username}">
+    <div class="private-content">
+      <strong>${username}</strong>
+      <p>${msg}</p>
+    </div>
+  `;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// استقبال رسالة خاصة
+socket.on('private message', ({ from, msg, avatar }) => {
+  if (currentPrivateChat === from) {
+    appendPrivateMessage(from, msg, avatar, false);
+  } else {
+    alert(`رسالة خاصة جديدة من ${from}`);
+  }
 });
