@@ -22,11 +22,16 @@
         <button class="icon-btn" id="reportsBtn" title="الإبلاغات"><i class="fas fa-flag"></i></button>
       </div>
     </div>
-    <div id="profileBtn">
-      <img id="avatar" src="https://via.placeholder.com/40" alt="بروفايل">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <div id="profileBtn">
+        <img id="avatar" src="https://via.placeholder.com/40" alt="بروفايل">
+      </div>
+      <!-- زر الخروج الجديد -->
+      <button id="logoutBtn" class="logout-btn" title="تسجيل الخروج">
+        <i class="fas fa-sign-out-alt"></i> خروج
+      </button>
     </div>
   </header>
-
   <div class="chat-main">
     <div id="chatWindow"></div>
     <div id="usersPanel">
@@ -34,12 +39,10 @@
       <div id="usersList"></div>
     </div>
   </div>
-
   <form id="messageForm">
     <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
     <button type="submit">إرسال</button>
   </form>
-
   <!-- لوحة البروفايل الشخصية -->
   <div id="myProfilePanel" class="profile-panel">
     <div class="profile-header">
@@ -57,7 +60,6 @@
       <h4 id="myProfileUsername">اسم المستخدم</h4>
     </div>
   </div>
-
   <!-- لوحة ملف المستخدم (عند الضغط على صورة شخص) -->
   <div id="userProfilePanel" class="user-profile-panel">
     <div class="profile-header">
@@ -74,7 +76,6 @@
       </div>
     </div>
   </div>
-
   <!-- الشات الخاص الصغير في أسفل اليمين -->
   <div id="privateChatPanel" class="private-chat-panel">
     <div class="private-header">
@@ -87,7 +88,6 @@
       <button type="submit">إرسال</button>
     </form>
   </div>
-
   <!-- طلبات الصداقة (مع عداد) -->
   <div id="friendRequestsPanel" class="friend-requests-panel">
     <div class="profile-header">
@@ -98,7 +98,6 @@
       <p>لا توجد طلبات حاليًا</p>
     </div>
   </div>
-
   <script src="chat.js"></script>
 </body>
 </html>
