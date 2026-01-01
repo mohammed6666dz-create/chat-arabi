@@ -99,8 +99,9 @@ async function loadMyProfile() {
     const user = await res.json();
     myUsername = user.username;
     myAvatar = user.avatar || 'https://via.placeholder.com/40';
-    document.getElementById('avatar').src = myAvatar + '?t=' + new Date().getTime();
-    document.getElementById('myProfileAvatar').src = myAvatar + '?t=' + new Date().getTime();
+    const timestamp = new Date().getTime();
+    document.getElementById('avatar').src = myAvatar + '?t=' + timestamp;
+    document.getElementById('myProfileAvatar').src = myAvatar + '?t=' + timestamp;
     document.getElementById('myProfileUsername').textContent = myUsername;
   } catch (err) {
     console.error('خطأ في تحميل البروفايل:', err);
@@ -212,5 +213,20 @@ socket.on('private message', ({ from, msg, avatar }) => {
     appendPrivateMessage(from, msg, avatar, false);
   } else {
     alert(`رسالة خاصة جديدة من ${from}`);
+  }
+});
+
+// زر الخروج – ينقل لصفحة rooms.html
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+    // حذف التوكن
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
+
+    // قطع الاتصال
+    socket.disconnect();
+
+    // الانتقال لصفحة الغرف
+    window.location.href = 'rooms.html';
   }
 });
