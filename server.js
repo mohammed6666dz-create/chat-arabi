@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
@@ -10,72 +11,81 @@ const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
 
+// ────────────────────────────────────────────────
+// إضافة mongoose وربط قاعدة البيانات
+const mongoose = require('mongoose');
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB متصل بنجاح'))
+  .catch(err => console.error('فشل الاتصال بـ MongoDB:', err));
+
+// نموذج User (بديل users.json)
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  passwordHash: { type: String, required: true },
+  avatar: { type: String, default: '' },
+  background: { type: String, default: '' },
+  friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  pendingSent: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  pendingReceived: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  rank: { type: String, default: 'ضيف' }
+});
+
+const User = mongoose.model('User', userSchema);
+
+// نموذج الرسائل الخاصة
+const privateMessageSchema = new mongoose.Schema({
+  from: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  to: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  msg: { type: String, required: true },
+  avatar: String,
+  time: { type: Date, default: Date.now }
+});
+
+const PrivateMessage = mongoose.model('PrivateMessage', privateMessageSchema);
+
+// ────────────────────────────────────────────────
+
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-let users = [];
 let roomUsers = { general: [], algeria: [], all_countries: [] };
 let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
 
-// ────────────────────────────────────────────────
-// إضافة الرتب (بدون تغيير أي سطر سابق)
 const RANKS = ['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'];
-// ────────────────────────────────────────────────
-
-const secret = 'secretkey';
+const secret = process.env.JWT_SECRET || 'secretkey';
 const PORT = 3000;
 
-function loadUsers() {
-  if (fs.existsSync('users.json')) {
-    users = JSON.parse(fs.readFileSync('users.json'));
-  }
-  // ────────────────────────────────────────────────
-  // إنشاء حساب صاحب الموقع (mohamed-dz) تلقائيًا لو ما كان موجود
-  if (!users.find(u => u.username === 'mohamed-dz')) {
-    const ownerPassword = bcrypt.hashSync('mohokok12', 10); // كلمة السر mohokok12
-    users.push({
-      username: 'mohamed-dz',
-      passwordHash: ownerPassword,
-      avatar: '',
-      background: '',
-      friends: [],
-      rank: 'صاحب الموقع'
-    });
-    saveUsers();
-    console.log('تم إنشاء حساب صاحب الموقع تلقائيًا: username: mohamed-dz | password: mohokok12');
-    console.log('غير كلمة السر فورًا من users.json لو هتستخدم الموقع على الإنترنت!');
-  }
-  // ────────────────────────────────────────────────
-}
-loadUsers();
-
-function saveUsers() {
-  fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
+// ────────────────────────────────────────────────
+// دالة لجلب المستخدم من MongoDB بدلاً من users.json
+async function getUserByUsername(username) {
+  return await User.findOne({ username });
 }
 
 // Register
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
   const { username, password } = req.body;
-  if (users.find(u => u.username === username)) return res.status(400).json({ msg: 'المستخدم موجود' });
+  if (await getUserByUsername(username)) {
+    return res.status(400).json({ msg: 'المستخدم موجود' });
+  }
   const passwordHash = bcrypt.hashSync(password, 10);
-  users.push({
+  const newUser = new User({
     username,
     passwordHash,
-    avatar: '',
-    background: '',
-    friends: [],
-    rank: 'ضيف' // ──── الإضافة الجديدة ────
+    rank: 'ضيف'
   });
-  saveUsers();
+  await newUser.save();
   res.json({ msg: 'تم التسجيل بنجاح' });
 });
 
 // Login
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  const user = users.find(u => u.username === username);
-  if (!user || !bcrypt.compareSync(password, user.passwordHash)) return res.status(400).json({ msg: 'بيانات خاطئة' });
+  const user = await getUserByUsername(username);
+  if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
+    return res.status(400).json({ msg: 'بيانات خاطئة' });
+  }
   const token = jwt.sign({ username }, secret, { expiresIn: '7d' });
   res.json({ token });
 });
@@ -92,31 +102,30 @@ const verifyToken = (req, res, next) => {
 };
 
 // Profile
-app.get('/profile', verifyToken, (req, res) => {
-  const user = users.find(u => u.username === req.user.username);
+app.get('/profile', verifyToken, async (req, res) => {
+  const user = await getUserByUsername(req.user.username);
+  if (!user) return res.status(404).json({ msg: 'المستخدم غير موجود' });
   res.json({
     username: user.username,
-    passwordHash: user.passwordHash,
     avatar: user.avatar,
     background: user.background,
     friends: user.friends,
-    rank: user.rank || 'ضيف' // ──── الإضافة الجديدة ────
+    rank: user.rank || 'ضيف'
   });
 });
 
-// Upload avatar
-app.post('/upload-avatar', verifyToken, upload.single('avatar'), (req, res) => {
-  const user = users.find(u => u.username === req.user.username);
+// Upload avatar & background (مع تعديل بسيط)
+app.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res) => {
+  const user = await getUserByUsername(req.user.username);
   if (req.file) user.avatar = '/uploads/' + req.file.filename;
-  saveUsers();
+  await user.save();
   res.json({ avatar: user.avatar });
 });
 
-// Upload background
-app.post('/upload-background', verifyToken, upload.single('background'), (req, res) => {
-  const user = users.find(u => u.username === req.user.username);
+app.post('/upload-background', verifyToken, upload.single('background'), async (req, res) => {
+  const user = await getUserByUsername(req.user.username);
   if (req.file) user.background = '/uploads/' + req.file.filename;
-  saveUsers();
+  await user.save();
   res.json({ background: user.background });
 });
 
@@ -125,35 +134,43 @@ app.get('/room-counts', (req, res) => {
   res.json(roomCounts);
 });
 
-// ────────────────────────────────────────────────
-// إضافة: تغيير رتبة مستخدم (لصاحب الموقع فقط)
-app.post('/change-rank', verifyToken, (req, res) => {
-  const changer = users.find(u => u.username === req.user.username);
+// تغيير رتبة
+app.post('/change-rank', verifyToken, async (req, res) => {
+  const changer = await getUserByUsername(req.user.username);
   if (!changer || changer.rank !== 'صاحب الموقع') {
     return res.status(403).json({ msg: 'غير مصرح لك' });
   }
   const { targetUsername, newRank } = req.body;
-  if (!['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'].includes(newRank)) {
+  if (!RANKS.includes(newRank)) {
     return res.status(400).json({ msg: 'رتبه غير صالحة' });
   }
-  const target = users.find(u => u.username === targetUsername);
+  const target = await getUserByUsername(targetUsername);
   if (!target) return res.status(404).json({ msg: 'المستخدم غير موجود' });
   target.rank = newRank;
-  saveUsers();
-  // إشعار الجميع (اختياري)
+  await target.save();
   io.emit('rank update', { username: targetUsername, rank: newRank });
   res.json({ msg: 'تم تغيير الرتبه بنجاح' });
 });
+
+// ────────────────────────────────────────────────
+// Socket.io
 // ────────────────────────────────────────────────
 
-// Socket.io
+const userSocketMap = new Map(); // username → socket.id
+
 io.on('connection', socket => {
   let currentRoom = null;
   let username = null;
-  socket.on('join', (room, token) => {
+
+  socket.on('join', async (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
       username = decoded.username;
+      const user = await getUserByUsername(username);
+      if (!user) return;
+
+      userSocketMap.set(username, socket.id);
+
       if (currentRoom) {
         socket.leave(currentRoom);
         roomCounts[currentRoom]--;
@@ -161,53 +178,142 @@ io.on('connection', socket => {
         io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
         io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
       }
+
       currentRoom = room;
       socket.join(room);
       roomCounts[room]++;
-      const user = users.find(u => u.username === username);
-      const avatar = user?.avatar || 'https://via.placeholder.com/40';
+      const avatar = user.avatar || 'https://via.placeholder.com/40';
       roomUsers[room].push({ username, avatar });
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
     } catch (e) {
-      console.log('توكن غير صالح');
+      console.log('توكن غير صالح أو خطأ في join:', e);
     }
   });
 
-  socket.on('message', (msg, token) => {
+  socket.on('message', async (msg, token) => {
     try {
       const decoded = jwt.verify(token, secret);
-      const user = users.find(u => u.username === decoded.username);
+      const user = await getUserByUsername(decoded.username);
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
       io.to(currentRoom).emit('message', { username: decoded.username, msg, avatar });
     } catch (e) {}
   });
 
   // ────────────────────────────────────────────────
-  // الرسائل الخاصة (الإضافة الجديدة فقط)
-  socket.on('private message', ({ to, msg }) => {
-    try {
-      const decoded = jwt.verify(token, secret);
-      const sender = decoded.username;
-      const senderUser = users.find(u => u.username === sender);
-      const avatar = senderUser?.avatar || 'https://via.placeholder.com/40';
+  // رسائل خاصة + حفظ في MongoDB
+  // ────────────────────────────────────────────────
+  socket.on('private message', async ({ to, msg }) => {
+    if (!username) return;
 
-      // إرسال للمرسل
-      socket.emit('private message', { from: sender, msg, avatar });
+    const senderUser = await getUserByUsername(username);
+    const receiverUser = await getUserByUsername(to);
 
-      // إرسال للمستلم (ابحث عن الـ socket الخاص به)
-      io.sockets.sockets.forEach((s) => {
-        if (s.decoded && s.decoded.username === to) {
-          s.emit('private message', { from: sender, msg, avatar });
-        }
-      });
-    } catch (e) {
-      console.log('خطأ في الرسالة الخاصة:', e);
+    if (!senderUser || !receiverUser) return;
+
+    const messageDoc = new PrivateMessage({
+      from: senderUser._id,
+      to: receiverUser._id,
+      msg,
+      avatar: senderUser.avatar || 'https://via.placeholder.com/40'
+    });
+    await messageDoc.save();
+
+    const payload = {
+      from: username,
+      to,
+      msg,
+      avatar: senderUser.avatar || 'https://via.placeholder.com/40',
+      time: messageDoc.time
+    };
+
+    // للمرسل
+    socket.emit('private message', { ...payload, isSelf: true });
+
+    // للمستلم إذا متصل
+    const receiverSocketId = userSocketMap.get(to);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('private message', payload);
     }
   });
+
   // ────────────────────────────────────────────────
+  // طلبات الصداقة + حفظ في MongoDB
+  // ────────────────────────────────────────────────
+  socket.on('send friend request', async ({ to }) => {
+    if (!username || to === username) return;
+
+    const sender = await getUserByUsername(username);
+    const receiver = await getUserByUsername(to);
+
+    if (!sender || !receiver) return;
+
+    // تحقق وجود طلب سابق
+    if (sender.pendingSent.includes(receiver._id) ||
+        receiver.pendingReceived.includes(sender._id)) {
+      return socket.emit('friend request error', { msg: 'طلب موجود مسبقاً' });
+    }
+
+    sender.pendingSent.push(receiver._id);
+    receiver.pendingReceived.push(sender._id);
+
+    await sender.save();
+    await receiver.save();
+
+    const receiverSocketId = userSocketMap.get(to);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('friend request received', {
+        from: username,
+        avatar: sender.avatar || 'https://via.placeholder.com/40'
+      });
+    }
+
+    socket.emit('friend request sent', { to });
+  });
+
+  socket.on('respond friend request', async ({ from, accept }) => {
+    if (!username) return;
+
+    const responder = await getUserByUsername(username);
+    const requester = await getUserByUsername(from);
+
+    if (!responder || !requester) return;
+
+    const reqIndex = responder.pendingReceived.indexOf(requester._id);
+    if (reqIndex === -1) return;
+
+    responder.pendingReceived.splice(reqIndex, 1);
+
+    if (accept) {
+      responder.friends.push(requester._id);
+      requester.friends.push(responder._id);
+
+      const sentIndex = requester.pendingSent.indexOf(responder._id);
+      if (sentIndex !== -1) requester.pendingSent.splice(sentIndex, 1);
+
+      await responder.save();
+      await requester.save();
+
+      const requesterSocketId = userSocketMap.get(from);
+      if (requesterSocketId) {
+        io.to(requesterSocketId).emit('friend added', { username });
+      }
+      socket.emit('friend added', { username: from });
+    } else {
+      // رفض → حذف فقط
+      const sentIndex = requester.pendingSent.indexOf(responder._id);
+      if (sentIndex !== -1) requester.pendingSent.splice(sentIndex, 1);
+      await requester.save();
+      await responder.save();
+    }
+
+    socket.emit('friend request response', { from, accept });
+  });
 
   socket.on('disconnect', () => {
+    if (username) {
+      userSocketMap.delete(username);
+    }
     if (currentRoom && username) {
       roomCounts[currentRoom]--;
       roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
@@ -217,14 +323,9 @@ io.on('connection', socket => {
   });
 });
 
-// تشغيل السيرفر مع عرض الرابط الجاهز
 http.listen(PORT, '0.0.0.0', () => {
   console.log('=====================================');
   console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
-  console.log('');
-  console.log('🚀 افتح الشات من الرابط ده مباشرة:');
-  console.log(` http://localhost:${PORT}/index.html`);
-  console.log('');
-  console.log(' أو اضغط Ctrl + Click على الرابط فوق 👆');
+  console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
 });
