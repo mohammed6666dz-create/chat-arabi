@@ -4,7 +4,6 @@ if (!token) {
 }
 
 const socket = io();
-
 const params = new URLSearchParams(window.location.search);
 const room = params.get('room');
 if (!room) {
@@ -37,11 +36,10 @@ socket.on('update users', (users) => {
         const div = document.createElement('div');
         div.className = 'user-item';
         div.innerHTML = `
-            <a href="/u/${encodeURIComponent(user.username)}" target="_blank">
-                <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
-            </a>
+            <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
             <span>${user.username}</span>
         `;
+        div.onclick = () => showOtherUserProfile(user.username);  // ← تعديل بسيط هنا
         list.appendChild(div);
     });
 });
@@ -71,23 +69,16 @@ document.getElementById('messageForm').addEventListener('submit', (e) => {
     }
 });
 
-// دالة عرض الرسالة مع رابط قابل للنقر على الصورة والاسم
 function appendMessage(username, msg, avatar, isMe = false) {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
-
-    const profileUrl = `/u/${encodeURIComponent(username)}`;
-
+    
     messageDiv.innerHTML = `
-        <a href="${profileUrl}" target="_blank" class="profile-link">
-            <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}" class="clickable-avatar">
-        </a>
+        <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}" 
+             onclick="showOtherUserProfile('${username}')" class="clickable-avatar">
         <div class="message-content">
-            <strong class="clickable-username" 
-                    onclick="event.preventDefault(); window.open('${profileUrl}', '_blank');">
-                ${username}
-            </strong>
+            <strong onclick="showOtherUserProfile('${username}')">${username}</strong>
             <p>${msg}</p>
         </div>
     `;
@@ -112,46 +103,22 @@ async function loadMyProfile() {
         myUsername = user.username;
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
         const timestamp = new Date().getTime();
-        
         document.getElementById('avatar').src = myAvatar + '?t=' + timestamp;
         document.getElementById('myProfileAvatar').src = myAvatar + '?t=' + timestamp;
         document.getElementById('myProfileUsername').textContent = myUsername;
-
-        // تحديث رابط الملف الشخصي
-        updateProfileLink();
     } catch (err) {
         console.error('خطأ في تحميل البروفايل:', err);
     }
 }
 loadMyProfile();
 
-// عرض ونسخ رابط الملف الشخصي
-function updateProfileLink() {
-    if (myUsername) {
-        const url = `${window.location.origin}/u/${encodeURIComponent(myUsername)}`;
-        const input = document.getElementById('myProfileUrl');
-        if (input) {
-            input.value = url;
-        }
-    }
-}
-
-function copyProfileLink() {
-    const input = document.getElementById('myProfileUrl');
-    if (input) {
-        input.select();
-        document.execCommand('copy');
-        alert('تم نسخ الرابط بنجاح!');
-    }
-}
-
-// فتح لوحة البروفايل الشخصي
+// فتح لوحة البروفايل الشخصية
 document.getElementById('profileBtn').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'block';
     loadMyProfile();
 });
 
-// إغلاق لوحة البروفايل
+// إغلاق لوحة البروفايل الشخصية
 document.getElementById('closeMyProfile').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'none';
 });
@@ -184,24 +151,44 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
     }
 });
 
-// فتح لوحة أفعال المستخدم (للمستخدمين الآخرين)
+// فتح لوحة أفعال المستخدم (تم تعديلها لتفتح اللوحة الجديدة)
 function openUserActions(username) {
-    document.getElementById('userUsername').textContent = username;
-    document.getElementById('userAvatar').src = 'https://via.placeholder.com/90';
-    document.getElementById('userProfilePanel').style.display = 'block';
-    currentPrivateChat = username;
+    showOtherUserProfile(username);
+}
+
+// ────────────────────────────────────────────────
+// الجزء الجديد: لوحة بروفايل المستخدمين الآخرين
+// ────────────────────────────────────────────────
+function showOtherUserProfile(username) {
+    // بيانات وهمية حالياً - يفضل استبدالها بجلب حقيقي من السيرفر لاحقاً
+    document.getElementById('otherUserDisplayName').textContent = username;
+    document.getElementById('otherUserAvatarLarge').src = 
+        `https://via.placeholder.com/140/000/fff?text=${encodeURIComponent(username.charAt(0) || '?')}`;
+    
+    document.getElementById('otherUserStatus').textContent = "We will meet in Paradise";
+    document.getElementById('otherProfileUrl').textContent = `${window.location.origin}/u/${username}`;
+    document.getElementById('otherJoinDate').textContent = "2026-01-05";
+    document.getElementById('otherCountry').textContent = "الجزائر";
+    document.getElementById('otherLastSeen').textContent = "الآن";
+    document.getElementById('otherPoints').textContent = "1821";
+
+    document.getElementById('otherUserProfileModal').classList.remove('hidden');
+}
+
+function closeOtherUserProfile() {
+    document.getElementById('otherUserProfileModal').classList.add('hidden');
 }
 
 // فتح الشات الخاص
-document.getElementById('startPrivateChatBtn').onclick = () => {
+document.getElementById('startPrivateChatBtn')?.onclick = () => {
     document.getElementById('userProfilePanel').style.display = 'none';
     document.getElementById('privateChatPanel').style.display = 'block';
     document.getElementById('privateChatWith').textContent = 'دردشة مع ' + currentPrivateChat;
 };
 
 // إرسال طلب صداقة
-document.getElementById('addFriendBtn').onclick = () => {
-    const target = document.getElementById('userUsername').textContent;
+document.getElementById('addFriendBtn')?.onclick = () => {
+    const target = document.getElementById('userUsername')?.textContent || '';
     if (target === myUsername) {
         alert('لا يمكنك إضافة نفسك!');
         return;
@@ -212,17 +199,17 @@ document.getElementById('addFriendBtn').onclick = () => {
 };
 
 // إغلاق لوحة ملف المستخدم
-document.getElementById('closeUserPanel').addEventListener('click', () => {
+document.getElementById('closeUserPanel')?.addEventListener('click', () => {
     document.getElementById('userProfilePanel').style.display = 'none';
 });
 
 // إغلاق الشات الخاص
-document.getElementById('closePrivateChat').addEventListener('click', () => {
+document.getElementById('closePrivateChat')?.addEventListener('click', () => {
     document.getElementById('privateChatPanel').style.display = 'none';
 });
 
 // إرسال رسالة خاصة
-document.getElementById('privateChatForm').addEventListener('submit', (e) => {
+document.getElementById('privateChatForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const input = document.getElementById('privateChatInput');
     const msg = input.value.trim();
