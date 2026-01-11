@@ -45,7 +45,7 @@
     <button type="submit">إرسال</button>
   </form>
 
-  <!-- لوحة البروفايل الشخصية -->
+  <!-- لوحة البروفايل الشخصية (القديمة) -->
   <div id="myProfilePanel" class="profile-panel">
     <div class="profile-header">
       <h3>بروفايلك</h3>
@@ -61,68 +61,60 @@
       </div>
       <h4 id="myProfileUsername">اسم المستخدم</h4>
 
-      <!-- ───────────────────────────────
-           الإضافات الجديدة فقط 
-      ──────────────────────────────── -->
-      <div class="profile-cover-section">
-        <div class="cover-photo" id="myCoverPhoto"
-             style="background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80');">
-        </div>
-        
-        <div class="profile-cover-overlay">
-          <div class="profile-action-buttons">
-            <button class="profile-btn" id="showMyFriendsBtn">الأصدقاء</button>
-            <button class="profile-btn" id="privacySettingsBtn">خيارات</button>
-            <button class="profile-btn" id="showFeaturesBtn">المميزات</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- المحتوى الديناميكي الذي يظهر عند الضغط -->
-      <div id="profileDynamicContent" class="profile-dynamic-content"></div>
-      <!-- نهاية الإضافات -->
-
+      <!-- باقي محتوى البروفايل الشخصي إذا كان موجود -->
     </div>
   </div>
 
-  <!-- باقي اللوحات (لم يتم تغييرها) -->
-  <div id="userProfilePanel" class="user-profile-panel">
-    <div class="profile-header">
-      <h3>ملف المستخدم</h3>
-      <span id="closeUserPanel" class="close-panel">×</span>
-    </div>
-    <div class="profile-body">
-      <img id="userAvatar" src="https://via.placeholder.com/90" alt="صورة المستخدم">
-      <h4 id="userUsername">اسم المستخدم</h4>
+  <!-- اللوحة الجديدة: بروفايل المستخدمين الآخرين (المنبثقة) -->
+  <div id="otherUserProfileModal" class="other-profile-modal hidden">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeOtherUserProfile()">×</span>
+
+      <div class="profile-cover" id="otherUserCover"></div>
+
+      <div class="profile-header-info">
+        <img id="otherUserAvatarLarge" src="https://via.placeholder.com/140" alt="صورة المستخدم" class="large-avatar">
+        <div class="user-info-text">
+          <h2 id="otherUserDisplayName">اسم المستخدم</h2>
+          <p id="otherUserStatus" class="status-text">We will meet in Paradise</p>
+        </div>
+      </div>
+
       <div class="profile-actions">
-        <button id="viewUserProfileBtn">فحص الملف</button>
-        <button id="startPrivateChatBtn">مراسلة خاصة</button>
-        <button id="addFriendBtn">إضافة صديق</button>
+        <button class="action-btn msg-btn" id="sendPrivateMsgBtn">رسالة خاصة</button>
+        <button class="action-btn friend-btn" id="addFriendFromProfile">إضافة صديق</button>
+        <button class="action-btn report-btn">إبلاغ</button>
+      </div>
+
+      <div class="profile-details">
+        <div class="detail-item">
+          <span>رابط الملف</span>
+          <span id="otherProfileUrl">https://chat.arabi.com/u/...</span>
+        </div>
+        <div class="detail-item">
+          <span>تاريخ الانضمام</span>
+          <span id="otherJoinDate">2026-01-05</span>
+        </div>
+        <div class="detail-item">
+          <span>البلد</span>
+          <span id="otherCountry">الجزائر</span>
+        </div>
+        <div class="detail-item">
+          <span>آخر تواجد</span>
+          <span id="otherLastSeen">الآن</span>
+        </div>
+        <div class="detail-item">
+          <span>النقاط</span>
+          <span id="otherPoints">1821</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <div id="privateChatPanel" class="private-chat-panel">
-    <div class="private-header">
-      <h3 id="privateChatWith">دردشة مع ...</h3>
-      <span id="closePrivateChat" class="close-panel">×</span>
-    </div>
-    <div id="privateChatMessages" class="private-messages"></div>
-    <form id="privateChatForm">
-      <input type="text" id="privateChatInput" placeholder="اكتب رسالتك..." autocomplete="off">
-      <button type="submit">إرسال</button>
-    </form>
-  </div>
-
-  <div id="friendRequestsPanel" class="friend-requests-panel">
-    <div class="profile-header">
-      <h3>طلبات الصداقة</h3>
-      <span id="closeFriendReq" class="close-panel">×</span>
-    </div>
-    <div id="friendRequestsList" class="friend-requests-list">
-      <p>لا توجد طلبات حاليًا</p>
-    </div>
-  </div>
+  <!-- باقي اللوحات القديمة -->
+  <div id="userProfilePanel" class="user-profile-panel">...</div>
+  <div id="privateChatPanel" class="private-chat-panel">...</div>
+  <div id="friendRequestsPanel" class="friend-requests-panel">...</div>
 
   <script src="chat.js"></script>
 </body>
