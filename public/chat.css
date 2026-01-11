@@ -480,4 +480,63 @@ header h1 {
   border: none;
   border-radius: 20px;
   cursor: pointer;
+}/* ───────────────────────────────────
+   الإضافات الجديدة فقط - تحسين البروفايل
+───────────────────────────────────── */
+
+.profile-cover-section {
+  position: relative;
+  height: 180px;
+  margin: 0 -16px 20px -16px;
+  background: #0f172a;
+}
+
+.cover-photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.profile-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(15,23,42,0.85) 40%, transparent);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 15px;
+}
+
+.profile-action-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.profile-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(99,102,241,0.7);
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(4px);
+}
+
+.profile-btn:hover {
+  background: rgba(99,102,241,0.95);
+  transform: translateY(-1px);
+}
+
+.profile-dynamic-content {
+  padding: 15px;
+  min-height: 80px;
+  background: rgba(30,41,59,0.4);
+  border-radius: 10px;
+  text-align: center;
+  color: #cbd5e1;
 }
