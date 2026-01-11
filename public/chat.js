@@ -4,6 +4,7 @@ if (!token) {
 }
 
 const socket = io();
+
 const params = new URLSearchParams(window.location.search);
 const room = params.get('room');
 if (!room) {
@@ -120,31 +121,40 @@ document.getElementById('closeMyProfile').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'none';
 });
 
-// رفع الصورة الشخصية
+// رفع الصورة الشخصية  ← الجزء المصحح
 document.getElementById('avatarUpload').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
     const formData = new FormData();
     formData.append('avatar', file);
+
     try {
         const res = await fetch('/upload-avatar', {
             method: 'POST',
             headers: { Authorization: token },
             body: formData
         });
+
         const data = await res.json();
+
         if (data.avatar) {
             const timestamp = new Date().getTime();
             myAvatar = data.avatar;
-            document.getElementById('profileAvatar').src = data.avatar + '?t=' + timestamp;
+
+            // الصورة الكبيرة في لوحة البروفايل الشخصي
+            document.getElementById('myProfileAvatar').src = data.avatar + '?t=' + timestamp;
+
+            // الصورة الصغيرة في الهيدر
             document.getElementById('avatar').src = data.avatar + '?t=' + timestamp;
+
             alert('تم رفع الصورة بنجاح!');
         } else {
             alert('فشل رفع الصورة: ' + (data.msg || 'خطأ غير معروف'));
         }
     } catch (e) {
         console.error('خطأ في رفع الصورة:', e);
-        alert('تم رفع صوره يرجعى اعادة تحميل صفحه');
+        alert('حصل خطأ أثناء رفع الصورة، يرجى المحاولة مرة أخرى');
     }
 });
 
@@ -227,9 +237,8 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 });
 
 // ────────────────────────────────────────────────
-//          الإضافات الجديدة فقط (صداقة + إشعارات + تحسين)
+// الإضافات الجديدة فقط (صداقة + إشعارات + تحسين)
 // ────────────────────────────────────────────────
-
 let friendRequests = [];
 let notifications = [];
 
@@ -237,7 +246,6 @@ let notifications = [];
 socket.on('new notification', (notif) => {
     notifications.push(notif);
     updateNotificationsBadge();
-
     if (notif.type === 'friend_request') {
         friendRequests.push(notif.from);
         updateFriendRequestsBadge();
@@ -276,11 +284,9 @@ document.getElementById('closeFriendReq')?.addEventListener('click', () => {
 function updateFriendRequestsList() {
     const container = document.getElementById('friendRequestsList');
     if (!container) return;
-
     container.innerHTML = friendRequests.length === 0
         ? '<p>لا توجد طلبات صداقة حالياً</p>'
         : '';
-
     friendRequests.forEach(from => {
         const item = document.createElement('div');
         item.className = 'friend-request-item';
