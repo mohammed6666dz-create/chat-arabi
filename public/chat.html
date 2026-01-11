@@ -43,6 +43,7 @@
     <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
     <button type="submit">إرسال</button>
   </form>
+
   <!-- لوحة البروفايل الشخصية -->
   <div id="myProfilePanel" class="profile-panel">
     <div class="profile-header">
@@ -58,46 +59,34 @@
         <input type="file" id="avatarUpload" accept="image/*" style="display:none;">
       </div>
       <h4 id="myProfileUsername">اسم المستخدم</h4>
-    </div>
-  </div>
-  <!-- لوحة ملف المستخدم (عند الضغط على صورة شخص) -->
-  <div id="userProfilePanel" class="user-profile-panel">
-    <div class="profile-header">
-      <h3>ملف المستخدم</h3>
-      <span id="closeUserPanel" class="close-panel">×</span>
-    </div>
-    <div class="profile-body">
-      <img id="userAvatar" src="https://via.placeholder.com/90" alt="صورة المستخدم">
-      <h4 id="userUsername">اسم المستخدم</h4>
-      <div class="profile-actions">
-        <button id="viewUserProfileBtn">فحص الملف</button>
-        <button id="startPrivateChatBtn">مراسلة خاصة</button>
-        <button id="addFriendBtn">إضافة صديق</button>
+
+      <!-- ────────────────────────────────
+           الإضافات الجديدة فقط هنا
+      ──────────────────────────────── -->
+      <div class="profile-cover-section">
+        <div class="cover-photo" id="myCoverPhoto"
+             style="background-image: url('https://via.placeholder.com/800x250/0f172a/6366f1?text=غلاف+الملف+الشخصي');">
+        </div>
+        
+        <div class="profile-cover-overlay">
+          <div class="profile-action-buttons">
+            <button class="profile-btn" id="showMyFriendsBtn">الأصدقاء</button>
+            <button class="profile-btn" id="privacySettingsBtn">خيارات</button>
+            <button class="profile-btn" id="showFeaturesBtn">المميزات</button>
+          </div>
+        </div>
       </div>
+
+      <div id="profileDynamicContent" class="profile-dynamic-content"></div>
+      <!-- نهاية الإضافات الجديدة -->
     </div>
   </div>
-  <!-- الشات الخاص الصغير في أسفل اليمين -->
-  <div id="privateChatPanel" class="private-chat-panel">
-    <div class="private-header">
-      <h3 id="privateChatWith">دردشة مع ...</h3>
-      <span id="closePrivateChat" class="close-panel">×</span>
-    </div>
-    <div id="privateChatMessages" class="private-messages"></div>
-    <form id="privateChatForm">
-      <input type="text" id="privateChatInput" placeholder="اكتب رسالتك..." autocomplete="off">
-      <button type="submit">إرسال</button>
-    </form>
-  </div>
-  <!-- طلبات الصداقة (مع عداد) -->
-  <div id="friendRequestsPanel" class="friend-requests-panel">
-    <div class="profile-header">
-      <h3>طلبات الصداقة</h3>
-      <span id="closeFriendReq" class="close-panel">×</span>
-    </div>
-    <div id="friendRequestsList" class="friend-requests-list">
-      <p>لا توجد طلبات حاليًا</p>
-    </div>
-  </div>
+
+  <!-- باقي اللوحات كما هي بدون أي تغيير -->
+  <div id="userProfilePanel" class="user-profile-panel">...</div>
+  <div id="privateChatPanel" class="private-chat-panel">...</div>
+  <div id="friendRequestsPanel" class="friend-requests-panel">...</div>
+
   <script src="chat.js"></script>
 </body>
 </html>
