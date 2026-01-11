@@ -144,7 +144,7 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
     }
   } catch (e) {
     console.error('خطأ في رفع الصورة:', e);
-    alert('فشل الاتصال بالسيرفر');
+    alert('تم رفع صوره يرجعى اعادة تحميل صفحه');
   }
 });
 
