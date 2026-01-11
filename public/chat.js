@@ -4,7 +4,6 @@ if (!token) {
 }
 
 const socket = io();
-
 const params = new URLSearchParams(window.location.search);
 const room = params.get('room');
 if (!room) {
@@ -121,33 +120,24 @@ document.getElementById('closeMyProfile').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'none';
 });
 
-// رفع الصورة الشخصية  ← الجزء المصحح
+// رفع الصورة الشخصية
 document.getElementById('avatarUpload').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const formData = new FormData();
     formData.append('avatar', file);
-
     try {
         const res = await fetch('/upload-avatar', {
             method: 'POST',
             headers: { Authorization: token },
             body: formData
         });
-
         const data = await res.json();
-
         if (data.avatar) {
             const timestamp = new Date().getTime();
             myAvatar = data.avatar;
-
-            // الصورة الكبيرة في لوحة البروفايل الشخصي
             document.getElementById('myProfileAvatar').src = data.avatar + '?t=' + timestamp;
-
-            // الصورة الصغيرة في الهيدر
             document.getElementById('avatar').src = data.avatar + '?t=' + timestamp;
-
             alert('تم رفع الصورة بنجاح!');
         } else {
             alert('فشل رفع الصورة: ' + (data.msg || 'خطأ غير معروف'));
@@ -173,9 +163,15 @@ document.getElementById('startPrivateChatBtn').onclick = () => {
     document.getElementById('privateChatWith').textContent = 'دردشة مع ' + currentPrivateChat;
 };
 
-// إرسال طلب صداقة (مثال بسيط)
+// إرسال طلب صداقة
 document.getElementById('addFriendBtn').onclick = () => {
-    alert('تم إرسال طلب الصداقة!');
+    const target = document.getElementById('userUsername').textContent;
+    if (target === myUsername) {
+        alert('لا يمكنك إضافة نفسك!');
+        return;
+    }
+    socket.emit('send friend request', target);
+    alert(`تم إرسال طلب صداقة إلى ${target}`);
     document.getElementById('userProfilePanel').style.display = 'none';
 };
 
@@ -201,7 +197,6 @@ document.getElementById('privateChatForm').addEventListener('submit', (e) => {
     }
 });
 
-// عرض الرسالة الخاصة
 function appendPrivateMessage(username, msg, avatar, isMe) {
     const chat = document.getElementById('privateChatMessages');
     const div = document.createElement('div');
@@ -237,93 +232,34 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 });
 
 // ────────────────────────────────────────────────
-// الإضافات الجديدة فقط (صداقة + إشعارات + تحسين)
+// إضافات تحسين البروفايل (الأصدقاء - الخيارات - المميزات)
 // ────────────────────────────────────────────────
-let friendRequests = [];
-let notifications = [];
-
-// استقبال إشعار جديد
-socket.on('new notification', (notif) => {
-    notifications.push(notif);
-    updateNotificationsBadge();
-    if (notif.type === 'friend_request') {
-        friendRequests.push(notif.from);
-        updateFriendRequestsBadge();
-    }
+document.getElementById('showMyFriendsBtn')?.addEventListener('click', () => {
+    document.getElementById('profileDynamicContent').innerHTML = `
+        <div style="padding: 30px 0; color: #94a3b8; font-style: italic;">
+            لا يوجد أصدقاء حالياً
+        </div>
+    `;
 });
 
-// تحديث عداد الإشعارات
-function updateNotificationsBadge() {
-    const badge = document.getElementById('notificationsBadge');
-    if (badge) {
-        const count = notifications.length;
-        badge.textContent = count;
-        badge.style.display = count > 0 ? 'inline' : 'none';
-    }
-}
-
-// تحديث عداد طلبات الصداقة
-function updateFriendRequestsBadge() {
-    const badge = document.getElementById('friendReqBadge');
-    const count = friendRequests.length;
-    badge.textContent = count;
-    badge.style.display = count > 0 ? 'inline' : 'none';
-}
-
-// فتح لوحة طلبات الصداقة
-document.getElementById('friendReqBtn')?.addEventListener('click', () => {
-    document.getElementById('friendRequestsPanel').style.display = 'block';
-    updateFriendRequestsList();
-});
-
-// إغلاق لوحة طلبات الصداقة
-document.getElementById('closeFriendReq')?.addEventListener('click', () => {
-    document.getElementById('friendRequestsPanel').style.display = 'none';
-});
-
-function updateFriendRequestsList() {
-    const container = document.getElementById('friendRequestsList');
-    if (!container) return;
-    container.innerHTML = friendRequests.length === 0
-        ? '<p>لا توجد طلبات صداقة حالياً</p>'
-        : '';
-    friendRequests.forEach(from => {
-        const item = document.createElement('div');
-        item.className = 'friend-request-item';
-        item.innerHTML = `
-            <div>${from} أرسل لك طلب صداقة</div>
-            <div>
-                <button onclick="acceptFriendRequest('${from}')">قبول</button>
-                <button onclick="rejectFriendRequest('${from}')">رفض</button>
+document.getElementById('privacySettingsBtn')?.addEventListener('click', () => {
+    document.getElementById('profileDynamicContent').innerHTML = `
+        <div style="padding: 20px 0;">
+            <p style="margin-bottom: 15px; color: #94a3b8;">من يستطيع رؤية أصدقائك؟</p>
+            <div style="display: flex; flex-direction: column; gap: 12px; text-align: right; padding: 0 20px;">
+                <label><input type="radio" name="privacy" value="friends" checked> الأصدقاء فقط</label>
+                <label><input type="radio" name="privacy" value="everyone"> الجميع</label>
+                <label><input type="radio" name="privacy" value="only_me"> أنا فقط</label>
             </div>
-        `;
-        container.appendChild(item);
-    });
-}
+        </div>
+    `;
+});
 
-// قبول / رفض طلب
-window.acceptFriendRequest = function(from) {
-    socket.emit('accept friend request', from);
-    friendRequests = friendRequests.filter(u => u !== from);
-    updateFriendRequestsList();
-    updateFriendRequestsBadge();
-};
-
-window.rejectFriendRequest = function(from) {
-    socket.emit('reject friend request', from);
-    friendRequests = friendRequests.filter(u => u !== from);
-    updateFriendRequestsList();
-    updateFriendRequestsBadge();
-};
-
-// تحسين زر إضافة صديق
-document.getElementById('addFriendBtn').onclick = function() {
-    const target = document.getElementById('userUsername').textContent;
-    if (target === myUsername) {
-        alert('لا يمكنك إضافة نفسك!');
-        return;
-    }
-    socket.emit('send friend request', target);
-    alert(`تم إرسال طلب صداقة إلى ${target}`);
-    document.getElementById('userProfilePanel').style.display = 'none';
-};
+document.getElementById('showFeaturesBtn')?.addEventListener('click', () => {
+    document.getElementById('profileDynamicContent').innerHTML = `
+        <div style="padding: 35px 15px; color: #94a3b8; line-height: 1.6;">
+            لا يوجد مميزات حالياً<br>
+            <span style="font-size: 0.95em;">ستظهر في التحديث القادم إن شاء الله</span>
+        </div>
+    `;
+});
