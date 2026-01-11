@@ -1,4 +1,8 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+}
 body {
   font-family: 'Segoe UI', Tahoma, sans-serif;
   background: #0b141a;
@@ -8,7 +12,6 @@ body {
   flex-direction: column;
   overflow: hidden;
 }
-
 header {
   background: #075e54;
   color: white;
@@ -19,25 +22,21 @@ header {
   box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   z-index: 10;
 }
-
 .header-left {
   display: flex;
   align-items: center;
   gap: 20px;
 }
-
 header h1 {
   font-size: 22px;
   font-weight: 500;
   margin: 0;
 }
-
 .header-icons {
   display: flex;
   gap: 12px;
   position: relative;
 }
-
 .icon-btn {
   background: rgba(255,255,255,0.15);
   color: white;
@@ -50,12 +49,10 @@ header h1 {
   transition: all 0.3s;
   position: relative;
 }
-
 .icon-btn:hover {
   background: rgba(255,255,255,0.3);
   transform: scale(1.1);
 }
-
 .badge {
   position: absolute;
   top: -5px;
@@ -69,7 +66,6 @@ header h1 {
   text-align: center;
   line-height: 16px;
 }
-
 #profileBtn img {
   width: 44px;
   height: 44px;
@@ -79,13 +75,11 @@ header h1 {
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
-
 #profileBtn img:hover {
   transform: scale(1.12);
   border-color: #4caf50;
   box-shadow: 0 4px 16px rgba(18,140,126,0.5);
 }
-
 .chat-main {
   flex: 1;
   display: flex;
@@ -93,7 +87,6 @@ header h1 {
   position: relative;
   min-height: 0;
 }
-
 .chat-main::before {
   content: '';
   position: absolute;
@@ -101,7 +94,6 @@ header h1 {
   background: rgba(11,20,26,0.85);
   z-index: 1;
 }
-
 #chatWindow {
   flex: 3;
   padding: 20px;
@@ -112,7 +104,6 @@ header h1 {
   gap: 12px;
   position: relative;
 }
-
 .message {
   display: flex;
   align-items: flex-end;
@@ -120,13 +111,11 @@ header h1 {
   max-width: 70%;
   align-self: flex-start;
 }
-
 .message img {
   width: 42px;
   height: 42px;
   border-radius: 50%;
 }
-
 .message-content {
   background: #005c4b;
   color: white;
@@ -136,29 +125,24 @@ header h1 {
   max-width: 100%;
   box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
-
 .message-content strong {
   font-size: 13px;
   opacity: 0.9;
   display: block;
   margin-bottom: 4px;
 }
-
 .message-content p {
   margin: 0;
   font-size: 15px;
 }
-
 .my-message {
   align-self: flex-end;
 }
-
 .my-message .message-content {
   background: #075e54;
   border-bottom-left-radius: 18px;
   border-bottom-right-radius: 4px;
 }
-
 .system-message {
   align-self: center;
   background: rgba(255,255,255,0.15);
@@ -168,7 +152,6 @@ header h1 {
   font-size: 13px;
   backdrop-filter: blur(5px);
 }
-
 #usersPanel {
   flex: 1;
   background: rgba(7,13,18,0.9);
@@ -177,14 +160,12 @@ header h1 {
   border-left: 1px solid rgba(255,255,255,0.1);
   overflow-y: auto;
 }
-
 #usersPanel h3 {
   color: #fff;
   text-align: center;
   margin-bottom: 20px;
   font-size: 17px;
 }
-
 .user-item {
   display: flex;
   align-items: center;
@@ -196,21 +177,17 @@ header h1 {
   transition: background 0.3s;
   cursor: pointer;
 }
-
 .user-item:hover {
   background: rgba(255,255,255,0.1);
 }
-
 .user-item img {
   width: 40px;
   height: 40px;
   border-radius: 50%;
 }
-
 .user-item span {
   font-size: 15px;
 }
-
 #messageForm {
   display: flex;
   padding: 10px 16px;
@@ -218,7 +195,6 @@ header h1 {
   gap: 10px;
   z-index: 10;
 }
-
 #messageInput {
   flex: 1;
   padding: 12px 18px;
@@ -228,11 +204,9 @@ header h1 {
   color: white;
   font-size: 15px;
 }
-
 #messageInput::placeholder {
   color: #888;
 }
-
 #messageForm button {
   background: #075e54;
   color: white;
@@ -244,12 +218,10 @@ header h1 {
   font-size: 20px;
   transition: all 0.3s;
 }
-
 #messageForm button:hover {
   background: #128c7e;
   transform: scale(1.1);
 }
-
 /* لوحة البروفايل الشخصية */
 .profile-panel {
   display: none;
@@ -264,7 +236,6 @@ header h1 {
   overflow: hidden;
   z-index: 1000;
 }
-
 .profile-header {
   background: #075e54;
   padding: 10px 14px;
@@ -272,37 +243,31 @@ header h1 {
   justify-content: space-between;
   align-items: center;
 }
-
 .profile-header h3 {
   margin: 0;
   font-size: 15px;
   font-weight: 500;
 }
-
 .close-panel {
   font-size: 24px;
   cursor: pointer;
   color: #ccc;
   transition: color 0.2s;
 }
-
 .close-panel:hover {
   color: white;
 }
-
 .profile-body {
   padding: 20px 16px;
   text-align: center;
   color: white;
 }
-
 .avatar-container {
   position: relative;
   width: 90px;
   height: 90px;
   margin: 0 auto 16px;
 }
-
 #myProfileAvatar, #userAvatar {
   width: 100%;
   height: 100%;
@@ -311,7 +276,6 @@ header h1 {
   object-fit: cover;
   box-shadow: 0 8px 25px rgba(0,0,0,0.5);
 }
-
 .change-avatar {
   position: absolute;
   bottom: 4px;
@@ -329,18 +293,15 @@ header h1 {
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   transition: all 0.3s;
 }
-
 .change-avatar:hover {
   transform: scale(1.15);
   background: #128c7e;
 }
-
 .profile-body h4 {
   margin: 0 0 10px;
   font-size: 18px;
   font-weight: 600;
 }
-
 /* لوحة ملف المستخدم */
 .user-profile-panel {
   display: none;
@@ -355,13 +316,11 @@ header h1 {
   z-index: 1000;
   border: 1px solid #075e54;
 }
-
 .profile-actions {
   display: flex;
   gap: 10px;
   margin-top: 20px;
 }
-
 .profile-actions button {
   flex: 1;
   padding: 10px;
@@ -372,11 +331,9 @@ header h1 {
   cursor: pointer;
   transition: background 0.3s;
 }
-
 .profile-actions button:hover {
   background: #128c7e;
 }
-
 /* الشات الخاص في أسفل اليمين */
 .private-chat-panel {
   display: none;
@@ -392,7 +349,6 @@ header h1 {
   overflow: hidden;
   z-index: 1000;
 }
-
 .private-chat-panel .private-header {
   background: #075e54;
   padding: 10px;
@@ -400,14 +356,12 @@ header h1 {
   justify-content: space-between;
   align-items: center;
 }
-
 .private-messages {
   height: calc(100% - 100px);
   padding: 10px;
   overflow-y: auto;
   background: #1a2a3a;
 }
-
 #privateChatForm {
   position: absolute;
   bottom: 0;
@@ -416,7 +370,6 @@ header h1 {
   padding: 10px;
   background: #1e2a33;
 }
-
 #privateChatInput {
   flex: 1;
   padding: 8px 12px;
@@ -425,7 +378,6 @@ header h1 {
   background: #2a3942;
   color: white;
 }
-
 #privateChatForm button {
   margin-left: 8px;
   padding: 8px 16px;
@@ -435,7 +387,6 @@ header h1 {
   border-radius: 20px;
   cursor: pointer;
 }
-
 /* طلبات الصداقة */
 .friend-requests-panel {
   display: none;
@@ -449,13 +400,11 @@ header h1 {
   border: 1px solid #075e54;
   z-index: 1000;
 }
-
 .friend-requests-list {
   padding: 20px;
   max-height: 400px;
   overflow-y: auto;
 }
-
 .friend-request {
   display: flex;
   align-items: center;
@@ -465,13 +414,11 @@ header h1 {
   border-radius: 12px;
   margin-bottom: 10px;
 }
-
 .friend-request img {
   width: 40px;
   height: 40px;
   border-radius: 50%;
 }
-
 .friend-request button {
   margin-left: auto;
   padding: 6px 12px;
@@ -480,10 +427,11 @@ header h1 {
   border: none;
   border-radius: 20px;
   cursor: pointer;
-}/* ───────────────────────────────────
-   الإضافات الجديدة فقط - تحسين البروفايل
-───────────────────────────────────── */
+}
 
+/* ────────────────────────────────────────────────
+   الإضافات الجديدة لتحسين البروفايل (غلاف + أزرار)
+───────────────────────────────────────────────── */
 .profile-cover-section {
   position: relative;
   height: 180px;
@@ -501,7 +449,7 @@ header h1 {
 .profile-cover-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(15,23,42,0.85) 40%, transparent);
+  background: linear-gradient(to top, rgba(15,23,42,0.88) 35%, transparent);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -518,25 +466,37 @@ header h1 {
 .profile-btn {
   padding: 8px 20px;
   border: none;
-  border-radius: 999px;
-  background: rgba(99,102,241,0.7);
+  border-radius: 50px;
+  background: rgba(99,102,241,0.75);
   color: white;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
-  backdrop-filter: blur(4px);
+  transition: all 0.25s;
+  backdrop-filter: blur(5px);
 }
 
 .profile-btn:hover {
   background: rgba(99,102,241,0.95);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .profile-dynamic-content {
   padding: 15px;
   min-height: 80px;
-  background: rgba(30,41,59,0.4);
+  background: rgba(30,41,59,0.35);
   border-radius: 10px;
-  text-align: center;
+  margin: 0 8px 10px;
   color: #cbd5e1;
+  text-align: center;
+}
+
+/* للجوال (اختياري - يخلي الأزرار تحت بعض) */
+@media (max-width: 400px) {
+  .profile-action-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .profile-btn {
+    width: 100%;
+  }
 }
