@@ -500,3 +500,108 @@ header h1 {
     width: 100%;
   }
 }
+/* كل الستايل القديم اللي كنت تستخدمه يفضل هنا كما هو */
+/* ... (نسخ كل الكود القديم اللي عندك) ... */
+
+/* ────────────────────────────────────────────────
+   ستايل لوحة بروفايل المستخدمين الآخرين (الجديدة)
+───────────────────────────────────────────────── */
+.other-profile-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+.modal-content {
+    position: relative;
+    width: 90%;
+    max-width: 460px;
+    background: #0f172a;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 70px rgba(0,0,0,0.8);
+    color: white;
+}
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 36px;
+    cursor: pointer;
+    color: #aaa;
+    z-index: 10;
+}
+.close-modal:hover { color: white; }
+
+.profile-cover {
+    height: 200px;
+    background: url('https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80') center/cover;
+    position: relative;
+}
+.profile-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(15,23,42,0.9) 40%, transparent);
+}
+
+.profile-header-info {
+    text-align: center;
+    padding: 0 25px 25px;
+    margin-top: -70px;
+    position: relative;
+}
+.large-avatar {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 6px solid #1e293b;
+    object-fit: cover;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.7);
+}
+.user-info-text h2 {
+    margin: 15px 0 6px;
+    font-size: 1.8rem;
+}
+.status-text {
+    color: #94a3b8;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 12px;
+    padding: 0 25px 25px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.action-btn {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.action-btn:hover { transform: translateY(-2px); }
+.msg-btn    { background: #6366f1; color: white; }
+.friend-btn { background: #10b981; color: white; }
+.report-btn { background: #ef4444; color: white; }
+
+.profile-details {
+    padding: 0 25px 35px;
+}
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid #1e293b;
+    font-size: 0.98rem;
+}
+.detail-item:last-child { border-bottom: none; }
+
+.hidden { display: none !important; }
