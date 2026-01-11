@@ -39,7 +39,7 @@ socket.on('update users', (users) => {
             <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
             <span>${user.username}</span>
         `;
-        div.onclick = () => showOtherUserProfile(user.username);  // ← تعديل بسيط هنا
+        div.onclick = () => openUserActions(user.username);
         list.appendChild(div);
     });
 });
@@ -73,16 +73,13 @@ function appendMessage(username, msg, avatar, isMe = false) {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
-    
     messageDiv.innerHTML = `
-        <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}" 
-             onclick="showOtherUserProfile('${username}')" class="clickable-avatar">
+        <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}">
         <div class="message-content">
-            <strong onclick="showOtherUserProfile('${username}')">${username}</strong>
+            <strong>${username}</strong>
             <p>${msg}</p>
         </div>
     `;
-    
     chatWindow.appendChild(messageDiv);
     scrollToBottom();
 }
@@ -112,13 +109,13 @@ async function loadMyProfile() {
 }
 loadMyProfile();
 
-// فتح لوحة البروفايل الشخصية
+// فتح لوحة البروفايل
 document.getElementById('profileBtn').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'block';
     loadMyProfile();
 });
 
-// إغلاق لوحة البروفايل الشخصية
+// إغلاق لوحة البروفايل
 document.getElementById('closeMyProfile').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'none';
 });
@@ -151,44 +148,24 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
     }
 });
 
-// فتح لوحة أفعال المستخدم (تم تعديلها لتفتح اللوحة الجديدة)
+// فتح لوحة أفعال المستخدم
 function openUserActions(username) {
-    showOtherUserProfile(username);
-}
-
-// ────────────────────────────────────────────────
-// الجزء الجديد: لوحة بروفايل المستخدمين الآخرين
-// ────────────────────────────────────────────────
-function showOtherUserProfile(username) {
-    // بيانات وهمية حالياً - يفضل استبدالها بجلب حقيقي من السيرفر لاحقاً
-    document.getElementById('otherUserDisplayName').textContent = username;
-    document.getElementById('otherUserAvatarLarge').src = 
-        `https://via.placeholder.com/140/000/fff?text=${encodeURIComponent(username.charAt(0) || '?')}`;
-    
-    document.getElementById('otherUserStatus').textContent = "We will meet in Paradise";
-    document.getElementById('otherProfileUrl').textContent = `${window.location.origin}/u/${username}`;
-    document.getElementById('otherJoinDate').textContent = "2026-01-05";
-    document.getElementById('otherCountry').textContent = "الجزائر";
-    document.getElementById('otherLastSeen').textContent = "الآن";
-    document.getElementById('otherPoints').textContent = "1821";
-
-    document.getElementById('otherUserProfileModal').classList.remove('hidden');
-}
-
-function closeOtherUserProfile() {
-    document.getElementById('otherUserProfileModal').classList.add('hidden');
+    document.getElementById('userUsername').textContent = username;
+    document.getElementById('userAvatar').src = 'https://via.placeholder.com/90';
+    document.getElementById('userProfilePanel').style.display = 'block';
+    currentPrivateChat = username;
 }
 
 // فتح الشات الخاص
-document.getElementById('startPrivateChatBtn')?.onclick = () => {
+document.getElementById('startPrivateChatBtn').onclick = () => {
     document.getElementById('userProfilePanel').style.display = 'none';
     document.getElementById('privateChatPanel').style.display = 'block';
     document.getElementById('privateChatWith').textContent = 'دردشة مع ' + currentPrivateChat;
 };
 
 // إرسال طلب صداقة
-document.getElementById('addFriendBtn')?.onclick = () => {
-    const target = document.getElementById('userUsername')?.textContent || '';
+document.getElementById('addFriendBtn').onclick = () => {
+    const target = document.getElementById('userUsername').textContent;
     if (target === myUsername) {
         alert('لا يمكنك إضافة نفسك!');
         return;
@@ -199,17 +176,17 @@ document.getElementById('addFriendBtn')?.onclick = () => {
 };
 
 // إغلاق لوحة ملف المستخدم
-document.getElementById('closeUserPanel')?.addEventListener('click', () => {
+document.getElementById('closeUserPanel').addEventListener('click', () => {
     document.getElementById('userProfilePanel').style.display = 'none';
 });
 
 // إغلاق الشات الخاص
-document.getElementById('closePrivateChat')?.addEventListener('click', () => {
+document.getElementById('closePrivateChat').addEventListener('click', () => {
     document.getElementById('privateChatPanel').style.display = 'none';
 });
 
 // إرسال رسالة خاصة
-document.getElementById('privateChatForm')?.addEventListener('submit', (e) => {
+document.getElementById('privateChatForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = document.getElementById('privateChatInput');
     const msg = input.value.trim();
@@ -255,7 +232,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 });
 
 // ────────────────────────────────────────────────
-// إضافات تحسين البروفايل الشخصي (الأصدقاء - الخيارات - المميزات)
+// إضافات تحسين البروفايل (الأصدقاء - الخيارات - المميزات)
 // ────────────────────────────────────────────────
 document.getElementById('showMyFriendsBtn')?.addEventListener('click', () => {
     document.getElementById('profileDynamicContent').innerHTML = `
