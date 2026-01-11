@@ -26,12 +26,12 @@
       <div id="profileBtn">
         <img id="avatar" src="https://via.placeholder.com/40" alt="بروفايل">
       </div>
-      <!-- زر الخروج الجديد -->
       <button id="logoutBtn" class="logout-btn" title="تسجيل الخروج">
         <i class="fas fa-sign-out-alt"></i> خروج
       </button>
     </div>
   </header>
+
   <div class="chat-main">
     <div id="chatWindow"></div>
     <div id="usersPanel">
@@ -39,6 +39,7 @@
       <div id="usersList"></div>
     </div>
   </div>
+
   <form id="messageForm">
     <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
     <button type="submit">إرسال</button>
@@ -60,12 +61,12 @@
       </div>
       <h4 id="myProfileUsername">اسم المستخدم</h4>
 
-      <!-- ────────────────────────────────
-           الإضافات الجديدة فقط هنا
+      <!-- ───────────────────────────────
+           الإضافات الجديدة فقط 
       ──────────────────────────────── -->
       <div class="profile-cover-section">
         <div class="cover-photo" id="myCoverPhoto"
-             style="background-image: url('https://via.placeholder.com/800x250/0f172a/6366f1?text=غلاف+الملف+الشخصي');">
+             style="background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80');">
         </div>
         
         <div class="profile-cover-overlay">
@@ -77,15 +78,51 @@
         </div>
       </div>
 
+      <!-- المحتوى الديناميكي الذي يظهر عند الضغط -->
       <div id="profileDynamicContent" class="profile-dynamic-content"></div>
-      <!-- نهاية الإضافات الجديدة -->
+      <!-- نهاية الإضافات -->
+
     </div>
   </div>
 
-  <!-- باقي اللوحات كما هي بدون أي تغيير -->
-  <div id="userProfilePanel" class="user-profile-panel">...</div>
-  <div id="privateChatPanel" class="private-chat-panel">...</div>
-  <div id="friendRequestsPanel" class="friend-requests-panel">...</div>
+  <!-- باقي اللوحات (لم يتم تغييرها) -->
+  <div id="userProfilePanel" class="user-profile-panel">
+    <div class="profile-header">
+      <h3>ملف المستخدم</h3>
+      <span id="closeUserPanel" class="close-panel">×</span>
+    </div>
+    <div class="profile-body">
+      <img id="userAvatar" src="https://via.placeholder.com/90" alt="صورة المستخدم">
+      <h4 id="userUsername">اسم المستخدم</h4>
+      <div class="profile-actions">
+        <button id="viewUserProfileBtn">فحص الملف</button>
+        <button id="startPrivateChatBtn">مراسلة خاصة</button>
+        <button id="addFriendBtn">إضافة صديق</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="privateChatPanel" class="private-chat-panel">
+    <div class="private-header">
+      <h3 id="privateChatWith">دردشة مع ...</h3>
+      <span id="closePrivateChat" class="close-panel">×</span>
+    </div>
+    <div id="privateChatMessages" class="private-messages"></div>
+    <form id="privateChatForm">
+      <input type="text" id="privateChatInput" placeholder="اكتب رسالتك..." autocomplete="off">
+      <button type="submit">إرسال</button>
+    </form>
+  </div>
+
+  <div id="friendRequestsPanel" class="friend-requests-panel">
+    <div class="profile-header">
+      <h3>طلبات الصداقة</h3>
+      <span id="closeFriendReq" class="close-panel">×</span>
+    </div>
+    <div id="friendRequestsList" class="friend-requests-list">
+      <p>لا توجد طلبات حاليًا</p>
+    </div>
+  </div>
 
   <script src="chat.js"></script>
 </body>
