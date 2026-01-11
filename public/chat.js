@@ -4,6 +4,7 @@ if (!token) {
 }
 
 const socket = io();
+
 const params = new URLSearchParams(window.location.search);
 const room = params.get('room');
 if (!room) {
@@ -36,10 +37,11 @@ socket.on('update users', (users) => {
         const div = document.createElement('div');
         div.className = 'user-item';
         div.innerHTML = `
-            <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
+            <a href="/u/${encodeURIComponent(user.username)}" target="_blank">
+                <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
+            </a>
             <span>${user.username}</span>
         `;
-        div.onclick = () => openUserActions(user.username);
         list.appendChild(div);
     });
 });
@@ -69,17 +71,27 @@ document.getElementById('messageForm').addEventListener('submit', (e) => {
     }
 });
 
+// دالة عرض الرسالة مع رابط قابل للنقر على الصورة والاسم
 function appendMessage(username, msg, avatar, isMe = false) {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
+
+    const profileUrl = `/u/${encodeURIComponent(username)}`;
+
     messageDiv.innerHTML = `
-        <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}">
+        <a href="${profileUrl}" target="_blank" class="profile-link">
+            <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}" class="clickable-avatar">
+        </a>
         <div class="message-content">
-            <strong>${username}</strong>
+            <strong class="clickable-username" 
+                    onclick="event.preventDefault(); window.open('${profileUrl}', '_blank');">
+                ${username}
+            </strong>
             <p>${msg}</p>
         </div>
     `;
+    
     chatWindow.appendChild(messageDiv);
     scrollToBottom();
 }
@@ -100,16 +112,40 @@ async function loadMyProfile() {
         myUsername = user.username;
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
         const timestamp = new Date().getTime();
+        
         document.getElementById('avatar').src = myAvatar + '?t=' + timestamp;
         document.getElementById('myProfileAvatar').src = myAvatar + '?t=' + timestamp;
         document.getElementById('myProfileUsername').textContent = myUsername;
+
+        // تحديث رابط الملف الشخصي
+        updateProfileLink();
     } catch (err) {
         console.error('خطأ في تحميل البروفايل:', err);
     }
 }
 loadMyProfile();
 
-// فتح لوحة البروفايل
+// عرض ونسخ رابط الملف الشخصي
+function updateProfileLink() {
+    if (myUsername) {
+        const url = `${window.location.origin}/u/${encodeURIComponent(myUsername)}`;
+        const input = document.getElementById('myProfileUrl');
+        if (input) {
+            input.value = url;
+        }
+    }
+}
+
+function copyProfileLink() {
+    const input = document.getElementById('myProfileUrl');
+    if (input) {
+        input.select();
+        document.execCommand('copy');
+        alert('تم نسخ الرابط بنجاح!');
+    }
+}
+
+// فتح لوحة البروفايل الشخصي
 document.getElementById('profileBtn').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'block';
     loadMyProfile();
@@ -148,7 +184,7 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
     }
 });
 
-// فتح لوحة أفعال المستخدم
+// فتح لوحة أفعال المستخدم (للمستخدمين الآخرين)
 function openUserActions(username) {
     document.getElementById('userUsername').textContent = username;
     document.getElementById('userAvatar').src = 'https://via.placeholder.com/90';
@@ -232,7 +268,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 });
 
 // ────────────────────────────────────────────────
-// إضافات تحسين البروفايل (الأصدقاء - الخيارات - المميزات)
+// إضافات تحسين البروفايل الشخصي (الأصدقاء - الخيارات - المميزات)
 // ────────────────────────────────────────────────
 document.getElementById('showMyFriendsBtn')?.addEventListener('click', () => {
     document.getElementById('profileDynamicContent').innerHTML = `
