@@ -198,8 +198,7 @@ socket.on('private message', ({ from, msg, avatar }) => {
         alert(`رسالة خاصة جديدة من ${from}`);
     }
 });
-
-// زر الخروج - تم إصلاحه ليرجع لصفحة الغرف مباشرة بعد التأكيد
+// زر الخروج
 document.getElementById('logoutBtn').addEventListener('click', () => {
     if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
         localStorage.removeItem('token');
@@ -208,7 +207,6 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
         window.location.href = 'rooms.html';
     }
 });
-
 // ────────────────────────────────────────────────
 // إضافات تحسين البروفايل (الأصدقاء - الخيارات - المميزات)
 // ────────────────────────────────────────────────
