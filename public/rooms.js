@@ -5,16 +5,37 @@ async function loadRooms() {
   const res = await fetch('/room-counts');
   const counts = await res.json();
   const rooms = ['general', 'algeria', 'all_countries'];
-  const names = { general: 'العامة', algeria: 'الجزائر', all_countries: 'كل البلدان' };
+  
+  // قمت بإضافة أيقونات (Emojis) لتناسب التصميم الاحترافي
+  const names = { 
+    general: { name: 'العامة', icon: '💬' }, 
+    algeria: { name: 'الجزائر', icon: '🇩🇿' }, 
+    all_countries: { name: 'كل البلدان', icon: '🌍' } 
+  };
+  
   const list = document.getElementById('roomsList');
+  list.innerHTML = ''; // تنظيف القائمة قبل التحميل
+
   rooms.forEach(room => {
     const div = document.createElement('div');
-    div.className = 'room';
-    div.innerHTML = `<h2>${names[room]}</h2><p>عدد الأشخاص: ${counts[room] || 0}</p><button onclick="enterRoom('${room}')">دخول الغرفة</button>`;
+    
+    // تغيير الكلاس من room إلى room-card ليتناسب مع الـ CSS
+    div.className = 'room-card'; 
+
+    div.innerHTML = `
+      <div class="room-icon">${names[room].icon}</div>
+      <h2>${names[room].name}</h2>
+      <div class="online-count">
+        <span>عدد الأشخاص: ${counts[room] || 0}</span>
+      </div>
+      <button class="enter-btn" onclick="enterRoom('${room}')">دخول الغرفة</button>
+    `;
     list.appendChild(div);
   });
 }
+
 function enterRoom(room) {
   window.location.href = `chat.html?room=${room}`;
 }
+
 loadRooms();
