@@ -109,7 +109,7 @@ header h1 {
 }
 
 /* ──────────────────────────────
-   التوهج الأنيق + الشكل العصري للرسائل 🔥
+   توهجات أنيقة + إطارات متوهجة عصرية (بدون سيطرة أخضر زايد)
 ─────────────────────────────── */
 .message {
   display: flex;
@@ -128,32 +128,33 @@ header h1 {
 
 .message-content {
   position: relative;
-  background: linear-gradient(135deg, #005c4b 0%, #004438 100%);
-  color: white;
-  padding: 10px 16px;
-  border-radius: 18px;
-  border-bottom-left-radius: 5px;
+  background: linear-gradient(145deg, rgba(40, 55, 70, 0.85), rgba(25, 35, 50, 0.75));
+  color: #f0f4ff;
+  padding: 11px 17px;
+  border-radius: 20px;
+  border-bottom-left-radius: 6px;
   max-width: 100%;
   font-size: 15px;
-  line-height: 1.45;
-  transition: all 0.4s ease;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  border: 1px solid rgba(18, 140, 126, 0.4);
+  line-height: 1.48;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(100, 180, 255, 0.18);
   box-shadow: 
-    0 4px 20px rgba(0, 188, 140, 0.22),
-    0 0 0 1px rgba(18, 140, 126, 0.3),
-    inset 0 0 12px rgba(18, 140, 126, 0.25);
+    0 4px 25px rgba(60, 120, 255, 0.18),
+    inset 0 0 15px rgba(100, 180, 255, 0.08);
 }
 
 .message-content::before {
   content: "";
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(to bottom right, rgba(255,255,255,0.08), transparent 60%);
+  inset: -2px;
+  border-radius: 22px;
+  background: linear-gradient(90deg, transparent, rgba(100, 180, 255, 0.25), transparent);
+  opacity: 0.6;
+  filter: blur(8px);
   pointer-events: none;
-  opacity: 0.75;
+  z-index: -1;
 }
 
 .my-message {
@@ -161,42 +162,42 @@ header h1 {
 }
 
 .my-message .message-content {
-  background: linear-gradient(135deg, #075e54 0%, #064a43 100%);
-  border-bottom-left-radius: 18px;
-  border-bottom-right-radius: 5px;
-  border: 1px solid rgba(24, 185, 165, 0.5);
+  background: linear-gradient(145deg, rgba(30, 45, 65, 0.9), rgba(20, 30, 50, 0.8));
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 6px;
+  border: 1px solid rgba(120, 140, 255, 0.22);
   box-shadow: 
-    0 4px 25px rgba(24, 185, 165, 0.35),
-    0 0 0 1px rgba(24, 185, 165, 0.35),
-    inset 0 0 14px rgba(24, 185, 165, 0.3);
+    0 4px 28px rgba(120, 140, 255, 0.22),
+    inset 0 0 16px rgba(120, 140, 255, 0.1);
 }
 
 .message:hover .message-content,
 .my-message:hover .message-content {
-  transform: translateY(-4px);
+  transform: translateY(-4px) scale(1.012);
   box-shadow: 
-    0 12px 40px rgba(24, 185, 165, 0.55),
-    0 0 50px rgba(18, 140, 126, 0.35),
-    inset 0 0 20px rgba(24, 185, 165, 0.4);
+    0 12px 45px rgba(100, 150, 255, 0.45),
+    0 0 35px rgba(80, 120, 255, 0.3),
+    inset 0 0 20px rgba(100, 180, 255, 0.15);
+  border-color: rgba(100, 180, 255, 0.45);
 }
 
 /* نظام الرسائل */
 .system-message {
   align-self: center;
-  background: rgba(255, 255, 255, 0.15);
-  color: #e0e0ff;
-  padding: 6px 16px;
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e0e7ff;
+  padding: 7px 18px;
+  border-radius: 24px;
   font-size: 13px;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.12);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 6px 25px rgba(0,0,0,0.35);
+  transition: all 0.35s ease;
 }
 
 .system-message:hover {
-  background: rgba(255, 255, 255, 0.22);
-  box-shadow: 0 8px 30px rgba(100, 200, 180, 0.3);
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 35px rgba(80, 120, 255, 0.25);
 }
 
 #usersPanel {
@@ -269,7 +270,7 @@ header h1 {
   background: #128c7e;
   transform: scale(1.1);
 }
-/* لوحة البروفايل الشخصية */
+/* باقي الكود كما هو بدون أي تغيير */
 .profile-panel {
   display: none;
   position: fixed;
