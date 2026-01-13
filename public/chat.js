@@ -2,17 +2,22 @@ const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 if (!token) {
     window.location.href = 'index.html';
 }
+
 const socket = io();
+
 const params = new URLSearchParams(window.location.search);
 const room = params.get('room');
 if (!room) {
     window.location.href = 'rooms.html';
 }
+
 let myUsername = '';
 let myAvatar = 'https://via.placeholder.com/40';
 let currentPrivateChat = null;
+
 // الانضمام للغرفة
 socket.emit('join', room, token);
+
 // استقبال آخر 100 رسالة
 socket.on('previous messages', (messages) => {
     const chatWindow = document.getElementById('chatWindow');
@@ -22,11 +27,13 @@ socket.on('previous messages', (messages) => {
     });
     scrollToBottom();
 });
+
 // تحديث قائمة المتصلين
 socket.on('update users', (users) => {
     document.getElementById('userCount').innerText = users.length;
     const list = document.getElementById('usersList');
     list.innerHTML = '';
+    
     users.forEach(user => {
         const div = document.createElement('div');
         div.className = 'user-item';
@@ -34,14 +41,25 @@ socket.on('update users', (users) => {
             <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
             <span>${user.username}</span>
         `;
+        
+        // الوظيفة الأصلية
         div.onclick = () => openUserActions(user.username);
+        
+        // إضافة ميزة المنشن عند النقر المزدوج (Double Click)
+        div.addEventListener('dblclick', (e) => {
+            e.preventDefault(); // منع أي سلوك افتراضي محتمل
+            mentionUser(user.username);
+        });
+        
         list.appendChild(div);
     });
 });
+
 // رسالة عامة
 socket.on('message', ({ username, msg, avatar }) => {
     appendMessage(username, msg, avatar, username === myUsername);
 });
+
 // رسائل النظام
 socket.on('system message', (msg) => {
     const div = document.createElement('div');
@@ -50,6 +68,7 @@ socket.on('system message', (msg) => {
     document.getElementById('chatWindow').appendChild(div);
     scrollToBottom();
 });
+
 // إرسال رسالة عامة
 document.getElementById('messageForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -60,6 +79,7 @@ document.getElementById('messageForm').addEventListener('submit', (e) => {
         input.value = '';
     }
 });
+
 function appendMessage(username, msg, avatar, isMe = false) {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
@@ -74,10 +94,12 @@ function appendMessage(username, msg, avatar, isMe = false) {
     chatWindow.appendChild(messageDiv);
     scrollToBottom();
 }
+
 function scrollToBottom() {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.scrollTop = chatWindow.scrollHeight;
 }
+
 // تحميل بيانات المستخدم + الصورة
 async function loadMyProfile() {
     try {
@@ -96,16 +118,20 @@ async function loadMyProfile() {
         console.error('خطأ في تحميل البروفايل:', err);
     }
 }
+
 loadMyProfile();
+
 // فتح لوحة البروفايل
 document.getElementById('profileBtn').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'block';
     loadMyProfile();
 });
+
 // إغلاق لوحة البروفايل
 document.getElementById('closeMyProfile').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'none';
 });
+
 // رفع الصورة الشخصية
 document.getElementById('avatarUpload').addEventListener('change', async (e) => {
     const file = e.target.files[0];
@@ -133,6 +159,7 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
         alert('حصل خطأ أثناء رفع الصورة، يرجى المحاولة مرة أخرى');
     }
 });
+
 // فتح لوحة أفعال المستخدم
 function openUserActions(username) {
     document.getElementById('userUsername').textContent = username;
@@ -140,12 +167,14 @@ function openUserActions(username) {
     document.getElementById('userProfilePanel').style.display = 'block';
     currentPrivateChat = username;
 }
+
 // فتح الشات الخاص
 document.getElementById('startPrivateChatBtn').onclick = () => {
     document.getElementById('userProfilePanel').style.display = 'none';
     document.getElementById('privateChatPanel').style.display = 'block';
     document.getElementById('privateChatWith').textContent = 'دردشة مع ' + currentPrivateChat;
 };
+
 // إرسال طلب صداقة
 document.getElementById('addFriendBtn').onclick = () => {
     const target = document.getElementById('userUsername').textContent;
@@ -157,14 +186,17 @@ document.getElementById('addFriendBtn').onclick = () => {
     alert(`تم إرسال طلب صداقة إلى ${target}`);
     document.getElementById('userProfilePanel').style.display = 'none';
 };
+
 // إغلاق لوحة ملف المستخدم
 document.getElementById('closeUserPanel').addEventListener('click', () => {
     document.getElementById('userProfilePanel').style.display = 'none';
 });
+
 // إغلاق الشات الخاص
 document.getElementById('closePrivateChat').addEventListener('click', () => {
     document.getElementById('privateChatPanel').style.display = 'none';
 });
+
 // إرسال رسالة خاصة
 document.getElementById('privateChatForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -176,6 +208,7 @@ document.getElementById('privateChatForm').addEventListener('submit', (e) => {
         input.value = '';
     }
 });
+
 function appendPrivateMessage(username, msg, avatar, isMe) {
     const chat = document.getElementById('privateChatMessages');
     const div = document.createElement('div');
@@ -190,6 +223,7 @@ function appendPrivateMessage(username, msg, avatar, isMe) {
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
 }
+
 // استقبال رسالة خاصة
 socket.on('private message', ({ from, msg, avatar }) => {
     if (currentPrivateChat === from) {
@@ -198,6 +232,7 @@ socket.on('private message', ({ from, msg, avatar }) => {
         alert(`رسالة خاصة جديدة من ${from}`);
     }
 });
+
 // زر الخروج
 document.getElementById('logoutBtn').addEventListener('click', () => {
     if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
@@ -207,6 +242,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
         window.location.href = 'rooms.html';
     }
 });
+
 // ────────────────────────────────────────────────
 // إضافات تحسين البروفايل (الأصدقاء - الخيارات - المميزات)
 // ────────────────────────────────────────────────
@@ -217,6 +253,7 @@ document.getElementById('showMyFriendsBtn')?.addEventListener('click', () => {
         </div>
     `;
 });
+
 document.getElementById('privacySettingsBtn')?.addEventListener('click', () => {
     document.getElementById('profileDynamicContent').innerHTML = `
         <div style="padding: 20px 0;">
@@ -229,6 +266,7 @@ document.getElementById('privacySettingsBtn')?.addEventListener('click', () => {
         </div>
     `;
 });
+
 document.getElementById('showFeaturesBtn')?.addEventListener('click', () => {
     document.getElementById('profileDynamicContent').innerHTML = `
         <div style="padding: 35px 15px; color: #94a3b8; line-height: 1.6;">
@@ -237,3 +275,30 @@ document.getElementById('showFeaturesBtn')?.addEventListener('click', () => {
         </div>
     `;
 });
+
+// ────────────────────────────────────────────────
+// إضافة ميزة المنشن @username
+// ────────────────────────────────────────────────
+
+function mentionUser(username) {
+    const input = document.getElementById('messageInput');
+    if (!input) return;
+
+    const mention = `@${username} `;
+    
+    if (input.value.trim() === '') {
+        input.value = mention;
+    } else {
+        // تجنب التكرار في النهاية
+        if (!input.value.endsWith(mention)) {
+            // إضافة مسافة إذا لزم الأمر
+            if (input.value[input.value.length - 1] !== ' ') {
+                input.value += ' ';
+            }
+            input.value += mention;
+        }
+    }
+
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+}
