@@ -3,6 +3,7 @@
   margin: 0;
   padding: 0;
 }
+
 body {
   font-family: 'Segoe UI', Tahoma, sans-serif;
   background: #0b141a;
@@ -12,6 +13,7 @@ body {
   flex-direction: column;
   overflow: hidden;
 }
+
 header {
   background: #075e54;
   color: white;
@@ -22,21 +24,25 @@ header {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   z-index: 10;
 }
+
 .header-left {
   display: flex;
   align-items: center;
   gap: 20px;
 }
+
 header h1 {
   font-size: 22px;
   font-weight: 500;
   margin: 0;
 }
+
 .header-icons {
   display: flex;
   gap: 12px;
   position: relative;
 }
+
 .icon-btn {
   background: rgba(255, 255, 255, 0.15);
   color: white;
@@ -49,10 +55,12 @@ header h1 {
   transition: all 0.3s;
   position: relative;
 }
+
 .icon-btn:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: scale(1.1);
 }
+
 .badge {
   position: absolute;
   top: -5px;
@@ -66,6 +74,7 @@ header h1 {
   text-align: center;
   line-height: 16px;
 }
+
 #profileBtn img {
   width: 44px;
   height: 44px;
@@ -75,11 +84,13 @@ header h1 {
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
+
 #profileBtn img:hover {
   transform: scale(1.12);
   border-color: #4caf50;
   box-shadow: 0 4px 16px rgba(18, 140, 126, 0.5);
 }
+
 .chat-main {
   flex: 1;
   display: flex;
@@ -87,6 +98,7 @@ header h1 {
   position: relative;
   min-height: 0;
 }
+
 .chat-main::before {
   content: '';
   position: absolute;
@@ -97,6 +109,7 @@ header h1 {
   background: rgba(11, 20, 26, 0.85);
   z-index: 1;
 }
+
 #chatWindow {
   flex: 3;
   padding: 20px;
@@ -140,7 +153,7 @@ header h1 {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   border: 1px solid rgba(100, 180, 255, 0.18);
-  box-shadow: 
+  box-shadow:
     0 4px 25px rgba(60, 120, 255, 0.18),
     inset 0 0 15px rgba(100, 180, 255, 0.08);
 }
@@ -166,7 +179,7 @@ header h1 {
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 6px;
   border: 1px solid rgba(120, 140, 255, 0.22);
-  box-shadow: 
+  box-shadow:
     0 4px 28px rgba(120, 140, 255, 0.22),
     inset 0 0 16px rgba(120, 140, 255, 0.1);
 }
@@ -174,7 +187,7 @@ header h1 {
 .message:hover .message-content,
 .my-message:hover .message-content {
   transform: translateY(-4px) scale(1.012);
-  box-shadow: 
+  box-shadow:
     0 12px 45px rgba(100, 150, 255, 0.45),
     0 0 35px rgba(80, 120, 255, 0.3),
     inset 0 0 20px rgba(100, 180, 255, 0.15);
@@ -200,42 +213,79 @@ header h1 {
   box-shadow: 0 10px 35px rgba(80, 120, 255, 0.25);
 }
 
+/* ──────────────────────────────
+   لوحة المستخدمين ← التعديل الجديد هنا
+─────────────────────────────── */
 #usersPanel {
   flex: 1;
-  background: rgba(7, 13, 18, 0.9);
+  background: rgba(15, 10, 25, 0.88);
   padding: 20px 15px;
   z-index: 2;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 2px solid transparent;
   overflow-y: auto;
+  position: relative;
+  box-shadow: 
+    inset 0 0 35px rgba(140, 80, 255, 0.18),
+    0 0 0 1px rgba(180, 90, 255, 0.25);
+  background: linear-gradient(135deg, 
+    rgba(20, 15, 35, 0.92) 0%, 
+    rgba(35, 20, 50, 0.88) 100%);
+  border-image: linear-gradient(to bottom, 
+    rgba(200, 100, 255, 0.4), 
+    rgba(255, 140, 200, 0.4)) 1;
+  transition: all 0.4s ease;
 }
+
+#usersPanel:hover {
+  box-shadow: 
+    inset 0 0 60px rgba(160, 100, 255, 0.28),
+    0 0 25px rgba(200, 120, 255, 0.35);
+  border-image: linear-gradient(to bottom, 
+    rgba(220, 120, 255, 0.65), 
+    rgba(255, 160, 220, 0.65)) 1;
+}
+
 #usersPanel h3 {
-  color: #fff;
+  color: #e0d0ff;
   text-align: center;
-  margin-bottom: 20px;
-  font-size: 17px;
+  margin-bottom: 24px;
+  font-size: 18px;
+  text-shadow: 0 0 10px rgba(180, 120, 255, 0.6);
+  letter-spacing: 0.5px;
 }
+
 .user-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px;
-  border-radius: 12px;
-  color: #fff;
-  margin-bottom: 8px;
-  transition: background 0.3s;
-  cursor: pointer;
+  padding: 12px 14px;
+  border-radius: 14px;
+  color: #e8e0ff;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(180, 120, 255, 0.12);
 }
+
 .user-item:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(180, 100, 255, 0.15);
+  transform: translateX(4px);
+  box-shadow: 0 0 20px rgba(180, 100, 255, 0.35);
+  border-color: rgba(220, 140, 255, 0.45);
 }
+
 .user-item img {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
+  border: 2px solid rgba(200, 120, 255, 0.4);
+  box-shadow: 0 0 12px rgba(180, 100, 255, 0.4);
 }
+
 .user-item span {
   font-size: 15px;
 }
+
 #messageForm {
   display: flex;
   padding: 10px 16px;
@@ -243,6 +293,7 @@ header h1 {
   gap: 10px;
   z-index: 10;
 }
+
 #messageInput {
   flex: 1;
   padding: 12px 18px;
@@ -252,9 +303,11 @@ header h1 {
   color: white;
   font-size: 15px;
 }
+
 #messageInput::placeholder {
   color: #888;
 }
+
 #messageForm button {
   background: #075e54;
   color: white;
@@ -266,10 +319,12 @@ header h1 {
   font-size: 20px;
   transition: all 0.3s;
 }
+
 #messageForm button:hover {
   background: #128c7e;
   transform: scale(1.1);
 }
+
 /* باقي الكود كما هو بدون أي تغيير */
 .profile-panel {
   display: none;
@@ -284,6 +339,7 @@ header h1 {
   overflow: hidden;
   z-index: 1000;
 }
+
 .profile-header {
   background: #075e54;
   padding: 10px 14px;
@@ -291,31 +347,37 @@ header h1 {
   justify-content: space-between;
   align-items: center;
 }
+
 .profile-header h3 {
   margin: 0;
   font-size: 15px;
   font-weight: 500;
 }
+
 .close-panel {
   font-size: 24px;
   cursor: pointer;
   color: #ccc;
   transition: color 0.2s;
 }
+
 .close-panel:hover {
   color: white;
 }
+
 .profile-body {
   padding: 20px 16px;
   text-align: center;
   color: white;
 }
+
 .avatar-container {
   position: relative;
   width: 90px;
   height: 90px;
   margin: 0 auto 16px;
 }
+
 #myProfileAvatar,
 #userAvatar {
   width: 100%;
@@ -325,6 +387,7 @@ header h1 {
   object-fit: cover;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
 }
+
 .change-avatar {
   position: absolute;
   bottom: 4px;
@@ -342,15 +405,18 @@ header h1 {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   transition: all 0.3s;
 }
+
 .change-avatar:hover {
   transform: scale(1.15);
   background: #128c7e;
 }
+
 .profile-body h4 {
   margin: 0 0 10px;
   font-size: 18px;
   font-weight: 600;
 }
+
 /* لوحة ملف المستخدم */
 .user-profile-panel {
   display: none;
@@ -365,11 +431,13 @@ header h1 {
   z-index: 1000;
   border: 1px solid #075e54;
 }
+
 .profile-actions {
   display: flex;
   gap: 10px;
   margin-top: 20px;
 }
+
 .profile-actions button {
   flex: 1;
   padding: 10px;
@@ -380,9 +448,11 @@ header h1 {
   cursor: pointer;
   transition: background 0.3s;
 }
+
 .profile-actions button:hover {
   background: #128c7e;
 }
+
 /* الشات الخاص في أسفل اليمين */
 .private-chat-panel {
   display: none;
@@ -398,6 +468,7 @@ header h1 {
   overflow: hidden;
   z-index: 1000;
 }
+
 .private-chat-panel .private-header {
   background: #075e54;
   padding: 10px;
@@ -405,12 +476,14 @@ header h1 {
   justify-content: space-between;
   align-items: center;
 }
+
 .private-messages {
   height: calc(100% - 100px);
   padding: 10px;
   overflow-y: auto;
   background: #1a2a3a;
 }
+
 #privateChatForm {
   position: absolute;
   bottom: 0;
@@ -419,6 +492,7 @@ header h1 {
   padding: 10px;
   background: #1e2a33;
 }
+
 #privateChatInput {
   flex: 1;
   padding: 8px 12px;
@@ -427,6 +501,7 @@ header h1 {
   background: #2a3942;
   color: white;
 }
+
 #privateChatForm button {
   margin-left: 8px;
   padding: 8px 16px;
@@ -436,6 +511,7 @@ header h1 {
   border-radius: 20px;
   cursor: pointer;
 }
+
 /* طلبات الصداقة */
 .friend-requests-panel {
   display: none;
@@ -449,11 +525,13 @@ header h1 {
   border: 1px solid #075e54;
   z-index: 1000;
 }
+
 .friend-requests-list {
   padding: 20px;
   max-height: 400px;
   overflow-y: auto;
 }
+
 .friend-request {
   display: flex;
   align-items: center;
@@ -463,11 +541,13 @@ header h1 {
   border-radius: 12px;
   margin-bottom: 10px;
 }
+
 .friend-request img {
   width: 40px;
   height: 40px;
   border-radius: 50%;
 }
+
 .friend-request button {
   margin-left: auto;
   padding: 6px 12px;
@@ -477,6 +557,7 @@ header h1 {
   border-radius: 20px;
   cursor: pointer;
 }
+
 /* ────────────────────────────────────────────────
    الإضافات الجديدة لتحسين البروفايل (غلاف + أزرار)
 ───────────────────────────────────────────────── */
@@ -486,12 +567,14 @@ header h1 {
   margin: 0 -16px 20px -16px;
   background: #0f172a;
 }
+
 .cover-photo {
   position: absolute;
   inset: 0;
   background-size: cover;
   background-position: center;
 }
+
 .profile-cover-overlay {
   position: absolute;
   inset: 0;
@@ -501,12 +584,14 @@ header h1 {
   justify-content: center;
   padding-bottom: 15px;
 }
+
 .profile-action-buttons {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
 }
+
 .profile-btn {
   padding: 8px 20px;
   border: none;
@@ -518,10 +603,12 @@ header h1 {
   transition: all 0.25s;
   backdrop-filter: blur(5px);
 }
+
 .profile-btn:hover {
   background: rgba(99, 102, 241, 0.95);
   transform: translateY(-2px);
 }
+
 .profile-dynamic-content {
   padding: 15px;
   min-height: 80px;
@@ -531,6 +618,7 @@ header h1 {
   color: #cbd5e1;
   text-align: center;
 }
+
 /* للجوال (اختياري - يخلي الأزرار تحت بعض) */
 @media (max-width: 400px) {
   .profile-action-buttons {
@@ -541,6 +629,7 @@ header h1 {
     width: 100%;
   }
 }
+
 /* ────────────────────────────────────────────────
    ستايل لوحة بروفايل المستخدمين الآخرين (الجديدة)
 ───────────────────────────────────────────────── */
@@ -553,6 +642,7 @@ header h1 {
   justify-content: center;
   z-index: 2000;
 }
+
 .modal-content {
   position: relative;
   width: 90%;
@@ -563,6 +653,7 @@ header h1 {
   box-shadow: 0 20px 70px rgba(0, 0, 0, 0.8);
   color: white;
 }
+
 .close-modal {
   position: absolute;
   top: 15px;
@@ -572,26 +663,31 @@ header h1 {
   color: #aaa;
   z-index: 10;
 }
+
 .close-modal:hover {
   color: white;
 }
+
 .profile-cover {
   height: 200px;
   background: url('https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80') center/cover;
   position: relative;
 }
+
 .profile-cover::after {
   content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(to top, rgba(15, 23, 42, 0.9) 40%, transparent);
 }
+
 .profile-header-info {
   text-align: center;
   padding: 0 25px 25px;
   margin-top: -70px;
   position: relative;
 }
+
 .large-avatar {
   width: 140px;
   height: 140px;
@@ -600,15 +696,18 @@ header h1 {
   object-fit: cover;
   box-shadow: 0 6px 25px rgba(0, 0, 0, 0.7);
 }
+
 .user-info-text h2 {
   margin: 15px 0 6px;
   font-size: 1.8rem;
 }
+
 .status-text {
   color: #94a3b8;
   font-size: 1rem;
   margin: 0;
 }
+
 .profile-actions {
   display: flex;
   gap: 12px;
@@ -616,6 +715,7 @@ header h1 {
   justify-content: center;
   flex-wrap: wrap;
 }
+
 .action-btn {
   padding: 10px 24px;
   border: none;
@@ -624,24 +724,30 @@ header h1 {
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .action-btn:hover {
   transform: translateY(-2px);
 }
+
 .msg-btn {
   background: #6366f1;
   color: white;
 }
+
 .friend-btn {
   background: #10b981;
   color: white;
 }
+
 .report-btn {
   background: #ef4444;
   color: white;
 }
+
 .profile-details {
   padding: 0 25px 35px;
 }
+
 .detail-item {
   display: flex;
   justify-content: space-between;
@@ -649,9 +755,11 @@ header h1 {
   border-bottom: 1px solid #1e293b;
   font-size: 0.98rem;
 }
+
 .detail-item:last-child {
   border-bottom: none;
 }
+
 .hidden {
   display: none !important;
 }
