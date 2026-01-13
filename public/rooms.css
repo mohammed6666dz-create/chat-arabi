@@ -1,70 +1,117 @@
-.room-card {
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: url('https://i.pinimg.com/1200x/64/fb/04/64fb0461e2ebf77b0149b13814269310.jpg') center/cover fixed;
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,.65),
+    rgba(0,0,0,.75)
+  );
+  z-index: 0;
+}
+
+.container {
   position: relative;
-  background: rgba(255,255,255,.09);
-  backdrop-filter: blur(22px);
-  border-radius: 28px;
-  padding: 50px 30px;
-  box-shadow:
-    0 25px 50px rgba(0,0,0,.55),
-    inset 0 0 40px rgba(255,255,255,.03);
-  transition: all .45s ease;
-  overflow: hidden;
   z-index: 1;
+  width: 90%;
+  max-width: 1200px;
+  text-align: center;
 }
 
-/* ===== الإطار المشع حول الغرفة ===== */
-.room-card::after {
-  content: '';
-  position: absolute;
-  inset: -4px;            /* سماكة الإطار */
-  border-radius: inherit;
-  background: linear-gradient(
-    120deg,
-    #60a5fa,
-    #a78bfa,
-    #22d3ee,
-    #60a5fa
-  );
-  filter: blur(18px);
-  opacity: .9;
-  z-index: -1;
-  animation: roomGlow 6s linear infinite;
+h1 {
+  font-size: 38px;
+  margin-bottom: 60px;
+  letter-spacing: 1px;
+  color: #e5e7eb;
 }
 
-/* لمعان داخلي أنيق */
-.room-card::before {
-  content: '';
-  position: absolute;
-  inset: -150%;
-  background: linear-gradient(
-    120deg,
-    transparent 40%,
-    rgba(255,255,255,.18),
-    transparent 60%
-  );
-  transform: translateX(-100%);
-  transition: transform .9s ease;
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 35px;
 }
 
-.room-card:hover::before {
-  transform: translateX(100%);
+/* ===== كرت الروم ===== */
+.room-card {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(18px);
+  border-radius: 22px;
+  padding: 40px 25px;
+  transition: all .35s ease;
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 20px 40px rgba(0,0,0,.35);
 }
 
-/* حركة ووهج أقوى عند المرور */
 .room-card:hover {
-  transform: translateY(-18px) scale(1.05);
-  box-shadow:
-    0 40px 80px rgba(0,0,0,.7),
-    0 0 60px rgba(99,102,241,.45);
+  transform: translateY(-12px);
+  background: rgba(255,255,255,0.12);
+  box-shadow: 0 30px 60px rgba(0,0,0,.55);
 }
 
-.room-card:hover::after {
-  filter: blur(26px);
-  opacity: 1;
+.room-icon {
+  font-size: 72px;
+  margin-bottom: 25px;
+  color: #60a5fa;
 }
 
-/* تحريك ألوان الإطار */
-@keyframes roomGlow {
-  0%   { filter: blur(16px) hue-rotate(0deg); }
-  100% { filter: blur(16px) hue-rotate(360deg); }
+.room-card h2 {
+  font-size: 26px;
+  margin-bottom: 18px;
+  font-weight: 600;
+}
+
+/* ===== عدد المتصلين ===== */
+.online-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 26px;
+  border-radius: 999px;
+  font-size: 16px;
+  background: rgba(96,165,250,.15);
+  border: 1px solid rgba(96,165,250,.4);
+  margin-bottom: 25px;
+}
+
+.online-count i {
+  color: #60a5fa;
+}
+
+.online-count span {
+  color: #dbeafe;
+}
+
+/* ===== زر الدخول ===== */
+.enter-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #fff;
+  transition: all .3s ease;
+}
+
+.enter-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(59,130,246,.45);
 }
