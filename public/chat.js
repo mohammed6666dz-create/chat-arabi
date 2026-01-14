@@ -2,15 +2,12 @@ const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 if (!token) {
     window.location.href = 'index.html';
 }
-
 const socket = io();
-
 const params = new URLSearchParams(window.location.search);
 const room = params.get('room');
 if (!room) {
     window.location.href = 'rooms.html';
 }
-
 let myUsername = '';
 let myAvatar = 'https://via.placeholder.com/40';
 let currentPrivateChat = null;
@@ -33,7 +30,6 @@ socket.on('update users', (users) => {
     document.getElementById('userCount').innerText = users.length;
     const list = document.getElementById('usersList');
     list.innerHTML = '';
-
     users.forEach(user => {
         const div = document.createElement('div');
         div.className = 'user-item';
@@ -41,15 +37,15 @@ socket.on('update users', (users) => {
             <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
             <span>${user.username}</span>
         `;
-        
+       
         // تصحيح الربط هنا لفتح اللوحة الجديدة عند الضغط على قائمة المستخدمين
         div.onclick = () => openUserActions(user.username, user.role || 'guest', user.avatar);
-        
+       
         div.addEventListener('dblclick', (e) => {
             e.preventDefault();
             mentionUser(user.username);
         });
-        
+       
         list.appendChild(div);
     });
 });
@@ -84,13 +80,12 @@ function getUserBadge(username, role = 'guest') {
     if (username.toLowerCase() === 'mohamed-dz') {
         return '<span class="badge owner">مالك 👑</span>';
     }
-
     switch (role.toLowerCase()) {
         case 'superadmin': return '<span class="badge superadmin">سوبر أدمن ⚙️</span>';
-        case 'admin':      return '<span class="badge admin">أدمن 🔰</span>';
-        case 'premium':    return '<span class="badge premium">بريميوم 💎</span>';
-        case 'vip':        return '<span class="badge vip">VIP ★</span>';
-        default:           return '<span class="badge guest">ضيف</span>';
+        case 'admin': return '<span class="badge admin">أدمن 🔰</span>';
+        case 'premium': return '<span class="badge premium">بريميوم 💎</span>';
+        case 'vip': return '<span class="badge vip">VIP ★</span>';
+        default: return '<span class="badge guest">ضيف</span>';
     }
 }
 
@@ -98,12 +93,10 @@ function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
-
     const badge = getUserBadge(username, role);
-
     // تصحيح الربط: عند الضغط على الصورة داخل الرسالة تفتح اللوحة الجديدة
     messageDiv.innerHTML = `
-        <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}" 
+        <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}"
              onclick="openUserActions('${username}', '${role}', '${avatar}')" style="cursor:pointer;">
         <div class="message-content">
             <div class="username-line">
@@ -132,12 +125,12 @@ async function loadMyProfile() {
         const user = await res.json();
         myUsername = user.username;
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
-        
+       
         const timestamp = new Date().getTime();
         document.getElementById('avatar').src = myAvatar + '?t=' + timestamp;
         document.getElementById('myProfileAvatar').src = myAvatar + '?t=' + timestamp;
         document.getElementById('myProfileUsername').textContent = myUsername;
-        
+       
         console.log("تم تحميل اسم المستخدم:", myUsername);
     } catch (err) {
         console.error('خطأ في تحميل البروفايل:', err);
@@ -185,7 +178,6 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
 });
 
 // ─────────────── وظائف الرتب الجديدة ───────────────
-
 // وظيفة إظهار/إخفاء قائمة الرتب (التي تظهر عند الضغط على "إهداء رتبة")
 function toggleRankList() {
     const list = document.getElementById('ranksListMenu');
@@ -201,18 +193,16 @@ function openUserActions(username, currentRole = 'guest', avatar = '') {
     // 1. تعبئة البيانات في اللوحة الكبيرة الجديدة
     document.getElementById('otherUserDisplayName').textContent = username;
     document.getElementById('otherUserAvatarLarge').src = avatar || 'https://via.placeholder.com/140';
-    
+   
     // 2. إظهار اللوحة الجديدة
     const modal = document.getElementById('otherUserProfileModal');
     modal.classList.remove('hidden');
     modal.style.display = 'block';
-    
+   
     currentPrivateChat = username;
-
     // 3. تصفير حالة قائمة الرتب (إخفاؤها في كل مرة نفتح بروفايل جديد)
     const listMenu = document.getElementById('ranksListMenu');
     if (listMenu) listMenu.style.display = 'none';
-
     // 4. التحكم في ظهور زر "إهداء رتبة" للمالك فقط
     const rankPanel = document.getElementById('adminRankControls');
     if (rankPanel) {
@@ -241,6 +231,32 @@ function setUserRole(targetUsername, newRole) {
 // استقبال تحديث الرتبة
 socket.on('role updated', ({ username, role }) => {
     console.log(`تم تحديث رتبة ${username} إلى ${role}`);
+});
+
+// ─────────────── التحكم بإظهار / إخفاء لوحة المتصلين ───────────────
+document.addEventListener('DOMContentLoaded', () => {
+    const usersPanel = document.getElementById('usersPanel');
+    const hideBtn   = document.getElementById('hideUsersPanelBtn');
+    const showBtn   = document.getElementById('showUsersPanelBtn');
+
+    if (!usersPanel || !hideBtn || !showBtn) return;
+
+    // الحالة الافتراضية
+    usersPanel.style.display = 'block';
+    hideBtn.style.display = 'inline-block';
+    showBtn.style.display = 'none';
+
+    hideBtn.addEventListener('click', () => {
+        usersPanel.style.display = 'none';
+        hideBtn.style.display = 'none';
+        showBtn.style.display = 'inline-block';
+    });
+
+    showBtn.addEventListener('click', () => {
+        usersPanel.style.display = 'block';  // أو '' حسب ما يناسب الـ css الخاص بك
+        showBtn.style.display = 'none';
+        hideBtn.style.display = 'inline-block';
+    });
 });
 
 // باقي الكود كما هو تماماً
@@ -312,7 +328,7 @@ function mentionUser(username) {
     const input = document.getElementById('messageInput');
     if (!input) return;
     const mention = `@${username} `;
-    
+   
     if (input.value.trim() === '') {
         input.value = mention;
     } else {
