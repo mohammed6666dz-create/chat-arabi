@@ -765,11 +765,11 @@ header h1 {
 }
 /* المالك - ذهبي فاخر */
 .badge.owner {
-  background: linear-gradient(135deg, #facc15 0%, #ea580c 100%);
-  color: #0f172a;
-  border: 1px solid #ca8a04;
-  box-shadow: 0 0 10px rgba(250, 204, 21, 0.55);
-  font-weight: 800;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    color: white !important;
+    border: 1px solid #b91c1c !important;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
+    font-weight: 800 !important;
 }
 /* سوبر أدمن - بنفسجي قوي */
 .badge.superadmin {
