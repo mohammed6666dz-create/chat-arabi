@@ -104,14 +104,17 @@
           <span id="otherPoints">1821</span>
         </div>
 
-        <div id="adminRankControls" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center;">
-            <h4 style="margin-bottom: 10px; color: #d97706;">إدارة الرتب (للمالك فقط)</h4>
-            <div style="display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;">
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'superadmin')" style="background:#6d28d9; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">سوبر أدمن</button>
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'admin')" style="background:#3b82f6; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">أدمن</button>
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'premium')" style="background:#10b981; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">بريميوم</button>
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'vip')" style="background:#f59e0b; color:black; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">VIP</button>
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'guest')" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">سحب الرتبة</button>
+        <div id="adminRankControls" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center; display: none;">
+            <button onclick="toggleRankList()" style="background:#fbbf24; color:black; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <i class="fas fa-gift"></i> إهداء رتبة
+            </button>
+
+            <div id="ranksListMenu" style="display:none; margin-top:10px; background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; grid-template-columns: 1fr 1fr; gap:8px;">
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'superadmin')" style="background:#6d28d9; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">سوبر أدمن</button>
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'admin')" style="background:#3b82f6; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">أدمن</button>
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'premium')" style="background:#10b981; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">بريميوم</button>
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'vip')" style="background:#f59e0b; color:black; border:none; padding:8px; border-radius:4px; cursor:pointer;">VIP</button>
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'guest')" style="background:#ef4444; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">سحب الرتبة</button>
             </div>
         </div>
       </div>
