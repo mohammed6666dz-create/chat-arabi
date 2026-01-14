@@ -949,9 +949,9 @@ header h1 {
    إضافة جديدة فقط: رتبة "مديرة الموقع" وردي بدل الذهبي
 ───────────────────────────────────────────────── */
 .badge.owner {
-    background: linear-gradient(135deg, #ff69b4 0%, #ec4899 100%) !important;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
     color: white !important;
-    border: 1px solid #db2777 !important;
-    box-shadow: 0 0 12px rgba(236, 72, 153, 0.6) !important;
+    border: 1px solid #b91c1c !important;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
     font-weight: 800 !important;
 }
