@@ -296,7 +296,7 @@ header h1 {
   position: fixed;
   top: 60px;
   right: 20px;
-  width: 260px;
+  width: 300px;
   background: linear-gradient(135deg, #0f1a24 0%, #1a2a3a 100%);
   border-radius: 16px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
@@ -306,18 +306,18 @@ header h1 {
 }
 .profile-header {
   background: #075e54;
-  padding: 10px 14px;
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 .profile-header h3 {
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
 }
 .close-panel {
-  font-size: 24px;
+  font-size: 26px;
   cursor: pointer;
   color: #ccc;
   transition: color 0.2s;
@@ -325,53 +325,109 @@ header h1 {
 .close-panel:hover {
   color: white;
 }
-.profile-body {
-  padding: 20px 16px;
-  text-align: center;
-  color: white;
-}
-.avatar-container {
+
+/* ──────────────────────────────
+   تحسين شكل البروفايل الشخصي فقط
+─────────────────────────────── */
+.profile-cover-section {
   position: relative;
-  width: 90px;
-  height: 90px;
-  margin: 0 auto 16px;
+  height: 160px;
+  margin: -1px -1px 0 -1px;
+  background: #0f172a;
+  overflow: hidden;
 }
-#myProfileAvatar,
-#userAvatar {
+
+.cover-photo {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  border: 4px solid #075e54;
-  object-fit: cover;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.4s ease;
 }
+
+.profile-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, transparent 60%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 12px;
+}
+
+.change-cover-btn {
+  background: rgba(7, 94, 84, 0.9);
+  color: white;
+  padding: 8px 18px;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.change-cover-btn:hover {
+  background: #128c7e;
+  transform: translateY(-2px);
+}
+
+.profile-body {
+  padding: 0 20px 25px;
+  text-align: center;
+  position: relative;
+  margin-top: -50px;
+}
+
+.avatar-container {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 12px;
+  border: 5px solid #075e54;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+}
+
+#myProfileAvatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .change-avatar {
   position: absolute;
-  bottom: 4px;
-  right: 4px;
+  bottom: 8px;
+  right: 8px;
   background: #075e54;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: white;
-  font-size: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  transition: all 0.3s;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
+
 .change-avatar:hover {
-  transform: scale(1.15);
+  transform: scale(1.12);
   background: #128c7e;
 }
+
 .profile-body h4 {
-  margin: 0 0 10px;
-  font-size: 18px;
+  margin: 0 0 12px;
+  font-size: 20px;
   font-weight: 600;
+  color: #e0e7ff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
 }
-/* لوحة ملف المستخدم */
+
+/* باقي الكود كما هو تماماً (لم يتم المساس به أبدًا) */
 .user-profile-panel {
   display: none;
   position: fixed;
