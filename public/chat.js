@@ -100,8 +100,10 @@ function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
 
     const badge = getUserBadge(username, role);
 
+    // إضافة onclick على الصورة داخل الرسالة لفتح لوحة التحكم بالرتب
     messageDiv.innerHTML = `
-        <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}">
+        <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}" 
+             onclick="openUserActions('${username}', '${role}')" style="cursor:pointer;">
         <div class="message-content">
             <div class="username-line">
                 ${badge}
@@ -188,23 +190,20 @@ function openUserActions(username, currentRole = 'guest') {
     document.getElementById('userProfilePanel').style.display = 'block';
     currentPrivateChat = username;
 
-    // إزالة أي أزرار رتب سابقة
+    // إزالة أي أزرار رتب سابقة لمنع التكرار
     const existing = document.getElementById('rankActions');
     if (existing) existing.remove();
 
-    // التحقق من هوية المالك
-    if (!myUsername) {
-        console.warn("اسم المستخدم لم يتحمل بعد، محاولة مرة أخرى...");
-        setTimeout(() => {
+    // التحقق من هوية المالك لإظهار أزرار الرتب
+    if (myUsername && myUsername.toLowerCase() === 'mohamed-dz' && username !== 'mohamed-dz') {
+        showRankButtons(username);
+    } else if (!myUsername) {
+         // محاولة أخيرة في حال لم يتم تحميل الاسم بسرعة
+         setTimeout(() => {
             if (myUsername?.toLowerCase() === 'mohamed-dz' && username !== 'mohamed-dz') {
                 showRankButtons(username);
             }
-        }, 1200);
-        return;
-    }
-
-    if (myUsername.toLowerCase() === 'mohamed-dz' && username !== 'mohamed-dz') {
-        showRankButtons(username);
+         }, 500);
     }
 }
 
@@ -243,7 +242,7 @@ socket.on('role updated', ({ username, role }) => {
     console.log(`تم تحديث رتبة ${username} إلى ${role}`);
 });
 
-// باقي الكود (الشات الخاص، طلبات الصداقة، المنشن، الخروج...)
+// باقي الكود كما هو تماماً
 document.getElementById('startPrivateChatBtn').onclick = () => {
     document.getElementById('userProfilePanel').style.display = 'none';
     document.getElementById('privateChatPanel').style.display = 'block';
@@ -312,10 +311,6 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
     }
 });
 
-// ────────────────────────────────────────────────
-// المنشن والأجزاء الأخرى
-// ────────────────────────────────────────────────
-
 function mentionUser(username) {
     const input = document.getElementById('messageInput');
     if (!input) return;
@@ -335,7 +330,6 @@ function mentionUser(username) {
     input.setSelectionRange(input.value.length, input.value.length);
 }
 
-// باقي الأجزاء الخاصة بالبروفايل (الأصدقاء، الخصوصية، المميزات)...
 document.getElementById('showMyFriendsBtn')?.addEventListener('click', () => {
     document.getElementById('profileDynamicContent').innerHTML = `
         <div style="padding: 30px 0; color: #94a3b8; font-style: italic;">
@@ -343,5 +337,3 @@ document.getElementById('showMyFriendsBtn')?.addEventListener('click', () => {
         </div>
     `;
 });
-
-// ... (باقي الكود الخاص بالبروفايل كما هو)
