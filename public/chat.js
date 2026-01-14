@@ -11,13 +11,10 @@ if (!room) {
 let myUsername = '';
 let myAvatar = 'https://via.placeholder.com/40';
 let currentPrivateChat = null;
-
 // ─────────────── إضافة نظام النقاط والمستويات ───────────────
-let myPoints = 1;   // القيمة الافتراضية لأول مرة
-let myLevel  = 1;
-
+let myPoints = 1; // القيمة الافتراضية لأول مرة
+let myLevel = 1;
 socket.emit('join', room, token);
-
 socket.on('previous messages', (messages) => {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.innerHTML = '';
@@ -26,7 +23,6 @@ socket.on('previous messages', (messages) => {
     });
     scrollToBottom();
 });
-
 socket.on('update users', (users) => {
     document.getElementById('userCount').innerText = users.length;
     const list = document.getElementById('usersList');
@@ -38,22 +34,20 @@ socket.on('update users', (users) => {
             <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
             <span>${user.username}</span>
         `;
-     
+    
         div.onclick = () => openUserActions(user.username, user.role || 'guest', user.avatar);
-     
+    
         div.addEventListener('dblclick', (e) => {
             e.preventDefault();
             mentionUser(user.username);
         });
-     
+    
         list.appendChild(div);
     });
 });
-
 socket.on('message', ({ username, msg, avatar, role }) => {
     appendMessage(username, msg, avatar, username === myUsername, role || 'guest');
 });
-
 socket.on('system message', (msg) => {
     const div = document.createElement('div');
     div.className = 'system-message';
@@ -61,7 +55,6 @@ socket.on('system message', (msg) => {
     document.getElementById('chatWindow').appendChild(div);
     scrollToBottom();
 });
-
 // ─────────────── إرسال رسالة + زيادة نقطة (من وجهة نظر العميل فقط كإشارة) ───────────────
 document.getElementById('messageForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -70,20 +63,17 @@ document.getElementById('messageForm').addEventListener('submit', (e) => {
     if (msg) {
         socket.emit('message', msg, token);
         input.value = '';
-
         // إضافة محلية مؤقتة (السيرفر هو الذي يحدد الرقم النهائي)
         myPoints++;
         updatePointsLevelDisplay();
     }
 });
-
 // ─────────────── استقبال تحديث النقاط والمستوى من السيرفر ───────────────
 socket.on('your points updated', ({ points, level }) => {
     myPoints = points;
     myLevel = level;
     updatePointsLevelDisplay();
 });
-
 // ─────────────── إعلان صعود مستوى في الشات العام ───────────────
 socket.on('level up broadcast', ({ username, newLevel }) => {
     const div = document.createElement('div');
@@ -95,33 +85,70 @@ socket.on('level up broadcast', ({ username, newLevel }) => {
     document.getElementById('chatWindow').appendChild(div);
     scrollToBottom();
 });
-
 // ─────────────── دالة تحديث عرض النقاط والمستوى في اللوحة ───────────────
 function updatePointsLevelDisplay() {
     // تحديث في لوحة "نقاطي ومستواي" إذا كانت مفتوحة
     const pointsEl = document.getElementById('myRealPoints');
-    const levelEl  = document.querySelector('.current-level');
-    const nextEl   = document.getElementById('nextLevelPoints');
+    const levelEl = document.querySelector('.current-level');
+    const nextEl = document.getElementById('nextLevelPoints');
     const progress = document.querySelector('.progress-fill');
-
     if (pointsEl) pointsEl.textContent = myPoints;
-    if (levelEl)  levelEl.textContent  = myLevel;
-    if (nextEl)   nextEl.textContent   = myLevel * 100;
-
+    if (levelEl) levelEl.textContent = myLevel;
+    if (nextEl) nextEl.textContent = myLevel * 100;
     // حساب نسبة التقدم داخل المستوى الحالي
     const progressPercent = (myPoints % 100);
     if (progress) progress.style.width = `${progressPercent}%`;
 }
-
 // ─────────────── فتح لوحة نقاطي ومستواي ───────────────
 document.getElementById('myLevelBtn')?.addEventListener('click', () => {
-    document.getElementById('levelPointsPanel')?.classList.remove('hidden');
-    updatePointsLevelDisplay();  // تحديث القيم عند الفتح
+    const panel = document.getElementById('levelPointsPanel');
+    if (panel) {
+        panel.classList.remove('hidden');
+        if (panel.style.display === 'none' || !panel.style.display) {
+            panel.style.display = 'block';  // أو 'flex' حسب تصميمك
+        }
+        updatePointsLevelDisplay(); // تحديث القيم عند الفتح
+    }
 });
-
 // ─────────────── إغلاق لوحة نقاطي ومستواي ───────────────
 document.querySelector('.close-level-panel')?.addEventListener('click', () => {
-    document.getElementById('levelPointsPanel')?.classList.add('hidden');
+    const panel = document.getElementById('levelPointsPanel');
+    if (panel) {
+        panel.classList.add('hidden');
+        panel.style.display = 'none';
+    }
+});
+
+// ─────────────── جعل البريميوم مجاني في المتجر ───────────────
+document.querySelectorAll('.buy-btn[data-role="premium"]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const role = this.getAttribute('data-role');
+        
+        // نرسل طلب شراء بدون التحقق من النقاط (مجاني)
+        socket.emit('buy role', { role: role });
+        
+        // تغيير النص مؤقتاً لإعطاء إحساس بالمعالجة
+        const originalText = this.textContent;
+        this.textContent = 'جاري الشراء...';
+        this.disabled = true;
+        
+        setTimeout(() => {
+            this.textContent = originalText;
+            this.disabled = false;
+        }, 1500);
+    });
+});
+
+// ─────────────── استقبال تأكيد شراء الرتبة من السيرفر ───────────────
+socket.on('role purchased', ({ role, success, message }) => {
+    if (success) {
+        alert(`تم الحصول على رتبة ${role.toUpperCase()} بنجاح! 🎉`);
+        // تحديث الرتبة محلياً إذا أردت (اختياري)
+        // لكن الأفضل أن يعيد السيرفر تحميل البروفايل
+        loadMyProfile();
+    } else {
+        alert(message || 'فشل الحصول على الرتبة');
+    }
 });
 
 function getUserBadge(username, role = 'guest') {
@@ -136,7 +163,6 @@ function getUserBadge(username, role = 'guest') {
         default: return '<span class="badge guest">ضيف</span>';
     }
 }
-
 function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
@@ -156,12 +182,10 @@ function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     chatWindow.appendChild(messageDiv);
     scrollToBottom();
 }
-
 function scrollToBottom() {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.scrollTop = chatWindow.scrollHeight;
 }
-
 async function loadMyProfile() {
     try {
         const res = await fetch('/profile', {
@@ -171,28 +195,25 @@ async function loadMyProfile() {
         const user = await res.json();
         myUsername = user.username;
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
-     
+    
         const timestamp = new Date().getTime();
         document.getElementById('avatar').src = myAvatar + '?t=' + timestamp;
         document.getElementById('myProfileAvatar').src = myAvatar + '?t=' + timestamp;
         document.getElementById('myProfileUsername').textContent = myUsername;
-     
+    
         console.log("تم تحميل اسم المستخدم:", myUsername);
     } catch (err) {
         console.error('خطأ في تحميل البروفايل:', err);
     }
 }
 loadMyProfile();
-
 document.getElementById('profileBtn').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'block';
     loadMyProfile();
 });
-
 document.getElementById('closeMyProfile').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'none';
 });
-
 document.getElementById('avatarUpload').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -219,7 +240,6 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
         alert('حصل خطأ أثناء رفع الصورة، يرجى المحاولة مرة أخرى');
     }
 });
-
 function toggleRankList() {
     const list = document.getElementById('ranksListMenu');
     if (list.style.display === 'none' || list.style.display === '') {
@@ -228,15 +248,12 @@ function toggleRankList() {
         list.style.display = 'none';
     }
 }
-
 function openUserActions(username, currentRole = 'guest', avatar = '') {
     document.getElementById('otherUserDisplayName').textContent = username;
     document.getElementById('otherUserAvatarLarge').src = avatar || 'https://via.placeholder.com/140';
- 
     const modal = document.getElementById('otherUserProfileModal');
     modal.classList.remove('hidden');
     modal.style.display = 'block';
- 
     currentPrivateChat = username;
     const listMenu = document.getElementById('ranksListMenu');
     if (listMenu) listMenu.style.display = 'none';
@@ -249,23 +266,19 @@ function openUserActions(username, currentRole = 'guest', avatar = '') {
         }
     }
 }
-
 function closeOtherUserProfile() {
     const modal = document.getElementById('otherUserProfileModal');
     modal.classList.add('hidden');
     modal.style.display = 'none';
 }
-
 function setUserRole(targetUsername, newRole) {
     socket.emit('set role', { target: targetUsername, role: newRole });
     alert(`تم تعيين رتبة ${newRole} لـ ${targetUsername}`);
     closeOtherUserProfile();
 }
-
 socket.on('role updated', ({ username, role }) => {
     console.log(`تم تحديث رتبة ${username} إلى ${role}`);
 });
-
 document.addEventListener('DOMContentLoaded', () => {
     const usersPanel = document.getElementById('usersPanel');
     const hideBtn = document.getElementById('hideUsersPanelBtn');
@@ -285,7 +298,6 @@ document.addEventListener('DOMContentLoaded', () => {
         hideBtn.style.display = 'inline-block';
     });
 });
-
 document.getElementById('startPrivateChatBtn').onclick = () => {
     closeOtherUserProfile();
     document.getElementById('privateChatPanel').style.display = 'block';
@@ -347,7 +359,6 @@ function mentionUser(username) {
     const input = document.getElementById('messageInput');
     if (!input) return;
     const mention = `@${username} `;
- 
     if (input.value.trim() === '') {
         input.value = mention;
     } else {
@@ -372,7 +383,7 @@ let myCover = 'https://via.placeholder.com/800x200/0f172a/ffffff?text=خلفيت
 document.getElementById('profileBtn').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'block';
     loadMyProfile();
-   
+  
     const coverElement = document.getElementById('myCoverPhoto');
     if (coverElement) {
         coverElement.style.backgroundImage = `url(${myCover})`;
