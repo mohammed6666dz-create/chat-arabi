@@ -325,7 +325,6 @@ header h1 {
 .close-panel:hover {
   color: white;
 }
-
 /* ──────────────────────────────
    تحسين شكل البروفايل الشخصي فقط
 ─────────────────────────────── */
@@ -336,7 +335,6 @@ header h1 {
   background: #0f172a;
   overflow: hidden;
 }
-
 .cover-photo {
   width: 100%;
   height: 100%;
@@ -344,7 +342,6 @@ header h1 {
   background-position: center;
   transition: transform 0.4s ease;
 }
-
 .profile-cover-overlay {
   position: absolute;
   inset: 0;
@@ -354,7 +351,6 @@ header h1 {
   justify-content: center;
   padding-bottom: 12px;
 }
-
 .change-cover-btn {
   background: rgba(7, 94, 84, 0.9);
   color: white;
@@ -367,19 +363,16 @@ header h1 {
   gap: 8px;
   transition: all 0.3s;
 }
-
 .change-cover-btn:hover {
   background: #128c7e;
   transform: translateY(-2px);
 }
-
 .profile-body {
   padding: 0 20px 25px;
   text-align: center;
   position: relative;
   margin-top: -50px;
 }
-
 .avatar-container {
   position: relative;
   width: 110px;
@@ -390,13 +383,11 @@ header h1 {
   overflow: hidden;
   box-shadow: 0 8px 25px rgba(0,0,0,0.6);
 }
-
 #myProfileAvatar {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-
 .change-avatar {
   position: absolute;
   bottom: 8px;
@@ -413,12 +404,10 @@ header h1 {
   font-size: 18px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
-
 .change-avatar:hover {
   transform: scale(1.12);
   background: #128c7e;
 }
-
 .profile-body h4 {
   margin: 0 0 12px;
   font-size: 20px;
@@ -426,7 +415,6 @@ header h1 {
   color: #e0e7ff;
   text-shadow: 0 1px 4px rgba(0,0,0,0.6);
 }
-
 /* باقي الكود كما هو تماماً (لم يتم المساس به أبدًا) */
 .user-profile-panel {
   display: none;
@@ -733,7 +721,7 @@ header h1 {
 }
 /* ────────────────────────────────────────────────
    أشكال الرتب المحسنة (الإضافة الجديدة فقط)
-   ──────────────────────────────────────────────── */
+───────────────────────────────────────────────── */
 .username-line {
   display: flex;
   align-items: center;
@@ -822,4 +810,157 @@ header h1 {
 .my-message .badge {
   opacity: 0.94;
   filter: brightness(1.08);
+}
+
+/* ────────────────────────────────────────────────
+   ستايل لوحة المتجر + نقاطي ومستواي (الإضافة الجديدة فقط)
+───────────────────────────────────────────────── */
+
+/* لوحة المتجر */
+.shop-panel {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(12px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.shop-panel.show {
+  display: flex;
+}
+
+.shop-panel .shop-body {
+  padding: 2rem;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.shop-items {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.2rem;
+}
+
+.shop-item {
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 16px;
+  padding: 1.4rem;
+  border: 1px solid rgba(99, 102, 241, 0.18);
+  transition: all 0.35s ease;
+  backdrop-filter: blur(6px);
+}
+
+.shop-item:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 45px rgba(0,0,0,0.45),
+              inset 0 0 0 1px rgba(99, 102, 241, 0.4);
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.price {
+  align-self: flex-start;
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.buy-btn {
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  padding: 0.9rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.buy-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.5);
+}
+
+/* نافذة نقاطي ومستواي */
+.level-panel {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(14px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.level-panel.show {
+  display: flex;
+}
+
+.level-panel-content {
+  width: 90%;
+  max-width: 420px;
+  background: linear-gradient(145deg, #0f172a, #1e293b);
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  box-shadow: 0 25px 70px rgba(0,0,0,0.7);
+}
+
+.level-header h3 {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.6rem;
+  margin: 0;
+}
+
+.level-circle {
+  width: 160px;
+  height: 160px;
+  margin: 2rem auto;
+  border-radius: 50%;
+  background: conic-gradient(#fbbf24 0% 70%, #1e293b 70%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 50px rgba(251, 191, 36, 0.4);
+}
+
+.current-level {
+  font-size: 4.2rem;
+  font-weight: 900;
+  color: #fbbf24;
+  line-height: 0.9;
+}
+
+.points-number {
+  font-size: 3.8rem;
+  font-weight: 900;
+  color: white;
+  margin: 1.5rem 0;
+}
+
+.progress-bar {
+  height: 16px;
+  background: rgba(30, 41, 59, 0.7);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  transition: width 0.8s ease;
 }
