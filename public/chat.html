@@ -27,6 +27,10 @@
         <button class="icon-btn" id="showUsersPanelBtn" title="إظهار المتصلين" style="display:none;">
           <i class="fas fa-users"></i>
         </button>
+        <!-- زر المتجر الجديد -->
+        <button class="icon-btn" id="shopBtn" title="المتجر">
+          <i class="fas fa-shopping-cart"></i>
+        </button>
       </div>
     </div>
     <div style="display: flex; align-items: center; gap: 15px;">
@@ -38,6 +42,7 @@
       </button>
     </div>
   </header>
+
   <div class="chat-main">
     <div id="chatWindow"></div>
     <div id="usersPanel">
@@ -45,6 +50,7 @@
       <div id="usersList"></div>
     </div>
   </div>
+
   <form id="messageForm">
     <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
     <button type="submit">إرسال</button>
@@ -56,7 +62,6 @@
       <h3>بروفايلك</h3>
       <span id="closeMyProfile" class="close-panel">×</span>
     </div>
-
     <!-- الخلفية الجديدة (Cover) -->
     <div class="profile-cover-section">
       <div class="cover-photo" id="myCoverPhoto" style="background-image: url('https://via.placeholder.com/800x200/0f172a/ffffff?text=خلفيتك+هنا');"></div>
@@ -67,7 +72,6 @@
         <input type="file" id="coverUpload" accept="image/*" style="display:none;">
       </div>
     </div>
-
     <div class="profile-body">
       <div class="avatar-container">
         <img id="myProfileAvatar" src="https://via.placeholder.com/90" alt="صورتك">
@@ -78,7 +82,6 @@
       </div>
       <h4 id="myProfileUsername">اسم المستخدم</h4>
     </div>
-
     <!-- تبويبات مشابهة للصورة التي أرسلتها -->
     <div class="profile-tabs">
       <button class="tab-btn active"><i class="fas fa-trophy"></i> المزيد</button>
@@ -86,7 +89,6 @@
       <button class="tab-btn"><i class="fas fa-gift"></i> الهدايا</button>
       <button class="tab-btn"><i class="fas fa-cog"></i> الإعدادات</button>
     </div>
-
     <!-- محتوى التبويبات (يمكنك توسيعها لاحقاً) -->
     <div class="profile-tab-content">
       <ul>
@@ -97,6 +99,55 @@
         <li><i class="fas fa-volume-up"></i> الأصوات</li>
         <li><i class="fas fa-desktop"></i> إعدادات الاستايل</li>
       </ul>
+    </div>
+  </div>
+
+  <!-- لوحة المتجر الجديدة -->
+  <div id="shopPanel" class="shop-panel" style="display:none;">
+    <div class="shop-header">
+      <h3>المتجر</h3>
+      <span id="closeShop" class="close-panel">×</span>
+    </div>
+    <div class="shop-body">
+      <h4>رصيد نقاطك: <span id="myPoints">0</span></h4>
+      
+      <div class="shop-items">
+        <!-- سوبر أدمن -->
+        <div class="shop-item">
+          <div class="item-info">
+            <span class="badge superadmin">سوبر أدمن ⚙️</span>
+            <span class="price">5000 نقطة</span>
+          </div>
+          <button class="buy-btn" data-role="superadmin" data-price="5000">شراء</button>
+        </div>
+
+        <!-- أدمن -->
+        <div class="shop-item">
+          <div class="item-info">
+            <span class="badge admin">أدمن 🔰</span>
+            <span class="price">3000 نقطة</span>
+          </div>
+          <button class="buy-btn" data-role="admin" data-price="3000">شراء</button>
+        </div>
+
+        <!-- بريميوم -->
+        <div class="shop-item">
+          <div class="item-info">
+            <span class="badge premium">بريميوم 💎</span>
+            <span class="price">1500 نقطة</span>
+          </div>
+          <button class="buy-btn" data-role="premium" data-price="1500">شراء</button>
+        </div>
+
+        <!-- VIP -->
+        <div class="shop-item">
+          <div class="item-info">
+            <span class="badge vip">VIP ★</span>
+            <span class="price">800 نقطة</span>
+          </div>
+          <button class="buy-btn" data-role="vip" data-price="800">شراء</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -160,7 +211,7 @@
 
   <script src="chat.js"></script>
 
-  <!-- السكريبت الإضافي للتحكم باللوحة (القديم) -->
+  <!-- السكريبت الإضافي للتحكم باللوحة -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const usersPanel = document.getElementById('usersPanel');
@@ -179,10 +230,9 @@
         hideBtn.style.display = 'inline-block';
       });
 
-      // معاينة الخلفية الجديدة عند الاختيار (معاينة فورية)
+      // معاينة الخلفية الجديدة عند الاختيار
       const coverUpload = document.getElementById('coverUpload');
       const myCoverPhoto = document.getElementById('myCoverPhoto');
-
       if (coverUpload && myCoverPhoto) {
         coverUpload.addEventListener('change', function(e) {
           const file = e.target.files[0];
@@ -195,6 +245,15 @@
           }
         });
       }
+
+      // فتح وإغلاق المتجر
+      document.getElementById('shopBtn')?.addEventListener('click', () => {
+        document.getElementById('shopPanel').style.display = 'block';
+      });
+
+      document.getElementById('closeShop')?.addEventListener('click', () => {
+        document.getElementById('shopPanel').style.display = 'none';
+      });
     });
   </script>
 </body>
