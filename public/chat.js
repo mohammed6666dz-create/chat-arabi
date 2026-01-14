@@ -42,7 +42,8 @@ socket.on('update users', (users) => {
             <span>${user.username}</span>
         `;
         
-        div.onclick = () => openUserActions(user.username, user.role || 'guest');
+        // تصحيح الربط هنا لفتح اللوحة الجديدة عند الضغط على قائمة المستخدمين
+        div.onclick = () => openUserActions(user.username, user.role || 'guest', user.avatar);
         
         div.addEventListener('dblclick', (e) => {
             e.preventDefault();
@@ -100,10 +101,10 @@ function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
 
     const badge = getUserBadge(username, role);
 
-    // إضافة onclick على الصورة داخل الرسالة لفتح لوحة التحكم بالرتب
+    // تصحيح الربط: عند الضغط على الصورة داخل الرسالة تفتح اللوحة الجديدة
     messageDiv.innerHTML = `
         <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}" 
-             onclick="openUserActions('${username}', '${role}')" style="cursor:pointer;">
+             onclick="openUserActions('${username}', '${role}', '${avatar}')" style="cursor:pointer;">
         <div class="message-content">
             <div class="username-line">
                 ${badge}
@@ -137,7 +138,7 @@ async function loadMyProfile() {
         document.getElementById('myProfileAvatar').src = myAvatar + '?t=' + timestamp;
         document.getElementById('myProfileUsername').textContent = myUsername;
         
-        console.log("تم تحميل اسم المستخدم:", myUsername); // للتأكد
+        console.log("تم تحميل اسم المستخدم:", myUsername);
     } catch (err) {
         console.error('خطأ في تحميل البروفايل:', err);
     }
@@ -184,57 +185,42 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
 });
 
 // ─────────────── فتح لوحة أفعال المستخدم + أزرار الرتب ───────────────
-function openUserActions(username, currentRole = 'guest') {
-    document.getElementById('userUsername').textContent = username;
-    document.getElementById('userAvatar').src = 'https://via.placeholder.com/90';
-    document.getElementById('userProfilePanel').style.display = 'block';
+// تم تصحيح الوظيفة لترتبط بالـ HTML الجديد (otherUserProfileModal)
+function openUserActions(username, currentRole = 'guest', avatar = '') {
+    // 1. تعبئة البيانات في اللوحة الكبيرة الجديدة
+    document.getElementById('otherUserDisplayName').textContent = username;
+    document.getElementById('otherUserAvatarLarge').src = avatar || 'https://via.placeholder.com/140';
+    
+    // 2. إظهار اللوحة الجديدة
+    const modal = document.getElementById('otherUserProfileModal');
+    modal.classList.remove('hidden');
+    modal.style.display = 'block';
+    
     currentPrivateChat = username;
 
-    // إزالة أي أزرار رتب سابقة لمنع التكرار
-    const existing = document.getElementById('rankActions');
-    if (existing) existing.remove();
-
-    // التحقق من هوية المالك لإظهار أزرار الرتب
-    if (myUsername && myUsername.toLowerCase() === 'mohamed-dz' && username !== 'mohamed-dz') {
-        showRankButtons(username);
-    } else if (!myUsername) {
-         // محاولة أخيرة في حال لم يتم تحميل الاسم بسرعة
-         setTimeout(() => {
-            if (myUsername?.toLowerCase() === 'mohamed-dz' && username !== 'mohamed-dz') {
-                showRankButtons(username);
-            }
-         }, 500);
+    // 3. التحكم في ظهور أزرار الرتب (adminRankControls) الموجودة داخل الـ HTML الجديد
+    const rankPanel = document.getElementById('adminRankControls');
+    if (rankPanel) {
+        if (myUsername && myUsername.toLowerCase() === 'mohamed-dz' && username !== 'mohamed-dz') {
+            rankPanel.style.display = 'block';
+        } else {
+            rankPanel.style.display = 'none';
+        }
     }
 }
 
-function showRankButtons(targetUsername) {
-    const panel = document.getElementById('userProfilePanel');
-    const rankDiv = document.createElement('div');
-    rankDiv.id = 'rankActions';
-    rankDiv.style.margin = '20px 0';
-    rankDiv.style.padding = '15px';
-    rankDiv.style.background = 'rgba(0,0,0,0.3)';
-    rankDiv.style.borderRadius = '12px';
-    rankDiv.innerHTML = `
-        <h4 style="text-align:center; color:#fbbf24; margin:0 0 12px 0;">
-            تغيير رتبة ${targetUsername}
-        </h4>
-        <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
-            <button onclick="setUserRole('${targetUsername}', 'superadmin')" style="background:#6d28d9;color:white;padding:8px 14px;border:none;border-radius:6px;cursor:pointer;">سوبر أدمن</button>
-            <button onclick="setUserRole('${targetUsername}', 'admin')" style="background:#3b82f6;color:white;padding:8px 14px;border:none;border-radius:6px;cursor:pointer;">أدمن</button>
-            <button onclick="setUserRole('${targetUsername}', 'premium')" style="background:#10b981;color:white;padding:8px 14px;border:none;border-radius:6px;cursor:pointer;">بريميوم</button>
-            <button onclick="setUserRole('${targetUsername}', 'vip')" style="background:#f59e0b;color:black;padding:8px 14px;border:none;border-radius:6px;cursor:pointer;">VIP</button>
-            <button onclick="setUserRole('${targetUsername}', 'guest')" style="background:#4b5563;color:white;padding:8px 14px;border:none;border-radius:6px;cursor:pointer;">ضيف</button>
-        </div>
-    `;
-    panel.appendChild(rankDiv);
+// وظيفة لإغلاق اللوحة الجديدة
+function closeOtherUserProfile() {
+    const modal = document.getElementById('otherUserProfileModal');
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
 }
 
 // تغيير رتبة مستخدم
 function setUserRole(targetUsername, newRole) {
     socket.emit('set role', { target: targetUsername, role: newRole });
     alert(`تم تعيين رتبة ${newRole} لـ ${targetUsername}`);
-    document.getElementById('userProfilePanel').style.display = 'none';
+    closeOtherUserProfile(); // إغلاق اللوحة بعد التعديل
 }
 
 // استقبال تحديث الرتبة
@@ -244,25 +230,21 @@ socket.on('role updated', ({ username, role }) => {
 
 // باقي الكود كما هو تماماً
 document.getElementById('startPrivateChatBtn').onclick = () => {
-    document.getElementById('userProfilePanel').style.display = 'none';
+    closeOtherUserProfile();
     document.getElementById('privateChatPanel').style.display = 'block';
     document.getElementById('privateChatWith').textContent = 'دردشة مع ' + currentPrivateChat;
 };
 
 document.getElementById('addFriendBtn').onclick = () => {
-    const target = document.getElementById('userUsername').textContent;
+    const target = document.getElementById('otherUserDisplayName').textContent;
     if (target === myUsername) {
         alert('لا يمكنك إضافة نفسك!');
         return;
     }
     socket.emit('send friend request', target);
     alert(`تم إرسال طلب صداقة إلى ${target}`);
-    document.getElementById('userProfilePanel').style.display = 'none';
+    closeOtherUserProfile();
 };
-
-document.getElementById('closeUserPanel').addEventListener('click', () => {
-    document.getElementById('userProfilePanel').style.display = 'none';
-});
 
 document.getElementById('closePrivateChat').addEventListener('click', () => {
     document.getElementById('privateChatPanel').style.display = 'none';
