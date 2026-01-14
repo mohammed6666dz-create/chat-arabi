@@ -45,7 +45,6 @@
     <button type="submit">إرسال</button>
   </form>
 
-  <!-- لوحة البروفايل الشخصية (القديمة) -->
   <div id="myProfilePanel" class="profile-panel">
     <div class="profile-header">
       <h3>بروفايلك</h3>
@@ -60,12 +59,9 @@
         <input type="file" id="avatarUpload" accept="image/*" style="display:none;">
       </div>
       <h4 id="myProfileUsername">اسم المستخدم</h4>
-
-      <!-- باقي محتوى البروفايل الشخصي إذا كان موجود -->
     </div>
   </div>
 
-  <!-- اللوحة الجديدة: بروفايل المستخدمين الآخرين (المنبثقة) -->
   <div id="otherUserProfileModal" class="other-profile-modal hidden">
     <div class="modal-content">
       <span class="close-modal" onclick="closeOtherUserProfile()">×</span>
@@ -107,11 +103,21 @@
           <span>النقاط</span>
           <span id="otherPoints">1821</span>
         </div>
+
+        <div id="adminRankControls" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center;">
+            <h4 style="margin-bottom: 10px; color: #d97706;">إدارة الرتب (للمالك فقط)</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;">
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'superadmin')" style="background:#6d28d9; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">سوبر أدمن</button>
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'admin')" style="background:#3b82f6; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">أدمن</button>
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'premium')" style="background:#10b981; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">بريميوم</button>
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'vip')" style="background:#f59e0b; color:black; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">VIP</button>
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'guest')" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">سحب الرتبة</button>
+            </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- باقي اللوحات القديمة -->
   <div id="userProfilePanel" class="user-profile-panel">...</div>
   <div id="privateChatPanel" class="private-chat-panel">...</div>
   <div id="friendRequestsPanel" class="friend-requests-panel">...</div>
