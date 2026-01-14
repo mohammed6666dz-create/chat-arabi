@@ -55,7 +55,7 @@ socket.on('system message', (msg) => {
     document.getElementById('chatWindow').appendChild(div);
     scrollToBottom();
 });
-// ─────────────── إرسال رسالة + زيادة نقطة (من وجهة نظر العميل فقط كإشارة) ───────────────
+// ─────────────── إرسال رسالة + زيادة نقطة ───────────────
 document.getElementById('messageForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = document.getElementById('messageInput');
@@ -63,7 +63,7 @@ document.getElementById('messageForm').addEventListener('submit', (e) => {
     if (msg) {
         socket.emit('message', msg, token);
         input.value = '';
-        // إضافة محلية مؤقتة (السيرفر هو الذي يحدد الرقم النهائي)
+        // إضافة محلية مؤقتة
         myPoints++;
         updatePointsLevelDisplay();
     }
@@ -143,7 +143,6 @@ socket.on('role purchased', ({ role, success, message }) => {
 });
 function getUserBadge(username, role = 'guest') {
     const lowerUsername = username.toLowerCase();
-    // nour تظهر دائماً كمديرة الموقع في الواجهة
     if (lowerUsername === 'nour') {
         return '<span class="badge owner">مديرة الموقع 👑</span>';
     }
@@ -163,6 +162,8 @@ function getUserBadge(username, role = 'guest') {
             return '<span class="badge guest">ضيف</span>';
     }
 }
+
+// ─────────────── دالة إضافة الرسالة (تم التعديل لعرض HTML) ───────────────
 function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
@@ -178,13 +179,14 @@ function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
                 ${badge}
                 <strong>${username}</strong>
             </div>
-            <p>${msg}</p>
+            <p>${msg}</p> 
         </div>
     `;
    
     chatWindow.appendChild(messageDiv);
     scrollToBottom();
 }
+
 function scrollToBottom() {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -349,7 +351,7 @@ function appendPrivateMessage(username, msg, avatar, isMe) {
         <img src="${avatar || 'https://via.placeholder.com/30'}" alt="${username}">
         <div class="private-content">
             <strong>${username}</strong>
-            <p>${msg}</p>
+            <p>${msg}</p> 
         </div>
     `;
     chat.appendChild(div);
@@ -435,7 +437,7 @@ document.getElementById('coverUpload')?.addEventListener('change', async functio
 });
 
 // ────────────────────────────────────────────────
-//          إضافة جديدة فقط: التحكم بلوحة الإيموجي
+//      تعديل التحكم بلوحة الإيموجي (لإرسال الصور)
 // ────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     const emojiBtn = document.getElementById('emojiBtn');
@@ -444,20 +446,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!emojiBtn || !emojiPicker || !messageInput) return;
 
-    // فتح/إغلاق لوحة الإيموجي
     emojiBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         emojiPicker.classList.toggle('hidden');
     });
 
-    // إغلاق اللوحة إذا ضغط خارجها
     document.addEventListener('click', (e) => {
         if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
             emojiPicker.classList.add('hidden');
         }
     });
 
-    // تبديل بين التبويبات (إن وجدت)
     document.querySelectorAll('.emoji-tab')?.forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
@@ -470,30 +469,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // عند الضغط على أي إيموجي (عادية أو متحركة) → تضاف في حقل الإرسال
     emojiPicker.addEventListener('click', function(e) {
-        let emojiText = '';
+        let emojiToInsert = '';
 
-        // إيموجي عادية (SPAN)
         if (e.target.tagName === 'SPAN') {
-            emojiText = e.target.textContent.trim();
-        }
-        // إيموجي متحركة (IMG) → نأخذ النص من الـ alt
+            emojiToInsert = e.target.textContent.trim();
+        } 
+        // التعديل الأساسي هنا: عند الضغط على صورة، يتم إرسال وسم IMG كامل بدلاً من كلمة الـ ALT
         else if (e.target.tagName === 'IMG') {
-            emojiText = e.target.alt || e.target.title || '😊';
+            emojiToInsert = `<img src="${e.target.src}" style="width:30px; height:30px; vertical-align:middle;">`;
         }
 
-        if (emojiText) {
+        if (emojiToInsert) {
             const input = document.getElementById('messageInput');
             const start = input.selectionStart;
             const end = input.selectionEnd;
 
             input.value = 
                 input.value.substring(0, start) + 
-                emojiText + 
+                emojiToInsert + 
                 input.value.substring(end);
 
-            const newPos = start + emojiText.length;
+            const newPos = start + emojiToInsert.length;
             input.setSelectionRange(newPos, newPos);
             input.focus();
         }
