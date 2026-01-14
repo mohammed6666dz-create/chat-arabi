@@ -49,11 +49,25 @@
     <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
     <button type="submit">إرسال</button>
   </form>
+
+  <!-- لوحة البروفايل الشخصي (مع التحسينات الجديدة) -->
   <div id="myProfilePanel" class="profile-panel">
     <div class="profile-header">
       <h3>بروفايلك</h3>
       <span id="closeMyProfile" class="close-panel">×</span>
     </div>
+
+    <!-- الخلفية الجديدة (Cover) -->
+    <div class="profile-cover-section">
+      <div class="cover-photo" id="myCoverPhoto" style="background-image: url('https://via.placeholder.com/800x200/0f172a/ffffff?text=خلفيتك+هنا');"></div>
+      <div class="profile-cover-overlay">
+        <label for="coverUpload" class="change-cover-btn">
+          <i class="fas fa-camera"></i> تغيير الخلفية
+        </label>
+        <input type="file" id="coverUpload" accept="image/*" style="display:none;">
+      </div>
+    </div>
+
     <div class="profile-body">
       <div class="avatar-container">
         <img id="myProfileAvatar" src="https://via.placeholder.com/90" alt="صورتك">
@@ -64,7 +78,29 @@
       </div>
       <h4 id="myProfileUsername">اسم المستخدم</h4>
     </div>
+
+    <!-- تبويبات مشابهة للصورة التي أرسلتها -->
+    <div class="profile-tabs">
+      <button class="tab-btn active"><i class="fas fa-trophy"></i> المزيد</button>
+      <button class="tab-btn"><i class="fas fa-star"></i> المميزات</button>
+      <button class="tab-btn"><i class="fas fa-gift"></i> الهدايا</button>
+      <button class="tab-btn"><i class="fas fa-cog"></i> الإعدادات</button>
+    </div>
+
+    <!-- محتوى التبويبات (يمكنك توسيعها لاحقاً) -->
+    <div class="profile-tab-content">
+      <ul>
+        <li><i class="fas fa-edit"></i> تحرير البيانات</li>
+        <li><i class="fas fa-user-edit"></i> تغيير اسم المستخدم</li>
+        <li><i class="fas fa-heart"></i> تعديل الحالة</li>
+        <li><i class="fas fa-palette"></i> لون الخط</li>
+        <li><i class="fas fa-volume-up"></i> الأصوات</li>
+        <li><i class="fas fa-desktop"></i> إعدادات الاستايل</li>
+      </ul>
+    </div>
   </div>
+
+  <!-- باقي الأقسام كما هي بدون تغيير -->
   <div id="otherUserProfileModal" class="other-profile-modal hidden">
     <div class="modal-content">
       <span class="close-modal" onclick="closeOtherUserProfile()">×</span>
@@ -117,12 +153,14 @@
       </div>
     </div>
   </div>
+
   <div id="userProfilePanel" class="user-profile-panel">...</div>
   <div id="privateChatPanel" class="private-chat-panel">...</div>
   <div id="friendRequestsPanel" class="friend-requests-panel">...</div>
+
   <script src="chat.js"></script>
 
-  <!-- السكريبت الإضافي للتحكم باللوحة -->
+  <!-- السكريبت الإضافي للتحكم باللوحة (القديم) -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const usersPanel = document.getElementById('usersPanel');
@@ -136,10 +174,27 @@
       });
 
       showBtn.addEventListener('click', () => {
-        usersPanel.style.display = 'block'; // أو '' أو 'flex' حسب الـ css الأصلي
+        usersPanel.style.display = 'block';
         showBtn.style.display = 'none';
         hideBtn.style.display = 'inline-block';
       });
+
+      // معاينة الخلفية الجديدة عند الاختيار (معاينة فورية)
+      const coverUpload = document.getElementById('coverUpload');
+      const myCoverPhoto = document.getElementById('myCoverPhoto');
+
+      if (coverUpload && myCoverPhoto) {
+        coverUpload.addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+              myCoverPhoto.style.backgroundImage = `url(${event.target.result})`;
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
     });
   </script>
 </body>
