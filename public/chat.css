@@ -108,7 +108,7 @@ header h1 {
   position: relative;
 }
 /* ──────────────────────────────
-   توهجات أنيقة + إطارات متوهجة عصرية (بدون سيطرة أخضر زايد)
+   توهجات أنيقة + إطارات متوهجة عصرية
 ─────────────────────────────── */
 .message {
   display: flex;
@@ -191,7 +191,7 @@ header h1 {
   box-shadow: 0 10px 35px rgba(80, 120, 255, 0.25);
 }
 /* ──────────────────────────────
-   لوحة المستخدمين ← التعديل الجديد هنا
+   لوحة المستخدمين
 ─────────────────────────────── */
 #usersPanel {
   flex: 1;
@@ -498,7 +498,7 @@ header h1 {
   cursor: pointer;
 }
 /* ────────────────────────────────────────────────
-   الإضافات الجديدة لتحسين البروفايل (غلاف + أزرار)
+   الإضافات الجديدة لتحسين البروفايل
 ───────────────────────────────────────────────── */
 .profile-cover-section {
   position: relative;
@@ -551,7 +551,7 @@ header h1 {
   color: #cbd5e1;
   text-align: center;
 }
-/* للجوال (اختياري - يخلي الأزرار تحت بعض) */
+/* للجوال */
 @media (max-width: 400px) {
   .profile-action-buttons {
     flex-direction: column;
@@ -562,7 +562,7 @@ header h1 {
   }
 }
 /* ────────────────────────────────────────────────
-   ستايل لوحة بروفايل المستخدمين الآخرين (الجديدة)
+   ستايل لوحة بروفايل المستخدمين الآخرين
 ───────────────────────────────────────────────── */
 .other-profile-modal {
   position: fixed;
@@ -677,63 +677,105 @@ header h1 {
 }
 
 /* ────────────────────────────────────────────────
-   ║                أشكال الرتب الجديدة               ║
+   أشكال الرتب المحسنة (الإضافة الجديدة فقط)
    ──────────────────────────────────────────────── */
-
 .username-line {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px 8px;
-  margin-bottom: 4px;
+  gap: 6px 9px;
+  margin-bottom: 5px;
 }
 
 .badge {
-  font-size: 0.74em;
-  padding: 3px 8px;
+  font-size: 0.76em;
+  padding: 4px 10px;
   border-radius: 6px;
   font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.3px;
+  line-height: 1.1;
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s ease;
 }
 
-/* ضيف - فضي بسيط */
-.badge.guest {
-  background: #4b5563;
-  color: #e5e7eb;
-  border: 1px solid #6b7280;
-  box-shadow: 0 0 6px rgba(107, 114, 128, 0.3);
+/* تأثير توهج خفيف عند الـ hover */
+.username-line:hover .badge {
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px currentColor;
 }
 
-/* مالك الموقع - ذهبي فخم */
+.badge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.15),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.6s;
+}
+
+.badge:hover::after {
+  opacity: 0.7;
+}
+
+/* المالك - ذهبي فاخر */
 .badge.owner {
-  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-  color: #111827;
-  border: 1px solid #b45309;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.55);
-  padding: 3px 10px;
+  background: linear-gradient(135deg, #facc15 0%, #ea580c 100%);
+  color: #0f172a;
+  border: 1px solid #ca8a04;
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.55);
+  font-weight: 800;
 }
 
-/* إداري (إذا أضفت لاحقاً) */
-.badge.admin {
-  background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%);
-  color: #f3e8ff;
-  border: 1px solid #6d28d9;
-  box-shadow: 0 0 9px rgba(109, 40, 217, 0.5);
-}
-
-/* مميز / VIP (مثال إضافي) */
-.badge.vip {
-  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+/* سوبر أدمن - بنفسجي قوي */
+.badge.superadmin {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
   color: white;
-  border: 1px solid #be185d;
-  box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+  border: 1px solid #7c3aed;
+  box-shadow: 0 0 11px rgba(139, 92, 246, 0.6);
 }
 
-/* لون خفيف للرتبة داخل الرسالة الخاصة بي */
+/* أدمن - أزرق إداري */
+.badge.admin {
+  background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+  color: white;
+  border: 1px solid #3b82f6;
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
+}
+
+/* بريميوم - أخضر لامع */
+.badge.premium {
+  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+  color: white;
+  border: 1px solid #10b981;
+  box-shadow: 0 0 11px rgba(52, 211, 153, 0.55);
+}
+
+/* VIP - برتقالي/ذهبي مميز */
+.badge.vip {
+  background: linear-gradient(135deg, #fb923c 0%, #c2410c 100%);
+  color: white;
+  border: 1px solid #f97316;
+  box-shadow: 0 0 10px rgba(251, 146, 60, 0.55);
+}
+
+/* ضيف - رمادي معدني */
+.badge.guest {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: #e5e7eb;
+  border: 1px solid #9ca3af;
+  box-shadow: 0 0 7px rgba(107, 114, 128, 0.4);
+}
+
+/* تحسين داخل الرسائل الخاصة بالمستخدم */
 .my-message .badge {
-  opacity: 0.92;
+  opacity: 0.94;
+  filter: brightness(1.08);
 }
