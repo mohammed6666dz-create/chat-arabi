@@ -45,7 +45,9 @@ function loadUsers() {
         saveUsers();
         console.log('تم إنشاء حساب صاحب الموقع تلقائيًا: username: mohamed-dz | password: mohokok12');
         console.log('غير كلمة السر فورًا من users.json لو هتستخدم الموقع على الإنترنت!');
-    }
+          console.log('تم إنشاء حساب صاحب الموقع تلقائيًا: username:nour| password:44042011');
+        console.log('غير كلمة السر فورًا من users.json لو هتستخدم الموقع على الإنترنت!');
+    }  
 }
 
 loadUsers();
