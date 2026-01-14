@@ -20,6 +20,13 @@
         </button>
         <button class="icon-btn" id="notificationsBtn" title="الإشعارات"><i class="fas fa-bell"></i></button>
         <button class="icon-btn" id="reportsBtn" title="الإبلاغات"><i class="fas fa-flag"></i></button>
+        <!-- الأزرار الجديدة -->
+        <button class="icon-btn" id="hideUsersPanelBtn" title="إخفاء المتصلين">
+          <i class="fas fa-eye-slash"></i>
+        </button>
+        <button class="icon-btn" id="showUsersPanelBtn" title="إظهار المتصلين" style="display:none;">
+          <i class="fas fa-users"></i>
+        </button>
       </div>
     </div>
     <div style="display: flex; align-items: center; gap: 15px;">
@@ -31,7 +38,6 @@
       </button>
     </div>
   </header>
-
   <div class="chat-main">
     <div id="chatWindow"></div>
     <div id="usersPanel">
@@ -39,12 +45,10 @@
       <div id="usersList"></div>
     </div>
   </div>
-
   <form id="messageForm">
     <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
     <button type="submit">إرسال</button>
   </form>
-
   <div id="myProfilePanel" class="profile-panel">
     <div class="profile-header">
       <h3>بروفايلك</h3>
@@ -61,13 +65,10 @@
       <h4 id="myProfileUsername">اسم المستخدم</h4>
     </div>
   </div>
-
   <div id="otherUserProfileModal" class="other-profile-modal hidden">
     <div class="modal-content">
       <span class="close-modal" onclick="closeOtherUserProfile()">×</span>
-
       <div class="profile-cover" id="otherUserCover"></div>
-
       <div class="profile-header-info">
         <img id="otherUserAvatarLarge" src="https://via.placeholder.com/140" alt="صورة المستخدم" class="large-avatar">
         <div class="user-info-text">
@@ -75,13 +76,11 @@
           <p id="otherUserStatus" class="status-text">We will meet in Paradise</p>
         </div>
       </div>
-
       <div class="profile-actions">
         <button class="action-btn msg-btn" id="sendPrivateMsgBtn">رسالة خاصة</button>
         <button class="action-btn friend-btn" id="addFriendFromProfile">إضافة صديق</button>
         <button class="action-btn report-btn">إبلاغ</button>
       </div>
-
       <div class="profile-details">
         <div class="detail-item">
           <span>رابط الملف</span>
@@ -103,12 +102,10 @@
           <span>النقاط</span>
           <span id="otherPoints">1821</span>
         </div>
-
         <div id="adminRankControls" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center; display: none;">
             <button onclick="toggleRankList()" style="background:#fbbf24; color:black; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
                 <i class="fas fa-gift"></i> إهداء رتبة
             </button>
-
             <div id="ranksListMenu" style="display:none; margin-top:10px; background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; grid-template-columns: 1fr 1fr; gap:8px;">
                 <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'superadmin')" style="background:#6d28d9; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">سوبر أدمن</button>
                 <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'admin')" style="background:#3b82f6; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">أدمن</button>
@@ -120,11 +117,30 @@
       </div>
     </div>
   </div>
-
   <div id="userProfilePanel" class="user-profile-panel">...</div>
   <div id="privateChatPanel" class="private-chat-panel">...</div>
   <div id="friendRequestsPanel" class="friend-requests-panel">...</div>
-
   <script src="chat.js"></script>
+
+  <!-- السكريبت الإضافي للتحكم باللوحة -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const usersPanel = document.getElementById('usersPanel');
+      const hideBtn = document.getElementById('hideUsersPanelBtn');
+      const showBtn = document.getElementById('showUsersPanelBtn');
+
+      hideBtn.addEventListener('click', () => {
+        usersPanel.style.display = 'none';
+        hideBtn.style.display = 'none';
+        showBtn.style.display = 'inline-block';
+      });
+
+      showBtn.addEventListener('click', () => {
+        usersPanel.style.display = 'block'; // أو '' أو 'flex' حسب الـ css الأصلي
+        showBtn.style.display = 'none';
+        hideBtn.style.display = 'inline-block';
+      });
+    });
+  </script>
 </body>
 </html>
