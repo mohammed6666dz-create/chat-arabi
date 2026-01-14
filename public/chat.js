@@ -19,8 +19,8 @@ socket.emit('join', room, token);
 socket.on('previous messages', (messages) => {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.innerHTML = '';
-    messages.forEach(({ username, msg, avatar }) => {
-        appendMessage(username, msg, avatar, username === myUsername);
+    messages.forEach(({ username, msg, avatar, role }) => {
+        appendMessage(username, msg, avatar, username === myUsername, role || 'guest');
     });
     scrollToBottom();
 });
@@ -39,12 +39,10 @@ socket.on('update users', (users) => {
             <span>${user.username}</span>
         `;
        
-        // الوظيفة الأصلية
-        div.onclick = () => openUserActions(user.username);
+        div.onclick = () => openUserActions(user.username, user.role);
        
-        // إضافة ميزة المنشن عند النقر المزدوج (Double Click)
         div.addEventListener('dblclick', (e) => {
-            e.preventDefault(); // منع أي سلوك افتراضي محتمل
+            e.preventDefault();
             mentionUser(user.username);
         });
        
@@ -53,8 +51,8 @@ socket.on('update users', (users) => {
 });
 
 // رسالة عامة
-socket.on('message', ({ username, msg, avatar }) => {
-    appendMessage(username, msg, avatar, username === myUsername);
+socket.on('message', ({ username, msg, avatar, role }) => {
+    appendMessage(username, msg, avatar, username === myUsername, role || 'guest');
 });
 
 // رسائل النظام
@@ -77,22 +75,32 @@ document.getElementById('messageForm').addEventListener('submit', (e) => {
     }
 });
 
-// ─────────────── إضافة الرتب ───────────────
-function getUserBadge(username) {
+// ─────────────── نظام الرتب ───────────────
+function getUserBadge(username, role = 'guest') {
     if (username === 'mohamed-dz') {
         return '<span class="badge owner">مالك 👑</span>';
     }
-    // كل الباقين حالياً ضيوف (يمكنك تطويره لاحقاً)
-    return '<span class="badge guest">ضيف</span>';
-}
-// ────────────────────────────────────────────────
 
-function appendMessage(username, msg, avatar, isMe = false) {
+    switch (role.toLowerCase()) {
+        case 'superadmin':
+            return '<span class="badge superadmin">سوبر أدمن ⚙️</span>';
+        case 'admin':
+            return '<span class="badge admin">أدمن 🔰</span>';
+        case 'premium':
+            return '<span class="badge premium">بريميوم 💎</span>';
+        case 'vip':
+            return '<span class="badge vip">VIP ★</span>';
+        default:
+            return '<span class="badge guest">ضيف</span>';
+    }
+}
+
+function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
 
-    const badge = getUserBadge(username);
+    const badge = getUserBadge(username, role);
 
     messageDiv.innerHTML = `
         <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}">
@@ -172,13 +180,54 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
     }
 });
 
-// فتح لوحة أفعال المستخدم
-function openUserActions(username) {
+// فتح لوحة أفعال المستخدم + أزرار تغيير الرتبة (للمالك فقط)
+function openUserActions(username, currentRole = 'guest') {
     document.getElementById('userUsername').textContent = username;
     document.getElementById('userAvatar').src = 'https://via.placeholder.com/90';
     document.getElementById('userProfilePanel').style.display = 'block';
     currentPrivateChat = username;
+
+    // إزالة أي أزرار رتب سابقة
+    const existing = document.getElementById('rankActions');
+    if (existing) existing.remove();
+
+    // عرض أزرار تغيير الرتبة فقط للمالك (وليس لنفسه)
+    if (myUsername === 'mohamed-dz' && username !== 'mohamed-dz') {
+        const panel = document.getElementById('userProfilePanel');
+        const rankDiv = document.createElement('div');
+        rankDiv.id = 'rankActions';
+        rankDiv.style.margin = '20px 0';
+        rankDiv.style.padding = '15px';
+        rankDiv.style.background = 'rgba(0,0,0,0.25)';
+        rankDiv.style.borderRadius = '12px';
+        rankDiv.innerHTML = `
+            <h4 style="text-align:center; color:#fbbf24; margin:0 0 12px 0;">
+                تغيير رتبة ${username}
+            </h4>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
+                <button onclick="setUserRole('${username}', 'superadmin')" style="background:#6d28d9;color:white;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;">سوبر أدمن</button>
+                <button onclick="setUserRole('${username}', 'admin')" style="background:#3b82f6;color:white;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;">أدمن</button>
+                <button onclick="setUserRole('${username}', 'premium')" style="background:#10b981;color:white;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;">بريميوم</button>
+                <button onclick="setUserRole('${username}', 'vip')" style="background:#f59e0b;color:black;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;">VIP</button>
+                <button onclick="setUserRole('${username}', 'guest')" style="background:#4b5563;color:white;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;">ضيف</button>
+            </div>
+        `;
+        panel.appendChild(rankDiv);
+    }
 }
+
+// تغيير رتبة مستخدم
+function setUserRole(targetUsername, newRole) {
+    socket.emit('set role', { target: targetUsername, role: newRole });
+    alert(`تم تعيين رتبة ${newRole} لـ ${targetUsername}`);
+    document.getElementById('userProfilePanel').style.display = 'none';
+}
+
+// استقبال تحديث الرتبة (اختياري)
+socket.on('role updated', ({ username, role }) => {
+    console.log(`تم تحديث رتبة ${username} إلى ${role}`);
+    // يمكنك هنا إعادة تحميل قائمة المستخدمين أو الرسائل إذا أردت تحديث فوري أكثر
+});
 
 // فتح الشات الخاص
 document.getElementById('startPrivateChatBtn').onclick = () => {
@@ -297,9 +346,7 @@ function mentionUser(username) {
     if (input.value.trim() === '') {
         input.value = mention;
     } else {
-        // تجنب التكرار في النهاية
         if (!input.value.endsWith(mention)) {
-            // إضافة مسافة إذا لزم الأمر
             if (input.value[input.value.length - 1] !== ' ') {
                 input.value += ' ';
             }
