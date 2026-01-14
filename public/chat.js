@@ -2,15 +2,12 @@ const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 if (!token) {
     window.location.href = 'index.html';
 }
-
 const socket = io();
-
 const params = new URLSearchParams(window.location.search);
 const room = params.get('room');
 if (!room) {
     window.location.href = 'rooms.html';
 }
-
 let myUsername = '';
 let myAvatar = 'https://via.placeholder.com/40';
 let currentPrivateChat = null;
@@ -33,7 +30,7 @@ socket.on('update users', (users) => {
     document.getElementById('userCount').innerText = users.length;
     const list = document.getElementById('usersList');
     list.innerHTML = '';
-    
+   
     users.forEach(user => {
         const div = document.createElement('div');
         div.className = 'user-item';
@@ -41,16 +38,16 @@ socket.on('update users', (users) => {
             <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
             <span>${user.username}</span>
         `;
-        
+       
         // الوظيفة الأصلية
         div.onclick = () => openUserActions(user.username);
-        
+       
         // إضافة ميزة المنشن عند النقر المزدوج (Double Click)
         div.addEventListener('dblclick', (e) => {
             e.preventDefault(); // منع أي سلوك افتراضي محتمل
             mentionUser(user.username);
         });
-        
+       
         list.appendChild(div);
     });
 });
@@ -80,14 +77,30 @@ document.getElementById('messageForm').addEventListener('submit', (e) => {
     }
 });
 
+// ─────────────── إضافة الرتب ───────────────
+function getUserBadge(username) {
+    if (username === 'mohamed-dz') {
+        return '<span class="badge owner">مالك 👑</span>';
+    }
+    // كل الباقين حالياً ضيوف (يمكنك تطويره لاحقاً)
+    return '<span class="badge guest">ضيف</span>';
+}
+// ────────────────────────────────────────────────
+
 function appendMessage(username, msg, avatar, isMe = false) {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
+
+    const badge = getUserBadge(username);
+
     messageDiv.innerHTML = `
         <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}">
         <div class="message-content">
-            <strong>${username}</strong>
+            <div class="username-line">
+                ${badge}
+                <strong>${username}</strong>
+            </div>
             <p>${msg}</p>
         </div>
     `;
@@ -118,7 +131,6 @@ async function loadMyProfile() {
         console.error('خطأ في تحميل البروفايل:', err);
     }
 }
-
 loadMyProfile();
 
 // فتح لوحة البروفايل
@@ -253,7 +265,6 @@ document.getElementById('showMyFriendsBtn')?.addEventListener('click', () => {
         </div>
     `;
 });
-
 document.getElementById('privacySettingsBtn')?.addEventListener('click', () => {
     document.getElementById('profileDynamicContent').innerHTML = `
         <div style="padding: 20px 0;">
@@ -266,7 +277,6 @@ document.getElementById('privacySettingsBtn')?.addEventListener('click', () => {
         </div>
     `;
 });
-
 document.getElementById('showFeaturesBtn')?.addEventListener('click', () => {
     document.getElementById('profileDynamicContent').innerHTML = `
         <div style="padding: 35px 15px; color: #94a3b8; line-height: 1.6;">
@@ -279,13 +289,11 @@ document.getElementById('showFeaturesBtn')?.addEventListener('click', () => {
 // ────────────────────────────────────────────────
 // إضافة ميزة المنشن @username
 // ────────────────────────────────────────────────
-
 function mentionUser(username) {
     const input = document.getElementById('messageInput');
     if (!input) return;
-
     const mention = `@${username} `;
-    
+   
     if (input.value.trim() === '') {
         input.value = mention;
     } else {
@@ -298,7 +306,6 @@ function mentionUser(username) {
             input.value += mention;
         }
     }
-
     input.focus();
     input.setSelectionRange(input.value.length, input.value.length);
 }
