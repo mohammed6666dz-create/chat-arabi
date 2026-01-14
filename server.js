@@ -45,8 +45,25 @@ function loadUsers() {
         saveUsers();
         console.log('تم إنشاء حساب صاحب الموقع تلقائيًا: username: mohamed-dz | password: mohokok12');
         console.log('غير كلمة السر فورًا من users.json لو هتستخدم الموقع على الإنترنت!');
-        
-    }  
+    }
+
+    // إنشاء حساب nour تلقائيًا إذا لم يكن موجوداً
+    if (!users.find(u => u.username === 'nour')) {
+        const nourPassword = bcrypt.hashSync('44042011', 10);
+        users.push({
+            username: 'nour',
+            passwordHash: nourPassword,
+            avatar: '',
+            background: '',
+            friends: [],
+            rank: 'ضيف',
+            friendRequests: [],
+            sentRequests: [],
+            notifications: []
+        });
+        saveUsers();
+        console.log('تم إنشاء حساب nour تلقائيًا → username: nour | password: 44042011');
+    }
 }
 
 loadUsers();
@@ -59,7 +76,6 @@ function saveUsers() {
 app.post('/register', (req, res) => {
     const { username, password } = req.body;
     if (users.find(u => u.username === username)) return res.status(400).json({ msg: 'المستخدم موجود' });
-
     const passwordHash = bcrypt.hashSync(password, 10);
     users.push({
         username,
@@ -83,7 +99,6 @@ app.post('/login', (req, res) => {
     if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
         return res.status(400).json({ msg: 'بيانات خاطئة' });
     }
-
     const token = jwt.sign({ username }, secret, { expiresIn: '7d' });
     res.json({ token });
 });
@@ -91,7 +106,6 @@ app.post('/login', (req, res) => {
 const verifyToken = (req, res, next) => {
     const token = req.headers.authorization;
     if (!token) return res.status(401).json({ msg: 'لا توكن' });
-
     try {
         req.user = jwt.verify(token, secret);
         next();
@@ -139,26 +153,21 @@ app.post('/change-rank', verifyToken, (req, res) => {
     if (!changer || changer.rank !== 'صاحب الموقع') {
         return res.status(403).json({ msg: 'غير مصرح لك' });
     }
-
     const { targetUsername, newRank } = req.body;
     if (!RANKS.includes(newRank)) {
         return res.status(400).json({ msg: 'رتبه غير صالحة' });
     }
-
     const target = users.find(u => u.username === targetUsername);
     if (!target) return res.status(404).json({ msg: 'المستخدم غير موجود' });
-
     target.rank = newRank;
     saveUsers();
-
     io.emit('rank update', { username: targetUsername, rank: newRank });
     res.json({ msg: 'تم تغيير الرتبه بنجاح' });
 });
 
 // ────────────────────────────────────────────────
-//        الـ Socket.IO + الصداقات + الرسائل الخاصة
+// الـ Socket.IO + الصداقات + الرسائل الخاصة
 // ────────────────────────────────────────────────
-
 io.on('connection', socket => {
     let currentRoom = null;
     let username = null;
@@ -187,7 +196,6 @@ io.on('connection', socket => {
             roomUsers[room].push({ username, avatar });
             io.to(room).emit('update users', roomUsers[room]);
             io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
-
         } catch (e) {
             console.log('توكن غير صالح');
         }
@@ -213,8 +221,8 @@ io.on('connection', socket => {
 
         const sender = users.find(u => u.username === socket.username);
         const target = users.find(u => u.username === targetUsername);
-        if (!sender || !target) return;
 
+        if (!sender || !target) return;
         if (sender.sentRequests.includes(targetUsername) ||
             target.friendRequests.includes(socket.username) ||
             sender.friends.includes(targetUsername)) return;
