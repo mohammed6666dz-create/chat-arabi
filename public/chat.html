@@ -31,6 +31,11 @@
         <button class="icon-btn" id="shopBtn" title="المتجر">
           <i class="fas fa-shopping-cart"></i>
         </button>
+        <!-- زر نقاطي ومستواي (الإضافة الجديدة) -->
+        <button class="icon-btn" id="myLevelBtn" title="نقاطي ومستواي">
+          <i class="fas fa-star"></i>
+          <span class="level-text">مستواي</span>
+        </button>
       </div>
     </div>
     <div style="display: flex; align-items: center; gap: 15px;">
@@ -110,7 +115,7 @@
     </div>
     <div class="shop-body">
       <h4>رصيد نقاطك: <span id="myPoints">0</span></h4>
-      
+     
       <div class="shop-items">
         <!-- سوبر أدمن -->
         <div class="shop-item">
@@ -120,7 +125,6 @@
           </div>
           <button class="buy-btn" data-role="superadmin" data-price="5000">شراء</button>
         </div>
-
         <!-- أدمن -->
         <div class="shop-item">
           <div class="item-info">
@@ -129,7 +133,6 @@
           </div>
           <button class="buy-btn" data-role="admin" data-price="3000">شراء</button>
         </div>
-
         <!-- بريميوم -->
         <div class="shop-item">
           <div class="item-info">
@@ -138,7 +141,6 @@
           </div>
           <button class="buy-btn" data-role="premium" data-price="1500">شراء</button>
         </div>
-
         <!-- VIP -->
         <div class="shop-item">
           <div class="item-info">
@@ -146,6 +148,39 @@
             <span class="price">800 نقطة</span>
           </div>
           <button class="buy-btn" data-role="vip" data-price="800">شراء</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة نقاطي ومستواي (الإضافة الجديدة) -->
+  <div id="levelPointsPanel" class="level-panel hidden">
+    <div class="level-panel-content">
+      <div class="level-header">
+        <h3>نقاطي ومستواي</h3>
+        <span class="close-level-panel">×</span>
+      </div>
+      
+      <div class="level-main-info">
+        <div class="level-circle">
+          <span class="current-level">1</span>
+          <span class="level-label">المستوى</span>
+        </div>
+        
+        <div class="points-info">
+          <div class="points-number">
+            <span id="myRealPoints">1</span>
+          </div>
+          <div class="points-label">نقطة</div>
+        </div>
+      </div>
+
+      <div class="level-progress">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="progress-text">
+          <span>0</span> / <span id="nextLevelPoints">100</span> للمستوى التالي
         </div>
       </div>
     </div>
@@ -217,13 +252,11 @@
       const usersPanel = document.getElementById('usersPanel');
       const hideBtn = document.getElementById('hideUsersPanelBtn');
       const showBtn = document.getElementById('showUsersPanelBtn');
-
       hideBtn.addEventListener('click', () => {
         usersPanel.style.display = 'none';
         hideBtn.style.display = 'none';
         showBtn.style.display = 'inline-block';
       });
-
       showBtn.addEventListener('click', () => {
         usersPanel.style.display = 'block';
         showBtn.style.display = 'none';
@@ -250,10 +283,31 @@
       document.getElementById('shopBtn')?.addEventListener('click', () => {
         document.getElementById('shopPanel').style.display = 'block';
       });
-
       document.getElementById('closeShop')?.addEventListener('click', () => {
         document.getElementById('shopPanel').style.display = 'none';
       });
+
+      // فتح وإغلاق نافذة نقاطي ومستواي
+      const levelBtn = document.getElementById('myLevelBtn');
+      const levelPanel = document.getElementById('levelPointsPanel');
+      const closeLevel = document.querySelector('.close-level-panel');
+
+      if (levelBtn && levelPanel) {
+        levelBtn.addEventListener('click', () => {
+          levelPanel.classList.remove('hidden');
+          // هنا تضع الكود اللي يجيب النقاط والمستوى الحقيقي من السيرفر
+          // حالياً قيم افتراضية
+          document.getElementById('myRealPoints').textContent = '1';
+          document.querySelector('.current-level').textContent = '1';
+          document.getElementById('nextLevelPoints').textContent = '100';
+        });
+      }
+
+      if (closeLevel) {
+        closeLevel.addEventListener('click', () => {
+          levelPanel.classList.add('hidden');
+        });
+      }
     });
   </script>
 </body>
