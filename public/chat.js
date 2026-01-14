@@ -11,10 +11,8 @@ if (!room) {
 let myUsername = '';
 let myAvatar = 'https://via.placeholder.com/40';
 let currentPrivateChat = null;
-
 // الانضمام للغرفة
 socket.emit('join', room, token);
-
 // استقبال آخر 100 رسالة
 socket.on('previous messages', (messages) => {
     const chatWindow = document.getElementById('chatWindow');
@@ -24,7 +22,6 @@ socket.on('previous messages', (messages) => {
     });
     scrollToBottom();
 });
-
 // تحديث قائمة المتصلين
 socket.on('update users', (users) => {
     document.getElementById('userCount').innerText = users.length;
@@ -37,24 +34,22 @@ socket.on('update users', (users) => {
             <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
             <span>${user.username}</span>
         `;
-       
+      
         // تصحيح الربط هنا لفتح اللوحة الجديدة عند الضغط على قائمة المستخدمين
         div.onclick = () => openUserActions(user.username, user.role || 'guest', user.avatar);
-       
+      
         div.addEventListener('dblclick', (e) => {
             e.preventDefault();
             mentionUser(user.username);
         });
-       
+      
         list.appendChild(div);
     });
 });
-
 // رسالة عامة
 socket.on('message', ({ username, msg, avatar, role }) => {
     appendMessage(username, msg, avatar, username === myUsername, role || 'guest');
 });
-
 // رسائل النظام
 socket.on('system message', (msg) => {
     const div = document.createElement('div');
@@ -63,7 +58,6 @@ socket.on('system message', (msg) => {
     document.getElementById('chatWindow').appendChild(div);
     scrollToBottom();
 });
-
 // إرسال رسالة عامة
 document.getElementById('messageForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -74,7 +68,6 @@ document.getElementById('messageForm').addEventListener('submit', (e) => {
         input.value = '';
     }
 });
-
 // ─────────────── نظام الرتب ───────────────
 function getUserBadge(username, role = 'guest') {
     if (username.toLowerCase() === 'mohamed-dz') {
@@ -88,7 +81,6 @@ function getUserBadge(username, role = 'guest') {
         default: return '<span class="badge guest">ضيف</span>';
     }
 }
-
 function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
@@ -109,12 +101,10 @@ function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     chatWindow.appendChild(messageDiv);
     scrollToBottom();
 }
-
 function scrollToBottom() {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.scrollTop = chatWindow.scrollHeight;
 }
-
 // تحميل بيانات المستخدم + الصورة
 async function loadMyProfile() {
     try {
@@ -125,30 +115,27 @@ async function loadMyProfile() {
         const user = await res.json();
         myUsername = user.username;
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
-       
+      
         const timestamp = new Date().getTime();
         document.getElementById('avatar').src = myAvatar + '?t=' + timestamp;
         document.getElementById('myProfileAvatar').src = myAvatar + '?t=' + timestamp;
         document.getElementById('myProfileUsername').textContent = myUsername;
-       
+      
         console.log("تم تحميل اسم المستخدم:", myUsername);
     } catch (err) {
         console.error('خطأ في تحميل البروفايل:', err);
     }
 }
 loadMyProfile();
-
 // فتح لوحة البروفايل
 document.getElementById('profileBtn').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'block';
     loadMyProfile();
 });
-
 // إغلاق لوحة البروفايل
 document.getElementById('closeMyProfile').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'none';
 });
-
 // رفع الصورة الشخصية
 document.getElementById('avatarUpload').addEventListener('change', async (e) => {
     const file = e.target.files[0];
@@ -176,7 +163,6 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
         alert('حصل خطأ أثناء رفع الصورة، يرجى المحاولة مرة أخرى');
     }
 });
-
 // ─────────────── وظائف الرتب الجديدة ───────────────
 // وظيفة إظهار/إخفاء قائمة الرتب (التي تظهر عند الضغط على "إهداء رتبة")
 function toggleRankList() {
@@ -187,18 +173,17 @@ function toggleRankList() {
         list.style.display = 'none';
     }
 }
-
 // فتح لوحة أفعال المستخدم + أزرار الرتب
 function openUserActions(username, currentRole = 'guest', avatar = '') {
     // 1. تعبئة البيانات في اللوحة الكبيرة الجديدة
     document.getElementById('otherUserDisplayName').textContent = username;
     document.getElementById('otherUserAvatarLarge').src = avatar || 'https://via.placeholder.com/140';
-   
+  
     // 2. إظهار اللوحة الجديدة
     const modal = document.getElementById('otherUserProfileModal');
     modal.classList.remove('hidden');
     modal.style.display = 'block';
-   
+  
     currentPrivateChat = username;
     // 3. تصفير حالة قائمة الرتب (إخفاؤها في كل مرة نفتح بروفايل جديد)
     const listMenu = document.getElementById('ranksListMenu');
@@ -213,59 +198,49 @@ function openUserActions(username, currentRole = 'guest', avatar = '') {
         }
     }
 }
-
 // وظيفة لإغلاق اللوحة الجديدة
 function closeOtherUserProfile() {
     const modal = document.getElementById('otherUserProfileModal');
     modal.classList.add('hidden');
     modal.style.display = 'none';
 }
-
 // تغيير رتبة مستخدم
 function setUserRole(targetUsername, newRole) {
     socket.emit('set role', { target: targetUsername, role: newRole });
     alert(`تم تعيين رتبة ${newRole} لـ ${targetUsername}`);
     closeOtherUserProfile(); // إغلاق اللوحة بعد التعديل
 }
-
 // استقبال تحديث الرتبة
 socket.on('role updated', ({ username, role }) => {
     console.log(`تم تحديث رتبة ${username} إلى ${role}`);
 });
-
 // ─────────────── التحكم بإظهار / إخفاء لوحة المتصلين ───────────────
 document.addEventListener('DOMContentLoaded', () => {
     const usersPanel = document.getElementById('usersPanel');
-    const hideBtn   = document.getElementById('hideUsersPanelBtn');
-    const showBtn   = document.getElementById('showUsersPanelBtn');
-
+    const hideBtn = document.getElementById('hideUsersPanelBtn');
+    const showBtn = document.getElementById('showUsersPanelBtn');
     if (!usersPanel || !hideBtn || !showBtn) return;
-
     // الحالة الافتراضية
     usersPanel.style.display = 'block';
     hideBtn.style.display = 'inline-block';
     showBtn.style.display = 'none';
-
     hideBtn.addEventListener('click', () => {
         usersPanel.style.display = 'none';
         hideBtn.style.display = 'none';
         showBtn.style.display = 'inline-block';
     });
-
     showBtn.addEventListener('click', () => {
-        usersPanel.style.display = 'block';  // أو '' حسب ما يناسب الـ css الخاص بك
+        usersPanel.style.display = 'block'; // أو '' حسب ما يناسب الـ css الخاص بك
         showBtn.style.display = 'none';
         hideBtn.style.display = 'inline-block';
     });
 });
-
 // باقي الكود كما هو تماماً
 document.getElementById('startPrivateChatBtn').onclick = () => {
     closeOtherUserProfile();
     document.getElementById('privateChatPanel').style.display = 'block';
     document.getElementById('privateChatWith').textContent = 'دردشة مع ' + currentPrivateChat;
 };
-
 document.getElementById('addFriendBtn').onclick = () => {
     const target = document.getElementById('otherUserDisplayName').textContent;
     if (target === myUsername) {
@@ -276,11 +251,9 @@ document.getElementById('addFriendBtn').onclick = () => {
     alert(`تم إرسال طلب صداقة إلى ${target}`);
     closeOtherUserProfile();
 };
-
 document.getElementById('closePrivateChat').addEventListener('click', () => {
     document.getElementById('privateChatPanel').style.display = 'none';
 });
-
 document.getElementById('privateChatForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = document.getElementById('privateChatInput');
@@ -291,7 +264,6 @@ document.getElementById('privateChatForm').addEventListener('submit', (e) => {
         input.value = '';
     }
 });
-
 function appendPrivateMessage(username, msg, avatar, isMe) {
     const chat = document.getElementById('privateChatMessages');
     const div = document.createElement('div');
@@ -306,7 +278,6 @@ function appendPrivateMessage(username, msg, avatar, isMe) {
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
 }
-
 socket.on('private message', ({ from, msg, avatar }) => {
     if (currentPrivateChat === from) {
         appendPrivateMessage(from, msg, avatar, false);
@@ -314,7 +285,6 @@ socket.on('private message', ({ from, msg, avatar }) => {
         alert(`رسالة خاصة جديدة من ${from}`);
     }
 });
-
 document.getElementById('logoutBtn').addEventListener('click', () => {
     if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
         localStorage.removeItem('token');
@@ -323,12 +293,11 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
         window.location.href = 'rooms.html';
     }
 });
-
 function mentionUser(username) {
     const input = document.getElementById('messageInput');
     if (!input) return;
     const mention = `@${username} `;
-   
+  
     if (input.value.trim() === '') {
         input.value = mention;
     } else {
@@ -342,7 +311,6 @@ function mentionUser(username) {
     input.focus();
     input.setSelectionRange(input.value.length, input.value.length);
 }
-
 document.getElementById('showMyFriendsBtn')?.addEventListener('click', () => {
     document.getElementById('profileDynamicContent').innerHTML = `
         <div style="padding: 30px 0; color: #94a3b8; font-style: italic;">
@@ -350,3 +318,84 @@ document.getElementById('showMyFriendsBtn')?.addEventListener('click', () => {
         </div>
     `;
 });
+
+// ─────────────── إضافة جديدة فقط: التحكم بخلفية البروفايل ───────────────
+
+let myCover = 'https://via.placeholder.com/800x200/0f172a/ffffff?text=خلفيتك+هنا';
+
+// عند فتح البروفايل الشخصي → تحديث الخلفية
+document.getElementById('profileBtn').addEventListener('click', () => {
+    document.getElementById('myProfilePanel').style.display = 'block';
+    loadMyProfile();
+    
+    const coverElement = document.getElementById('myCoverPhoto');
+    if (coverElement) {
+        coverElement.style.backgroundImage = `url(${myCover})`;
+    }
+});
+
+// رفع خلفية جديدة
+document.getElementById('coverUpload')?.addEventListener('change', async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('cover', file);
+
+    try {
+        const res = await fetch('/upload-cover', {
+            method: 'POST',
+            headers: { 'Authorization': token },
+            body: formData
+        });
+
+        const data = await res.json();
+        if (data.cover) {
+            myCover = data.cover + '?t=' + new Date().getTime();
+            document.getElementById('myCoverPhoto').style.backgroundImage = `url(${myCover})`;
+            alert('تم حفظ الخلفية بنجاح!');
+        } else {
+            alert('فشل حفظ الخلفية: ' + (data.msg || 'خطأ غير معروف'));
+        }
+    } catch (err) {
+        console.error('خطأ رفع الخلفية:', err);
+        alert('حصل خطأ أثناء رفع الخلفية');
+    }
+});
+
+// عرض خلفية المستخدم الآخر عند فتح بروفايله
+function openUserActions(username, currentRole = 'guest', avatar = '') {
+    document.getElementById('otherUserDisplayName').textContent = username;
+    document.getElementById('otherUserAvatarLarge').src = avatar || 'https://via.placeholder.com/140';
+
+    const modal = document.getElementById('otherUserProfileModal');
+    modal.classList.remove('hidden');
+    modal.style.display = 'block';
+
+    currentPrivateChat = username;
+    
+    const listMenu = document.getElementById('ranksListMenu');
+    if (listMenu) listMenu.style.display = 'none';
+
+    const rankPanel = document.getElementById('adminRankControls');
+    if (rankPanel) {
+        if (myUsername && myUsername.toLowerCase() === 'mohamed-dz' && username !== 'mohamed-dz') {
+            rankPanel.style.display = 'block';
+        } else {
+            rankPanel.style.display = 'none';
+        }
+    }
+
+    // جلب خلفية المستخدم الآخر
+    fetch(`/get-cover?username=${encodeURIComponent(username)}`, {
+        headers: { 'Authorization': token }
+    })
+    .then(res => res.json())
+    .then(data => {
+        const cover = document.getElementById('otherUserCover');
+        if (cover) {
+            cover.style.backgroundImage = `url(${data.cover || 'https://via.placeholder.com/800x200/0f172a/ffffff?text=لا+خلفية'})`;
+        }
+    })
+    .catch(err => console.error('فشل جلب الخلفية:', err));
+}
