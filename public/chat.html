@@ -56,10 +56,49 @@
     </div>
   </div>
 
+  <!-- ╔════════════════════════════════════════════════════════════╗ -->
+  <!-- ║               حقل الرسالة + زر الإيموجي                   ║ -->
+  <!-- ╚════════════════════════════════════════════════════════════╝ -->
   <form id="messageForm">
-    <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
+    <div class="input-with-emoji">
+      <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
+      <button type="button" id="emojiBtn" class="emoji-btn" title="اختر إيموجي">
+        😊
+      </button>
+    </div>
     <button type="submit">إرسال</button>
   </form>
+
+  <!-- لوحة الإيموجي -->
+  <div id="emojiPicker" class="emoji-picker hidden">
+    <div class="emoji-tabs">
+      <button class="emoji-tab active" data-tab="common">الأكثر استخداماً</button>
+      <button class="emoji-tab" data-tab="animated">متحركة</button>
+    </div>
+
+    <div class="emoji-content">
+      <!-- الإيموجي العادية (الافتراضية) -->
+      <div id="tab-common" class="emoji-grid">
+        😊 😂 😍 ❤️ 🔥 👍 👏 🙌 ✨ 🌟 😎 😭 🥺 🤩 🥳 🎉 🎂 🎁 ⚡ 💥 💯
+        ❤️‍🔥 🫶 🥰 😘 😋 🤤 😴 😷 🤢 🤮 🥵 🥶 🤯 🤔 🤫 🤭 🧐
+        👀 👄 💋 🫦 👅 🧠 🫀 🫁 🦷 🦴 👣 🖐️ ✌️ 🤟 🤘 👌 👈 👉 ☝️
+        🙏 🤲 👐 👏 🤝 💪 ✊ 👊 🤛 🤜 👋 🖖 🤙 🖕
+      </div>
+
+      <!-- الإيموجي المتحركة (gif) -->
+      <div id="tab-animated" class="emoji-grid animated-emojis hidden">
+        <img src="https://i.gifer.com/3o7W.gif" alt="نار" title="نار">
+        <img src="https://i.gifer.com/ZxY8.gif" alt="قلب" title="قلب">
+        <img src="https://i.gifer.com/3o7Y.gif" alt="ضحك" title="ضحك">
+        <img src="https://i.gifer.com/7Z5a.gif" alt="احتفال" title="احتفال">
+        <img src="https://i.gifer.com/3o70.gif" alt="رقص" title="رقص">
+        <img src="https://i.gifer.com/7Z5b.gif" alt="تصفيق" title="تصفيق">
+        <img src="https://i.gifer.com/ZxY9.gif" alt="إبهام" title="إبهام">
+        <img src="https://i.gifer.com/3o71.gif" alt="بكاء" title="بكاء">
+        <!-- أضف المزيد من الروابط إذا أردت -->
+      </div>
+    </div>
+  </div>
 
   <!-- لوحة البروفايل الشخصي (مع التحسينات الجديدة) -->
   <div id="myProfilePanel" class="profile-panel">
@@ -107,7 +146,7 @@
     </div>
   </div>
 
-  <!-- لوحة المتجر الجديدة -->
+  <!-- باقي الأقسام كما هي بدون أي تغيير -->
   <div id="shopPanel" class="shop-panel" style="display:none;">
     <div class="shop-header">
       <h3>المتجر</h3>
@@ -115,7 +154,7 @@
     </div>
     <div class="shop-body">
       <h4>رصيد نقاطك: <span id="myPoints">0</span></h4>
-     
+    
       <div class="shop-items">
         <!-- سوبر أدمن -->
         <div class="shop-item">
@@ -153,20 +192,19 @@
     </div>
   </div>
 
-  <!-- نافذة نقاطي ومستواي (الإضافة الجديدة) -->
   <div id="levelPointsPanel" class="level-panel hidden">
     <div class="level-panel-content">
       <div class="level-header">
         <h3>نقاطي ومستواي</h3>
         <span class="close-level-panel">×</span>
       </div>
-      
+     
       <div class="level-main-info">
         <div class="level-circle">
           <span class="current-level">1</span>
           <span class="level-label">المستوى</span>
         </div>
-        
+       
         <div class="points-info">
           <div class="points-number">
             <span id="myRealPoints">1</span>
@@ -174,7 +212,6 @@
           <div class="points-label">نقطة</div>
         </div>
       </div>
-
       <div class="level-progress">
         <div class="progress-bar">
           <div class="progress-fill" style="width: 0%"></div>
@@ -186,7 +223,6 @@
     </div>
   </div>
 
-  <!-- باقي الأقسام كما هي بدون تغيير -->
   <div id="otherUserProfileModal" class="other-profile-modal hidden">
     <div class="modal-content">
       <span class="close-modal" onclick="closeOtherUserProfile()">×</span>
@@ -246,7 +282,7 @@
 
   <script src="chat.js"></script>
 
-  <!-- السكريبت الإضافي للتحكم باللوحة -->
+  <!-- السكريبت الإضافي للتحكم باللوحة + الإيموجي -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const usersPanel = document.getElementById('usersPanel');
@@ -291,22 +327,71 @@
       const levelBtn = document.getElementById('myLevelBtn');
       const levelPanel = document.getElementById('levelPointsPanel');
       const closeLevel = document.querySelector('.close-level-panel');
-
       if (levelBtn && levelPanel) {
         levelBtn.addEventListener('click', () => {
           levelPanel.classList.remove('hidden');
-          // هنا تضع الكود اللي يجيب النقاط والمستوى الحقيقي من السيرفر
-          // حالياً قيم افتراضية
           document.getElementById('myRealPoints').textContent = '1';
           document.querySelector('.current-level').textContent = '1';
           document.getElementById('nextLevelPoints').textContent = '100';
         });
       }
-
       if (closeLevel) {
         closeLevel.addEventListener('click', () => {
           levelPanel.classList.add('hidden');
         });
+      }
+
+      // ╔════════════════════════════════════════════════════════════╗
+      // ║                     الإيموجي الجديدة                        ║
+      // ╚════════════════════════════════════════════════════════════╝
+      const emojiBtn = document.getElementById('emojiBtn');
+      const emojiPicker = document.getElementById('emojiPicker');
+      const messageInput = document.getElementById('messageInput');
+
+      if (emojiBtn && emojiPicker && messageInput) {
+        emojiBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          emojiPicker.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
+            emojiPicker.classList.add('hidden');
+          }
+        });
+
+        // تبديل التبويبات
+        document.querySelectorAll('.emoji-tab').forEach(tab => {
+          tab.addEventListener('click', () => {
+            document.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            document.querySelectorAll('.emoji-grid').forEach(grid => grid.classList.add('hidden'));
+            document.getElementById(`tab-${tab.dataset.tab}`).classList.remove('hidden');
+          });
+        });
+
+        // إضافة إيموجي عادية
+        document.getElementById('tab-common')?.addEventListener('click', e => {
+          if (e.target.tagName === 'SPAN') {
+            insertAtCursor(messageInput, e.target.textContent.trim());
+          }
+        });
+
+        // إضافة إيموجي متحركة (حالياً نضيف النص الموجود في alt)
+        document.getElementById('tab-animated')?.addEventListener('click', e => {
+          if (e.target.tagName === 'IMG') {
+            insertAtCursor(messageInput, e.target.alt);
+          }
+        });
+
+        function insertAtCursor(input, text) {
+          const start = input.selectionStart;
+          const end = input.selectionEnd;
+          input.value = input.value.substring(0, start) + text + input.value.substring(end);
+          input.selectionStart = input.selectionEnd = start + text.length;
+          input.focus();
+        }
       }
     });
   </script>
