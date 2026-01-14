@@ -184,8 +184,19 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
     }
 });
 
-// ─────────────── فتح لوحة أفعال المستخدم + أزرار الرتب ───────────────
-// تم تصحيح الوظيفة لترتبط بالـ HTML الجديد (otherUserProfileModal)
+// ─────────────── وظائف الرتب الجديدة ───────────────
+
+// وظيفة إظهار/إخفاء قائمة الرتب (التي تظهر عند الضغط على "إهداء رتبة")
+function toggleRankList() {
+    const list = document.getElementById('ranksListMenu');
+    if (list.style.display === 'none' || list.style.display === '') {
+        list.style.display = 'grid';
+    } else {
+        list.style.display = 'none';
+    }
+}
+
+// فتح لوحة أفعال المستخدم + أزرار الرتب
 function openUserActions(username, currentRole = 'guest', avatar = '') {
     // 1. تعبئة البيانات في اللوحة الكبيرة الجديدة
     document.getElementById('otherUserDisplayName').textContent = username;
@@ -198,7 +209,11 @@ function openUserActions(username, currentRole = 'guest', avatar = '') {
     
     currentPrivateChat = username;
 
-    // 3. التحكم في ظهور أزرار الرتب (adminRankControls) الموجودة داخل الـ HTML الجديد
+    // 3. تصفير حالة قائمة الرتب (إخفاؤها في كل مرة نفتح بروفايل جديد)
+    const listMenu = document.getElementById('ranksListMenu');
+    if (listMenu) listMenu.style.display = 'none';
+
+    // 4. التحكم في ظهور زر "إهداء رتبة" للمالك فقط
     const rankPanel = document.getElementById('adminRankControls');
     if (rankPanel) {
         if (myUsername && myUsername.toLowerCase() === 'mohamed-dz' && username !== 'mohamed-dz') {
