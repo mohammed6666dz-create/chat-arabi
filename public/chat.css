@@ -811,11 +811,9 @@ header h1 {
   opacity: 0.94;
   filter: brightness(1.08);
 }
-
 /* ────────────────────────────────────────────────
    ستايل لوحة المتجر + نقاطي ومستواي (الإضافة الجديدة فقط)
 ───────────────────────────────────────────────── */
-
 /* لوحة المتجر */
 .shop-panel {
   position: fixed;
@@ -827,23 +825,19 @@ header h1 {
   justify-content: center;
   z-index: 2000;
 }
-
 .shop-panel.show {
   display: flex;
 }
-
 .shop-panel .shop-body {
   padding: 2rem;
   max-height: 85vh;
   overflow-y: auto;
 }
-
 .shop-items {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.2rem;
 }
-
 .shop-item {
   background: rgba(30, 41, 59, 0.6);
   border-radius: 16px;
@@ -852,20 +846,17 @@ header h1 {
   transition: all 0.35s ease;
   backdrop-filter: blur(6px);
 }
-
 .shop-item:hover {
   transform: translateY(-6px);
   box-shadow: 0 20px 45px rgba(0,0,0,0.45),
               inset 0 0 0 1px rgba(99, 102, 241, 0.4);
 }
-
 .item-info {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
   margin-bottom: 1rem;
 }
-
 .price {
   align-self: flex-start;
   background: rgba(251, 191, 36, 0.2);
@@ -874,7 +865,6 @@ header h1 {
   border-radius: 999px;
   font-weight: 600;
 }
-
 .buy-btn {
   background: linear-gradient(90deg, #6366f1, #8b5cf6);
   color: white;
@@ -885,12 +875,10 @@ header h1 {
   cursor: pointer;
   transition: all 0.3s;
 }
-
 .buy-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 30px rgba(99, 102, 241, 0.5);
 }
-
 /* نافذة نقاطي ومستواي */
 .level-panel {
   position: fixed;
@@ -902,11 +890,9 @@ header h1 {
   justify-content: center;
   z-index: 2000;
 }
-
 .level-panel.show {
   display: flex;
 }
-
 .level-panel-content {
   width: 90%;
   max-width: 420px;
@@ -916,7 +902,6 @@ header h1 {
   border: 1px solid rgba(251, 191, 36, 0.25);
   box-shadow: 0 25px 70px rgba(0,0,0,0.7);
 }
-
 .level-header h3 {
   background: linear-gradient(90deg, #fbbf24, #f59e0b);
   -webkit-background-clip: text;
@@ -924,7 +909,6 @@ header h1 {
   font-size: 1.6rem;
   margin: 0;
 }
-
 .level-circle {
   width: 160px;
   height: 160px;
@@ -937,30 +921,37 @@ header h1 {
   justify-content: center;
   box-shadow: 0 0 50px rgba(251, 191, 36, 0.4);
 }
-
 .current-level {
   font-size: 4.2rem;
   font-weight: 900;
   color: #fbbf24;
   line-height: 0.9;
 }
-
 .points-number {
   font-size: 3.8rem;
   font-weight: 900;
   color: white;
   margin: 1.5rem 0;
 }
-
 .progress-bar {
   height: 16px;
   background: rgba(30, 41, 59, 0.7);
   border-radius: 10px;
   overflow: hidden;
 }
-
 .progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #fbbf24, #f59e0b);
   transition: width 0.8s ease;
+}
+
+/* ────────────────────────────────────────────────
+   إضافة جديدة فقط: رتبة "مديرة الموقع" وردي بدل الذهبي
+───────────────────────────────────────────────── */
+.badge.owner {
+    background: linear-gradient(135deg, #ff69b4 0%, #ec4899 100%) !important;
+    color: white !important;
+    border: 1px solid #db2777 !important;
+    box-shadow: 0 0 12px rgba(236, 72, 153, 0.6) !important;
+    font-weight: 800 !important;
 }
