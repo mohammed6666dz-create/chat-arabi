@@ -763,7 +763,7 @@ header h1 {
 .badge:hover::after {
   opacity: 0.7;
 }
-/* المالك - ذهبي فاخر */
+/* المالك - أحمر قوي */
 .badge.owner {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
     color: white !important;
@@ -946,12 +946,125 @@ header h1 {
 }
 
 /* ────────────────────────────────────────────────
-   إضافة جديدة فقط: رتبة "مديرة الموقع" وردي بدل الذهبي
+   إضافة جديدة فقط: شكل عصري وأنيق للوحة الإيموجي
 ───────────────────────────────────────────────── */
-.badge.owner {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-    color: white !important;
-    border: 1px solid #b91c1c !important;
-    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
-    font-weight: 800 !important;
+.emoji-picker {
+  position: absolute;
+  bottom: 90px;
+  right: 20px;
+  width: 360px;
+  max-height: 340px;
+  background: rgba(30, 41, 59, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px;
+  border: 1px solid rgba(7, 94, 84, 0.5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65),
+              inset 0 0 20px rgba(7, 94, 84, 0.12);
+  overflow: hidden;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.emoji-picker.hidden {
+  display: none;
+}
+
+/* التبويبات العلوية */
+.emoji-tabs {
+  display: flex;
+  background: rgba(7, 94, 84, 0.3);
+  border-bottom: 1px solid rgba(7, 94, 84, 0.4);
+}
+
+.emoji-tab {
+  flex: 1;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.emoji-tab.active {
+  color: white;
+  background: rgba(7, 94, 84, 0.45);
+  border-bottom: 3px solid #128c7e;
+  font-weight: 600;
+}
+
+.emoji-tab:hover:not(.active) {
+  background: rgba(255,255,255,0.08);
+}
+
+/* محتوى الإيموجي */
+.emoji-content {
+  padding: 12px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 14px;
+  font-size: 2rem;
+  padding: 6px;
+}
+
+.animated-emojis {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.animated-emojis img {
+  width: 100%;
+  height: 50px;
+  object-fit: contain;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(255,255,255,0.05);
+  padding: 4px;
+}
+
+.animated-emojis img:hover {
+  transform: scale(1.35) translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+  background: rgba(18, 140, 126, 0.3);
+}
+
+/* تأثير hover للإيموجي العادية */
+.emoji-grid span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border-radius: 12px;
+  padding: 6px;
+}
+
+.emoji-grid span:hover {
+  transform: scale(1.45);
+  background: rgba(18, 140, 126, 0.35);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+/* شريط التمرير عصري */
+.emoji-content::-webkit-scrollbar {
+  width: 6px;
+}
+.emoji-content::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.2);
+  border-radius: 10px;
+}
+.emoji-content::-webkit-scrollbar-thumb {
+  background: #128c7e;
+  border-radius: 10px;
+}
+.emoji-content::-webkit-scrollbar-thumb:hover {
+  background: #075e54;
 }
