@@ -1,5 +1,5 @@
 const express = require('express');
-const app = express(); // يجب إنشاء app أولاً
+const app = express(); 
 
 const { Pool } = require('pg');
 const http = require('http').createServer(app); // الآن يمكنك استخدامه هنا
@@ -12,7 +12,7 @@ const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
 
-const app = express();
+
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
