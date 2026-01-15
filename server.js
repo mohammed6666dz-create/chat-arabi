@@ -1,6 +1,8 @@
-const express = require('express');
+onst express = require('express');
+const app = express(); // يجب إنشاء app أولاً
+
 const { Pool } = require('pg');
-const http = require('http').createServer(app);
+const http = require('http').createServer(app); // الآن يمكنك استخدامه هنا
 const io = require('socket.io')(http);
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
