@@ -233,75 +233,41 @@ app.post('/change-rank', verifyToken, async (req, res) => {
 // Socket.IO
 // ────────────────────────────────────────────────
 
-io.on('connection', socket => {
-  let currentRoom = null;
-  let username = null;
+io.on('connection', socket => { // <--- هذا السطر كان مفقوداً عندك
+  let currentRoom = null;
+  let username = null;
 
-  socket.on('join', async (room, token) => {
-    try {
-      const decoded = jwt.verify(token, secret);
-      username = decoded.username;
-      socket.username = username;
+  socket.on('join', async (room, token) => {
+    try {
+      const decoded = jwt.verify(token, secret);
+      username = decoded.username;
+      socket.username = username;
 
-      if (currentRoom) {
-        socket.leave(currentRoom);
-        roomCounts[currentRoom]--;
-        roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
-        io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
-        io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
-      }
+      if (currentRoom) {
+        socket.leave(currentRoom);
+        roomCounts[currentRoom] = Math.max(0, roomCounts[currentRoom] - 1);
+        roomUsers[currentRoom] = (roomUsers[currentRoom] || []).filter(u => u.username !== username);
+        io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
+      }
 
-      currentRoom = room;
-      socket.join(room);
-      roomCounts[room]++;
+      currentRoom = room;
+      socket.join(room);
+      roomCounts[room]++;
 
-      const user = await getUser(username);
-      const avatar = user?.avatar || 'https://via.placeholder.com/40';
+      const user = await getUser(username);
+      const avatar = user?.avatar || 'https://via.placeholder.com/40';
 
-      roomUsers[room].push({ username, avatar });
-      io.to(room).emit('update users', roomUsers[room]);
-      io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
-    } catch (e) {
-      console.log('توكن غير صالح في join');
-    }
-  });// ────────────────────────────────────────────────
-// Socket.IO
-// ────────────────────────────────────────────────
+      if (!roomUsers[room]) roomUsers[room] = [];
+      roomUsers[room].push({ username, avatar, rank: user?.rank || 'ضيف' });
+      
+      io.to(room).emit('update users', roomUsers[room]);
+      io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
+    } catch (e) {
+      console.log('Error in join');
+    }
+  });
 
-io.on('connection', socket => {
-  let currentRoom = null;
-  let username = null;
-
-  socket.on('join', async (room, token) => {
-    try {
-      const decoded = jwt.verify(token, secret);
-      username = decoded.username;
-      socket.username = username;
-
-      if (currentRoom) {
-        socket.leave(currentRoom);
-        roomCounts[currentRoom]--;
-        roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
-        io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
-        io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
-      }
-
-      currentRoom = room;
-      socket.join(room);
-      roomCounts[room]++;
-
-      const user = await getUser(username);
-      const avatar = user?.avatar || 'https://via.placeholder.com/40';
-
-      // أضفنا الرتبة هنا ليراها الناس عند الدخول
-      roomUsers[room].push({ username, avatar, rank: user?.rank || 'ضيف' });
-      io.to(room).emit('update users', roomUsers[room]);
-      io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
-    } catch (e) {
-      console.log('توكن غير صالح في join');
-    }
-  });
-
+  // الآن بقية الكود (buy role, message, إلخ) ستعمل لأنها داخل القوس
   // كود شراء رتبة بريميوم (الذي وضعته أنت - ممتاز)
   socket.on('buy role', async ({ role }) => {
     if (socket.username && role === 'premium') {
@@ -342,22 +308,6 @@ io.on('connection', socket => {
 
   // ... (بقية كود طلبات الصداقة والرسائل الخاصة كما هي)
   
-
-  socket.on('message', async (msg, token) => {
-    try {
-      const decoded = jwt.verify(token, secret);
-      const user = await getUser(decoded.username);
-      if (!user) return;
-
-      const avatar = user.avatar || 'https://via.placeholder.com/40';
-
-      io.to(currentRoom).emit('message', {
-        username: decoded.username,
-        msg,
-        avatar
-      });
-    } catch (e) {}
-  });
 
   // طلب صداقة
   socket.on('send friend request', async (targetUsername) => {
