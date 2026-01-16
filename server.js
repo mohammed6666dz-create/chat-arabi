@@ -1,4 +1,4 @@
-يعني يصير هيك ؟const express = require('express');
+const express = require('express');
 const app = express(); 
 
 const { Pool } = require('pg');
