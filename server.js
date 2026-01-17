@@ -1,5 +1,4 @@
 const express = require('express');
-const app = express();
 const { Pool } = require('pg');
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
@@ -16,41 +15,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-
-let users = [];
-let roomUsers = { general: [], algeria: [], all_countries: [] };
-let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
-const secret = 'secretkey';
-const PORT = 3000;
-
-function loadUsers() {
-  if (fs.existsSync('users.json')) {
-    users = JSON.parse(fs.readFileSync('users.json'));
-  }
-}
-loadUsers();
-
-function saveUsers() {
-  fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
-}
-
-// Register
-app.post('/register', (req, res) => {
-  const { username, password } = req.body;
-  if (users.find(u => u.username === username)) return res.status(400).json({ msg: 'المستخدم موجود' });
-  const passwordHash = bcrypt.hashSync(password, 10);
-  users.push({ username, passwordHash, avatar: '', background: '', friends: [] });
-  saveUsers();
-  res.json({ msg: 'تم التسجيل بنجاح' });
-});
-
-// Login
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  const user = users.find(u => u.username === username);
-  if (!user || !bcrypt.compareSync(password, user.passwordHash)) return res.status(400).json({ msg: 'بيانات خاطئة' });
-
-// ───────────────────────────────────────────────
+// ────────────────────────────────────────────────
 // إعداد الاتصال بقاعدة البيانات
 // ────────────────────────────────────────────────
 const pool = new Pool({
@@ -185,9 +150,6 @@ app.post('/login', async (req, res) => {
 });
 
 const verifyToken = (req, res, next) => {
-<<<<<<< HEAD
-  const token = req.headers.authorization;
-  if (!token) return res.status(401).json({ msg: 'لا توكن' });
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ msg: 'لا يوجد توكن' });
 
@@ -200,31 +162,6 @@ const verifyToken = (req, res, next) => {
     res.status(401).json({ msg: 'توكن غير صالح' });
   }
 };
-
-
-// Profile
-app.get('/profile', verifyToken, (req, res) => {
-  const user = users.find(u => u.username === req.user.username);
-  res.json(user || {});
-});
-
-// Upload avatar
-app.post('/upload-avatar', verifyToken, upload.single('avatar'), (req, res) => {
-  const user = users.find(u => u.username === req.user.username);
-  if (req.file) user.avatar = '/uploads/' + req.file.filename;
-  saveUsers();
-  res.json({ avatar: user.avatar });
-});
-
-// Upload background
-app.post('/upload-background', verifyToken, upload.single('background'), (req, res) => {
-  const user = users.find(u => u.username === req.user.username);
-  if (req.file) user.background = '/uploads/' + req.file.filename;
-  saveUsers();
-  res.json({ background: user.background });
-});
-
-// Room counts
 
 app.get('/profile', verifyToken, async (req, res) => {
   const user = await getUser(req.user.username);
@@ -268,8 +205,7 @@ app.post('/upload-background', verifyToken, upload.single('background'), async (
 app.get('/room-counts', (req, res) => {
   res.json(roomCounts);
 });
-// Socket.io
-=======
+
 app.post('/change-rank', verifyToken, async (req, res) => {
   const changer = await getUser(req.user.username);
   if (!changer || changer.rank !== 'صاحب الموقع') {
@@ -294,21 +230,17 @@ app.post('/change-rank', verifyToken, async (req, res) => {
 // ────────────────────────────────────────────────
 // Socket.IO
 // ────────────────────────────────────────────────
+
 io.on('connection', socket => {
   let currentRoom = null;
   let username = null;
-
-
-  socket.on('join', (room, token) => {
-    try {
-      const decoded = jwt.verify(token, secret);
-      username = decoded.username;
 
   socket.on('join', async (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
       username = decoded.username;
       socket.username = username;
+
       if (currentRoom) {
         socket.leave(currentRoom);
         roomCounts[currentRoom]--;
@@ -321,30 +253,12 @@ io.on('connection', socket => {
       socket.join(room);
       roomCounts[room]++;
 
-      const user = users.find(u => u.username === username);
-
       const user = await getUser(username);
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
 
       roomUsers[room].push({ username, avatar });
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
-
-    } catch (e) {
-      console.log('توكن غير صالح');
-    }
-  });
-
-  socket.on('message', (msg, token) => {
-    try {
-      const decoded = jwt.verify(token, secret);
-      const user = users.find(u => u.username === decoded.username);
-      const avatar = user?.avatar || 'https://via.placeholder.com/40';
-      io.to(currentRoom).emit('message', { username: decoded.username, msg, avatar });
-    } catch (e) {}
-  });
-
-
     } catch (e) {
       console.log('توكن غير صالح في join');
     }
@@ -501,19 +415,39 @@ io.on('connection', socket => {
       io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
       io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
     }
+    socket.username = null;
   });
 });
 
-// تشغيل السيرفر مع عرض الرابط الجاهز
+async function sendNotification(toUsername, notification) {
+  try {
+    await pool.query(
+      'UPDATE users SET notifications = notifications || $1::jsonb WHERE username = $2',
+      [JSON.stringify(notification), toUsername]
+    );
+
+    // إرسال فوري إذا كان متصل
+    for (const socket of io.sockets.sockets.values()) {
+      if (socket.username === toUsername) {
+        socket.emit('new notification', notification);
+        break;
+      }
+    }
+  } catch (err) {
+    console.error('خطأ في إرسال الإشعار:', err);
+  }
+}
+
+// ────────────────────────────────────────────────
+// تشغيل السيرفر
+// ────────────────────────────────────────────────
+
 http.listen(PORT, '0.0.0.0', () => {
   console.log('=====================================');
   console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
+  console.log('   (مع قاعدة بيانات PostgreSQL)');
   console.log('');
-  console.log('🚀 افتح الشات من الرابط ده مباشرة:');
-  console.log(`   http://localhost:${PORT}/index.html`);
-  console.log('');
-  console.log('   أو اضغط Ctrl + Click على الرابط فوق 👆');
+  console.log('افتح الشات من:');
+  console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
 });
-
-
