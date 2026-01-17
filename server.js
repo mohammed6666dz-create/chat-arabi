@@ -538,7 +538,6 @@ socket.on('message', async (msg, token) => {
     }
     socket.username = null;
   });
-});
 
 async function sendNotification(toUsername, notification) {
   try {
