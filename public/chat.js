@@ -35,7 +35,8 @@ socket.on('update users', (users) => {
             <span>${user.username}</span>
         `;
  
-        div.onclick = () => openUserActions(user.username, user.role || 'guest', user.avatar);
+        // ─── الضغط على الصورة يفتح الملف باسم الشخص نفسه ───
+        div.onclick = () => openUserProfile(user.username, user.role || 'guest', user.avatar);
  
         div.addEventListener('dblclick', (e) => {
             e.preventDefault();
@@ -172,7 +173,7 @@ function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
   
     messageDiv.innerHTML = `
         <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}"
-             onclick="openUserActions('${username}', '${role}', '${avatar}')" style="cursor:pointer;">
+             onclick="openUserProfile('${username}', '${role}', '${avatar}')" style="cursor:pointer;">
         <div class="message-content">
             <div class="username-line">
                 ${badge}
@@ -256,124 +257,73 @@ function toggleRankList() {
     }
 }
 
-// ─────────────── الإضافة الجديدة ───────────────
-// دالة للتحقق هل الشخص حالياً هو المالك أو المديرة
-function isOwnerOrManager() {
-    const name = (myUsername || '').toLowerCase().trim();
-    return name === 'mohamed-dz' || name === 'nour';
-}
-
-// تعديل دالة openUserActions لإضافة الأزرار الجديدة
-function openUserActions(username, currentRole = 'guest', avatar = '') {
+// ────────────────────────────────────────────────
+// الدالة الجديدة: فتح ملف الشخص اللي ضغطت على صورته (باسمه الحقيقي)
+// ────────────────────────────────────────────────
+function openUserProfile(username, role = 'guest', avatar = '') {
+    // تحديث اسم الشخص + الصورة في الـ modal
     document.getElementById('otherUserDisplayName').textContent = username;
-    document.getElementById('otherUserAvatarLarge').src = avatar || 'https://via.placeholder.com/140';
-  
+    document.getElementById('otherUserAvatarLarge').src = avatar || 'https://via.placeholder.com/80';
+
+    // إظهار الـ modal
     const modal = document.getElementById('otherUserProfileModal');
     modal.classList.remove('hidden');
-    modal.style.display = 'block';
-  
+    modal.style.display = 'flex';
+
+    // إظهار زر "الأوامر" بس للإدارة (مالك / مديرة)
+    const adminBtn = document.getElementById('adminCommandsBtn');
+    if (adminBtn) {
+        const myName = (myUsername || '').toLowerCase().trim();
+        adminBtn.style.display = (myName === 'mohamed-dz' || myName === 'nour') ? 'flex' : 'none';
+    }
+
+    // حفظ اسم الشخص الحالي للدردشة الخاصة
     currentPrivateChat = username;
-  
-    const listMenu = document.getElementById('ranksListMenu');
-    if (listMenu) listMenu.style.display = 'none';
-  
-    const rankPanel = document.getElementById('adminRankControls');
-    if (rankPanel) {
-        if (myUsername && myUsername.toLowerCase() === 'mohamed-dz' && username !== 'mohamed-dz') {
-            rankPanel.style.display = 'block';
-        } else {
-            rankPanel.style.display = 'none';
-        }
-    }
-
-    // ─── إضافة حاوية الأزرار الإدارية الجديدة ───
-    let adminExtraContainer = document.getElementById('adminExtraButtons');
-    if (!adminExtraContainer) {
-        adminExtraContainer = document.createElement('div');
-        adminExtraContainer.id = 'adminExtraButtons';
-        adminExtraContainer.style.marginTop = '15px';
-        document.querySelector('#otherUserProfileModal .modal-content')?.appendChild(adminExtraContainer);
-    }
-
-    adminExtraContainer.innerHTML = '';
-    adminExtraContainer.style.display = 'none';
-
-    if (isOwnerOrManager() && username.toLowerCase() !== myUsername.toLowerCase()) {
-        adminExtraContainer.style.display = 'block';
-        adminExtraContainer.innerHTML = `
-            <button onclick="checkUserProfile('${username}')"
-                    style="width:100%; padding:10px; margin:6px 0; background:#2563eb; color:white; border:none; border-radius:6px; cursor:pointer;">
-                فحص الملف 🔍
-            </button>
-
-            <button onclick="showAdminCommands('${username}')"
-                    style="width:100%; padding:10px; margin:6px 0; background:#dc2626; color:white; border:none; border-radius:6px; cursor:pointer;">
-                أوامر الإدارة ⚡
-            </button>
-        `;
-    }
 }
 
-// ─────────────── دوال الأوامر الجديدة ───────────────
-function checkUserProfile(username) {
-    // حالياً مجرد إشارة، يمكن توسيعها لاحقاً لجلب بيانات أكثر
-    alert(`جاري فحص ملف ${username} ... (هذه رسالة مؤقتة)`);
-    socket.emit('admin:check_profile', { target: username });
+// ────────────────────────────────────────────────
+// دوال الأزرار في الـ modal الجديد
+// ────────────────────────────────────────────────
+function showProfile() {
+    const name = document.getElementById('otherUserDisplayName').textContent;
+    alert(`عرض الملف الشخصي الكامل لـ ${name} 🔥`);
+    // ممكن هنا تفتح صفحة ملف كامل أو modal أكبر
 }
 
-function showAdminCommands(username) {
-    const options = [
-        "1 - حظر نهائي من الموقع",
-        "2 - فك الحظر",
-        "3 - طرد من الغرفة الحالية",
-        "4 - طرد نهائي (منع الدخول لكل الغرف)",
-        "5 - كتم مؤقت 60 دقيقة",
-        "6 - كتم دائم",
-        "7 - فك الكتم"
-    ];
-
-    const choice = prompt(`أوامر الإدارة لـ ${username}:\n\n` + options.join('\n') + '\n\nاكتب الرقم:');
-
-    if (!choice) return;
-
-    let action = '';
-    switch(choice.trim()) {
-        case '1': action = 'ban'; break;
-        case '2': action = 'unban'; break;
-        case '3': action = 'kick_room'; break;
-        case '4': action = 'kick_global'; break;
-        case '5': action = 'mute_60min'; break;
-        case '6': action = 'mute_permanent'; break;
-        case '7': action = 'unmute'; break;
-        default:
-            alert('رقم غير صحيح');
-            return;
-    }
-
-    if (confirm(`هل أنت متأكد من تنفيذ "${action}" على ${username}؟`)) {
-        socket.emit('admin:command', {
-            action: action,
-            target: username,
-            duration: action === 'mute_60min' ? 60 : null
-        });
-        alert(`تم إرسال الأمر ${action} إلى ${username}`);
-    }
+function sendGift() {
+    const name = document.getElementById('otherUserDisplayName').textContent;
+    alert(`إرسال هدية لـ ${name} 🎁`);
+    // ممكن تفتح متجر هدايا أو prompt
 }
 
-// استقبال رد السيرفر (اختياري لكن مفيد)
-socket.on('admin:command_result', ({ success, message }) => {
-    if (success) {
-        alert(`تم التنفيذ بنجاح! ✓`);
-    } else {
-        alert(`فشل التنفيذ: ${message || 'خطأ غير معروف'}`);
-    }
-});
+function startPrivateChat() {
+    const name = document.getElementById('otherUserDisplayName').textContent;
+    closeOtherUserProfile();
+    document.getElementById('privateChatPanel').style.display = 'block';
+    document.getElementById('privateChatWith').textContent = 'دردشة مع ' + name;
+}
+
+function startCall() {
+    const name = document.getElementById('otherUserDisplayName').textContent;
+    alert(`بدء مكالمة مع ${name} 📞`);
+    // ممكن تدمج WebRTC لاحقاً
+}
+
+function showAdminCommands() {
+    const name = document.getElementById('otherUserDisplayName').textContent;
+    alert(`فتح الأوامر الإدارية لـ ${name} ⚙️\n(حظر - طرد - كتم - إلخ)`);
+    // هنا ممكن تضيف prompt لاختيار الأمر
+}
 
 function closeOtherUserProfile() {
     const modal = document.getElementById('otherUserProfileModal');
     modal.classList.add('hidden');
     modal.style.display = 'none';
 }
+
+// ────────────────────────────────────────────────
+// باقي الكود الأصلي بدون أي تغيير
+// ────────────────────────────────────────────────
 function setUserRole(targetUsername, newRole) {
     socket.emit('set role', { target: targetUsername, role: newRole });
     alert(`تم تعيين رتبة ${newRole} لـ ${targetUsername}`);
@@ -556,7 +506,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.tagName === 'SPAN') {
             emojiToInsert = e.target.textContent.trim();
         }
-        // التعديل الأساسي هنا: عند الضغط على صورة، يتم إرسال وسم IMG كامل بدلاً من كلمة الـ ALT
         else if (e.target.tagName === 'IMG') {
             emojiToInsert = `<img src="${e.target.src}" style="width:30px; height:30px; vertical-align:middle;">`;
         }
