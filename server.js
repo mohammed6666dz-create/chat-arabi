@@ -279,21 +279,19 @@ socket.on('admin command', (data) => {
             }
             break;
 
-        case 'ban': // تنفيذ أمر الحظر
-            io.emit('chat message', { system: true, msg: `🚫 تم حظر [${target}] نهائياً من دخول الشات.` });
-            if (targetSocket) targetSocket.disconnect();
-            break;
-        }
-  });
-          
+    } // إغلاق الـ switch
+}); // إغلاق socket.on('admin command')
 
-        case 'mute': // أمر الكتم
-            if (targetSocket) {
-                targetSocket.isMuted = true; // وضع علامة كتم على سوكت المستخدم
-                targetSocket.emit('chat message', { system: true, msg: "🔇 تم كتمك من قبل الإدارة، لا يمكنك الكلام حالياً." });
-                socket.emit('chat message', { system: true, msg: `✅ تم كتم المستخدم [${target}] بنجاح.` });
-            }
-            break;
+// --- كود استقبال الرسائل ومنع المكتوم ---
+socket.on('message', async (msg, token) => {
+    try {
+        if (socket.isMuted) {
+            return socket.emit('message', { system: true, msg: "⚠️ أنت مكتوم حالياً." });
+        }
+        // ... باقي كودك الخاص بالـ jwt والإرسال يكمل هنا ...
+    } catch (e) {
+        console.log(e);
+    }
 
         case 'ban': // أمر الحظر
             io.emit('chat message', { system: true, msg: `🚫 تم حظر [${target}] نهائياً من دخول الشات.` });
