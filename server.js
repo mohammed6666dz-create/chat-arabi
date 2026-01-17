@@ -291,8 +291,8 @@ socket.on('message', async (msg, token) => {
         // ... باقي كودك الخاص بالـ jwt والإرسال يكمل هنا ...
     } catch (e) {
         console.log(e);
-    }
-  }
+  });
+});
       });
         if (socket.isMuted) {
             return socket.emit('message', { system: true, msg: "⚠️ أنت مكتوم حالياً ولا يمكنك إرسال رسائل." });
