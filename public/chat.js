@@ -34,14 +34,14 @@ socket.on('update users', (users) => {
             <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
             <span>${user.username}</span>
         `;
-  
+ 
         div.onclick = () => openUserActions(user.username, user.role || 'guest', user.avatar);
-  
+ 
         div.addEventListener('dblclick', (e) => {
             e.preventDefault();
             mentionUser(user.username);
         });
-  
+ 
         list.appendChild(div);
     });
 });
@@ -120,13 +120,13 @@ document.querySelector('.close-level-panel')?.addEventListener('click', () => {
 document.querySelectorAll('.buy-btn[data-role="premium"]').forEach(btn => {
     btn.addEventListener('click', function() {
         const role = this.getAttribute('data-role');
-      
+     
         socket.emit('buy role', { role: role });
-      
+     
         const originalText = this.textContent;
         this.textContent = 'جاري الشراء...';
         this.disabled = true;
-      
+     
         setTimeout(() => {
             this.textContent = originalText;
             this.disabled = false;
@@ -162,15 +162,14 @@ function getUserBadge(username, role = 'guest') {
             return '<span class="badge guest">ضيف</span>';
     }
 }
-
 // ─────────────── دالة إضافة الرسالة (تم التعديل لعرض HTML) ───────────────
 function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
-   
+  
     const badge = getUserBadge(username, role);
-   
+  
     messageDiv.innerHTML = `
         <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}"
              onclick="openUserActions('${username}', '${role}', '${avatar}')" style="cursor:pointer;">
@@ -179,14 +178,13 @@ function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
                 ${badge}
                 <strong>${username}</strong>
             </div>
-            <p>${msg}</p> 
+            <p>${msg}</p>
         </div>
     `;
-   
+  
     chatWindow.appendChild(messageDiv);
     scrollToBottom();
 }
-
 function scrollToBottom() {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -198,15 +196,15 @@ async function loadMyProfile() {
         });
         if (!res.ok) throw new Error('فشل جلب البروفايل');
         const user = await res.json();
-       
+      
         myUsername = user.username;
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
-  
+ 
         const timestamp = new Date().getTime();
         document.getElementById('avatar').src = myAvatar + '?t=' + timestamp;
         document.getElementById('myProfileAvatar').src = myAvatar + '?t=' + timestamp;
         document.getElementById('myProfileUsername').textContent = myUsername;
-  
+ 
         console.log("تم تحميل اسم المستخدم:", myUsername);
     } catch (err) {
         console.error('خطأ في تحميل البروفايل:', err);
@@ -223,17 +221,17 @@ document.getElementById('closeMyProfile').addEventListener('click', () => {
 document.getElementById('avatarUpload').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-   
+  
     const formData = new FormData();
     formData.append('avatar', file);
-   
+  
     try {
         const res = await fetch('/upload-avatar', {
             method: 'POST',
             headers: { Authorization: token },
             body: formData
         });
-       
+      
         const data = await res.json();
         if (data.avatar) {
             const timestamp = new Date().getTime();
@@ -257,19 +255,28 @@ function toggleRankList() {
         list.style.display = 'none';
     }
 }
+
+// ─────────────── الإضافة الجديدة ───────────────
+// دالة للتحقق هل الشخص حالياً هو المالك أو المديرة
+function isOwnerOrManager() {
+    const name = (myUsername || '').toLowerCase().trim();
+    return name === 'mohamed-dz' || name === 'nour';
+}
+
+// تعديل دالة openUserActions لإضافة الأزرار الجديدة
 function openUserActions(username, currentRole = 'guest', avatar = '') {
     document.getElementById('otherUserDisplayName').textContent = username;
     document.getElementById('otherUserAvatarLarge').src = avatar || 'https://via.placeholder.com/140';
-   
+  
     const modal = document.getElementById('otherUserProfileModal');
     modal.classList.remove('hidden');
     modal.style.display = 'block';
-   
+  
     currentPrivateChat = username;
-   
+  
     const listMenu = document.getElementById('ranksListMenu');
     if (listMenu) listMenu.style.display = 'none';
-   
+  
     const rankPanel = document.getElementById('adminRankControls');
     if (rankPanel) {
         if (myUsername && myUsername.toLowerCase() === 'mohamed-dz' && username !== 'mohamed-dz') {
@@ -278,7 +285,90 @@ function openUserActions(username, currentRole = 'guest', avatar = '') {
             rankPanel.style.display = 'none';
         }
     }
+
+    // ─── إضافة حاوية الأزرار الإدارية الجديدة ───
+    let adminExtraContainer = document.getElementById('adminExtraButtons');
+    if (!adminExtraContainer) {
+        adminExtraContainer = document.createElement('div');
+        adminExtraContainer.id = 'adminExtraButtons';
+        adminExtraContainer.style.marginTop = '15px';
+        document.querySelector('#otherUserProfileModal .modal-content')?.appendChild(adminExtraContainer);
+    }
+
+    adminExtraContainer.innerHTML = '';
+    adminExtraContainer.style.display = 'none';
+
+    if (isOwnerOrManager() && username.toLowerCase() !== myUsername.toLowerCase()) {
+        adminExtraContainer.style.display = 'block';
+        adminExtraContainer.innerHTML = `
+            <button onclick="checkUserProfile('${username}')"
+                    style="width:100%; padding:10px; margin:6px 0; background:#2563eb; color:white; border:none; border-radius:6px; cursor:pointer;">
+                فحص الملف 🔍
+            </button>
+
+            <button onclick="showAdminCommands('${username}')"
+                    style="width:100%; padding:10px; margin:6px 0; background:#dc2626; color:white; border:none; border-radius:6px; cursor:pointer;">
+                أوامر الإدارة ⚡
+            </button>
+        `;
+    }
 }
+
+// ─────────────── دوال الأوامر الجديدة ───────────────
+function checkUserProfile(username) {
+    // حالياً مجرد إشارة، يمكن توسيعها لاحقاً لجلب بيانات أكثر
+    alert(`جاري فحص ملف ${username} ... (هذه رسالة مؤقتة)`);
+    socket.emit('admin:check_profile', { target: username });
+}
+
+function showAdminCommands(username) {
+    const options = [
+        "1 - حظر نهائي من الموقع",
+        "2 - فك الحظر",
+        "3 - طرد من الغرفة الحالية",
+        "4 - طرد نهائي (منع الدخول لكل الغرف)",
+        "5 - كتم مؤقت 60 دقيقة",
+        "6 - كتم دائم",
+        "7 - فك الكتم"
+    ];
+
+    const choice = prompt(`أوامر الإدارة لـ ${username}:\n\n` + options.join('\n') + '\n\nاكتب الرقم:');
+
+    if (!choice) return;
+
+    let action = '';
+    switch(choice.trim()) {
+        case '1': action = 'ban'; break;
+        case '2': action = 'unban'; break;
+        case '3': action = 'kick_room'; break;
+        case '4': action = 'kick_global'; break;
+        case '5': action = 'mute_60min'; break;
+        case '6': action = 'mute_permanent'; break;
+        case '7': action = 'unmute'; break;
+        default:
+            alert('رقم غير صحيح');
+            return;
+    }
+
+    if (confirm(`هل أنت متأكد من تنفيذ "${action}" على ${username}؟`)) {
+        socket.emit('admin:command', {
+            action: action,
+            target: username,
+            duration: action === 'mute_60min' ? 60 : null
+        });
+        alert(`تم إرسال الأمر ${action} إلى ${username}`);
+    }
+}
+
+// استقبال رد السيرفر (اختياري لكن مفيد)
+socket.on('admin:command_result', ({ success, message }) => {
+    if (success) {
+        alert(`تم التنفيذ بنجاح! ✓`);
+    } else {
+        alert(`فشل التنفيذ: ${message || 'خطأ غير معروف'}`);
+    }
+});
+
 function closeOtherUserProfile() {
     const modal = document.getElementById('otherUserProfileModal');
     modal.classList.add('hidden');
@@ -296,19 +386,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const usersPanel = document.getElementById('usersPanel');
     const hideBtn = document.getElementById('hideUsersPanelBtn');
     const showBtn = document.getElementById('showUsersPanelBtn');
-   
+  
     if (!usersPanel || !hideBtn || !showBtn) return;
-   
+  
     usersPanel.style.display = 'block';
     hideBtn.style.display = 'inline-block';
     showBtn.style.display = 'none';
-   
+  
     hideBtn.addEventListener('click', () => {
         usersPanel.style.display = 'none';
         hideBtn.style.display = 'none';
         showBtn.style.display = 'inline-block';
     });
-   
+  
     showBtn.addEventListener('click', () => {
         usersPanel.style.display = 'block';
         showBtn.style.display = 'none';
@@ -351,7 +441,7 @@ function appendPrivateMessage(username, msg, avatar, isMe) {
         <img src="${avatar || 'https://via.placeholder.com/30'}" alt="${username}">
         <div class="private-content">
             <strong>${username}</strong>
-            <p>${msg}</p> 
+            <p>${msg}</p>
         </div>
     `;
     chat.appendChild(div);
@@ -375,7 +465,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 function mentionUser(username) {
     const input = document.getElementById('messageInput');
     if (!input) return;
-   
+  
     const mention = `@${username} `;
     if (input.value.trim() === '') {
         input.value = mention;
@@ -387,7 +477,7 @@ function mentionUser(username) {
             input.value += mention;
         }
     }
-   
+  
     input.focus();
     input.setSelectionRange(input.value.length, input.value.length);
 }
@@ -402,7 +492,6 @@ let myCover = 'https://via.placeholder.com/800x200/0f172a/ffffff?text=خلفيت
 document.getElementById('profileBtn').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'block';
     loadMyProfile();
- 
     const coverElement = document.getElementById('myCoverPhoto');
     if (coverElement) {
         coverElement.style.backgroundImage = `url(${myCover})`;
@@ -411,17 +500,17 @@ document.getElementById('profileBtn').addEventListener('click', () => {
 document.getElementById('coverUpload')?.addEventListener('change', async function(e) {
     const file = e.target.files[0];
     if (!file) return;
-   
+  
     const formData = new FormData();
     formData.append('cover', file);
-   
+  
     try {
         const res = await fetch('/upload-cover', {
             method: 'POST',
             headers: { 'Authorization': token },
             body: formData
         });
-       
+      
         const data = await res.json();
         if (data.cover) {
             myCover = data.cover + '?t=' + new Date().getTime();
@@ -435,64 +524,53 @@ document.getElementById('coverUpload')?.addEventListener('change', async functio
         alert('حصل خطأ أثناء رفع الخلفية');
     }
 });
-
 // ────────────────────────────────────────────────
-//      تعديل التحكم بلوحة الإيموجي (لإرسال الصور)
+// تعديل التحكم بلوحة الإيموجي (لإرسال الصور)
 // ────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     const emojiBtn = document.getElementById('emojiBtn');
     const emojiPicker = document.getElementById('emojiPicker');
     const messageInput = document.getElementById('messageInput');
-
     if (!emojiBtn || !emojiPicker || !messageInput) return;
-
     emojiBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         emojiPicker.classList.toggle('hidden');
     });
-
     document.addEventListener('click', (e) => {
         if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
             emojiPicker.classList.add('hidden');
         }
     });
-
     document.querySelectorAll('.emoji-tab')?.forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-
             document.querySelectorAll('.emoji-grid').forEach(grid => {
                 grid.classList.add('hidden');
             });
             document.getElementById(`tab-${tab.dataset.tab}`)?.classList.remove('hidden');
         });
     });
-
     emojiPicker.addEventListener('click', function(e) {
         let emojiToInsert = '';
-
         if (e.target.tagName === 'SPAN') {
             emojiToInsert = e.target.textContent.trim();
-        } 
+        }
         // التعديل الأساسي هنا: عند الضغط على صورة، يتم إرسال وسم IMG كامل بدلاً من كلمة الـ ALT
         else if (e.target.tagName === 'IMG') {
             emojiToInsert = `<img src="${e.target.src}" style="width:30px; height:30px; vertical-align:middle;">`;
         }
-
         if (emojiToInsert) {
             const input = document.getElementById('messageInput');
             const start = input.selectionStart;
             const end = input.selectionEnd;
-
-            input.value = 
-                input.value.substring(0, start) + 
-                emojiToInsert + 
+            input.value =
+                input.value.substring(0, start) +
+                emojiToInsert +
                 input.value.substring(end);
-
             const newPos = start + emojiToInsert.length;
             input.setSelectionRange(newPos, newPos);
             input.focus();
         }
-    });  
+    });
 });
