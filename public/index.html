@@ -1,56 +1,32 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>Moh Chat | دردشة عربية</title>
-  <link rel="stylesheet" href="index.css">
+  <meta charset="UTF-8">
+  <title>Moh Chat | دردشة عربية بدون تسجيل</title>
+  <link rel="stylesheet" href="index.css">
+  <!-- الإضافة الوحيدة: لينك لملف favicon.ico.png -->
+  <link rel="icon" href="/favicon.ico.png" type="image/png">
 </head>
 <body>
-
-  <div class="container">
-    <h1>دردشة عربية</h1>
-
-    <!-- نموذج تسجيل الدخول -->
-    <form id="loginForm">
-      <input type="text" id="username" placeholder="اسم المستخدم" required>
-      <input type="password" id="password" placeholder="كلمة المرور" required>
-      <button type="submit">تسجيل الدخول</button>
-    </form>
-
-    <p>ليس لديك حساب؟ <a href="#" id="registerLink">تسجيل جديد</a></p>
-
-    <!-- نموذج التسجيل (مخفي في البداية) -->
-    <form id="registerForm" style="display: none;">
-      <input type="text" id="regUsername" placeholder="اسم المستخدم" required>
-      <input type="password" id="regPassword" placeholder="كلمة المرور" required>
-      <button type="submit">إنشاء حساب</button>
-
-      <!-- الزر اللي بدك ياه: رجوع -->
-      <button type="button" id="backToLoginBtn" class="back-button">
-        ← رجوع لتسجيل الدخول
-      </button>
-    </form>
-  </div>
-
-  <script>
-    // تبديل بين النماذج
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const registerLink = document.getElementById('registerLink');
-    const backToLoginBtn = document.getElementById('backToLoginBtn');
-
-    // عند الضغط على "تسجيل جديد"
-    registerLink.addEventListener('click', function(e) {
-      e.preventDefault();
-      loginForm.style.display = 'none';
-      registerForm.style.display = 'block';
-    });
-
-    // عند الضغط على زر "رجوع لتسجيل الدخول"
-    backToLoginBtn.addEventListener('click', function() {
-      registerForm.style.display = 'none';
-      loginForm.style.display = 'block';
-    });
-  </script>
+  <div class="container">
+    <h1>دردشه عربيه</h1>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="اسم المستخدم" required>
+      <input type="password" id="password" placeholder="كلمة المرور" required>
+      <label><input type="checkbox" id="remember"> تذكرني</label>
+      <button type="submit">تسجيل الدخول</button>
+    </form>
+    <p>ليس لديك حساب؟ <a href="#" id="registerLink">تسجيل جديد</a></p>
+    <form id="registerForm" style="display: none;">
+      <input type="text" id="regUsername" placeholder="اسم المستخدم" required>
+      <input type="password" id="regPassword" placeholder="كلمة المرور" required>
+      <button type="submit">تسجيل</button>
+      <!-- الكلام فقط لتحسين ظهور الموقع -->
+      <p style="margin-top: 15px; color: #333; font-size: 14px;">
+        مرحباً بك في شات عربي! أنشئ حسابك بسهولة لتتمكن من الدخول والمحادثة مع الآخرين. تسجيلك يساعدنا على تقديم تجربة أفضل وآمنة للجميع.
+      </p>
+    </form>
+  </div>
+  <script src="index.js"></script>
 </body>
 </html>
