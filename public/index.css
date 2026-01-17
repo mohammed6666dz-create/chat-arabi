@@ -92,4 +92,22 @@ a {
 a:hover {
   color: #fff;
   text-shadow: 0 0 8px #fff;
+}.back-btn {
+    width: 100%;
+    margin-top: 18px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.07);
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.45);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
 }
