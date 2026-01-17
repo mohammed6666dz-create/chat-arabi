@@ -1,8 +1,6 @@
 const express = require('express');
 const app = express();
-=======
 const { Pool } = require('pg');
->>>>>>> 125a297cfb0ed788f1afb5268fa28a834a304fcd
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 const jwt = require('jsonwebtoken');
@@ -13,15 +11,12 @@ const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
 
-<<<<<<< HEAD
-=======
 const app = express();
->>>>>>> 125a297cfb0ed788f1afb5268fa28a834a304fcd
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-<<<<<<< HEAD
+
 let users = [];
 let roomUsers = { general: [], algeria: [], all_countries: [] };
 let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
@@ -54,8 +49,8 @@ app.post('/login', (req, res) => {
   const { username, password } = req.body;
   const user = users.find(u => u.username === username);
   if (!user || !bcrypt.compareSync(password, user.passwordHash)) return res.status(400).json({ msg: 'بيانات خاطئة' });
-=======
-// ────────────────────────────────────────────────
+
+// ───────────────────────────────────────────────
 // إعداد الاتصال بقاعدة البيانات
 // ────────────────────────────────────────────────
 const pool = new Pool({
@@ -185,7 +180,6 @@ app.post('/login', async (req, res) => {
     return res.status(400).json({ msg: 'بيانات خاطئة' });
   }
 
->>>>>>> 125a297cfb0ed788f1afb5268fa28a834a304fcd
   const token = jwt.sign({ username }, secret, { expiresIn: '7d' });
   res.json({ token });
 });
@@ -194,13 +188,11 @@ const verifyToken = (req, res, next) => {
 <<<<<<< HEAD
   const token = req.headers.authorization;
   if (!token) return res.status(401).json({ msg: 'لا توكن' });
-=======
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ msg: 'لا يوجد توكن' });
 
   const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : authHeader;
 
->>>>>>> 125a297cfb0ed788f1afb5268fa28a834a304fcd
   try {
     req.user = jwt.verify(token, secret);
     next();
@@ -209,7 +201,7 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-<<<<<<< HEAD
+
 // Profile
 app.get('/profile', verifyToken, (req, res) => {
   const user = users.find(u => u.username === req.user.username);
@@ -233,7 +225,7 @@ app.post('/upload-background', verifyToken, upload.single('background'), (req, r
 });
 
 // Room counts
-=======
+
 app.get('/profile', verifyToken, async (req, res) => {
   const user = await getUser(req.user.username);
   if (!user) return res.status(404).json({ msg: 'المستخدم غير موجود' });
@@ -273,12 +265,9 @@ app.post('/upload-background', verifyToken, upload.single('background'), async (
   res.json({ background: bgPath });
 });
 
->>>>>>> 125a297cfb0ed788f1afb5268fa28a834a304fcd
 app.get('/room-counts', (req, res) => {
   res.json(roomCounts);
 });
-
-<<<<<<< HEAD
 // Socket.io
 =======
 app.post('/change-rank', verifyToken, async (req, res) => {
@@ -305,25 +294,21 @@ app.post('/change-rank', verifyToken, async (req, res) => {
 // ────────────────────────────────────────────────
 // Socket.IO
 // ────────────────────────────────────────────────
-
->>>>>>> 125a297cfb0ed788f1afb5268fa28a834a304fcd
 io.on('connection', socket => {
   let currentRoom = null;
   let username = null;
 
-<<<<<<< HEAD
+
   socket.on('join', (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
       username = decoded.username;
-=======
+
   socket.on('join', async (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
       username = decoded.username;
       socket.username = username;
->>>>>>> 125a297cfb0ed788f1afb5268fa28a834a304fcd
-
       if (currentRoom) {
         socket.leave(currentRoom);
         roomCounts[currentRoom]--;
@@ -335,18 +320,15 @@ io.on('connection', socket => {
       currentRoom = room;
       socket.join(room);
       roomCounts[room]++;
-<<<<<<< HEAD
+
       const user = users.find(u => u.username === username);
-=======
 
       const user = await getUser(username);
->>>>>>> 125a297cfb0ed788f1afb5268fa28a834a304fcd
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
 
       roomUsers[room].push({ username, avatar });
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
-<<<<<<< HEAD
 
     } catch (e) {
       console.log('توكن غير صالح');
@@ -362,7 +344,7 @@ io.on('connection', socket => {
     } catch (e) {}
   });
 
-=======
+
     } catch (e) {
       console.log('توكن غير صالح في join');
     }
@@ -512,7 +494,6 @@ io.on('connection', socket => {
     }
   });
 
->>>>>>> 125a297cfb0ed788f1afb5268fa28a834a304fcd
   socket.on('disconnect', () => {
     if (currentRoom && username) {
       roomCounts[currentRoom]--;
@@ -520,7 +501,6 @@ io.on('connection', socket => {
       io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
       io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
     }
-<<<<<<< HEAD
   });
 });
 
@@ -535,4 +515,5 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log('   أو اضغط Ctrl + Click على الرابط فوق 👆');
   console.log('=====================================');
 });
+
 
