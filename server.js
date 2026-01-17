@@ -294,9 +294,6 @@ socket.on('message', async (msg, token) => {
     } // هنا حذفنا القوس الدائري الزائد
 }); // هذا يغلق دالة socket.on('message')
 
-    const targetSocket = io.sockets.sockets.get(targetSocketId);
-
-    // 3. تنفيذ الأوامر
     switch (action) {
         case 'kick': // طرد
             if (targetSocket) {
