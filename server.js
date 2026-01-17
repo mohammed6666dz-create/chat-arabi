@@ -294,13 +294,6 @@ socket.on('message', async (msg, token) => {
     } // هنا حذفنا القوس الدائري الزائد
 }); // هذا يغلق دالة socket.on('message')
 
-}); // هذا يغلق دالة io.on('connection')
-      });
-        if (socket.isMuted) {
-            return socket.emit('message', { system: true, msg: "⚠️ أنت مكتوم حالياً ولا يمكنك إرسال رسائل." });
-        }
- 
-
     const targetSocket = io.sockets.sockets.get(targetSocketId);
 
     // 3. تنفيذ الأوامر
