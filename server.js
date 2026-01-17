@@ -1,7 +1,5 @@
 const express = require('express');
 const { Pool } = require('pg');
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
@@ -11,10 +9,12 @@ const path = require('path');
 const bodyParser = require('body-parser');
 
 const app = express();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
+
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 // ────────────────────────────────────────────────
 // إعداد الاتصال بقاعدة البيانات
 // ────────────────────────────────────────────────
@@ -451,3 +451,4 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
 });
+
