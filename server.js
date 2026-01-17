@@ -19,7 +19,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // إعداد الاتصال بقاعدة البيانات
 // ────────────────────────────────────────────────
 const pool = new Pool({
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres.wgzikxgbhrcgfewnosiq:[YOUR-PASSWORD]@aws-1-eu-west-1.pooler.supabase.com:5432/postgres';
+// تأكد أن السطر الذي يسبق هذا الكود مغلق بـ ;
+const connectionString = process.env.DATABASE_URL || 'postgresql://postgres.wgzikxgbhrcgfewnosiq:كلمة_السر_هنا@aws-1-eu-west-1.pooler.supabase.com:5432/postgres';
   ssl: { rejectUnauthorized: false }
 });
 
@@ -478,5 +479,6 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
 });
+
 
 
