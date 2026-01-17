@@ -47,6 +47,7 @@
       </button>
     </div>
   </header>
+
   <div class="chat-main">
     <div id="chatWindow"></div>
     <div id="usersPanel">
@@ -54,15 +55,14 @@
       <div id="usersList"></div>
     </div>
   </div>
-  <!-- ╔════════════════════════════════════════════════════════════╗ -->
-  <!-- ║ حقل الرسالة + زر الإيموجي ║ -->
-  <!-- ╚════════════════════════════════════════════════════════════╝ -->
-<!-- النسخة الأصلية المعدلة قليلاً -->
-<form id="messageForm">
-  <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
-  <button type="button" id="emojiBtn" class="emoji-btn" title="اختر إيموجي">😊</button>
-  <button type="button" id="sendBtn">إرسال</button> <!-- ← غيرناه إلى button -->
-</form>
+
+  <!-- حقل الرسالة + زر الإيموجي -->
+  <form id="messageForm">
+    <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
+    <button type="button" id="emojiBtn" class="emoji-btn" title="اختر إيموجي">😊</button>
+    <button type="button" id="sendBtn">إرسال</button>
+  </form>
+
   <!-- لوحة الإيموجي -->
   <div id="emojiPicker" class="emoji-picker hidden">
     <div class="emoji-tabs">
@@ -70,14 +70,12 @@
       <button class="emoji-tab" data-tab="animated">متحركة</button>
     </div>
     <div class="emoji-content">
-      <!-- الإيموجي العادية (الافتراضية) -->
       <div id="tab-common" class="emoji-grid">
         😊 😂 😍 ❤️ 🔥 👍 👏 🙌 ✨ 🌟 😎 😭 🥺 🤩 🥳 🎉 🎂 🎁 ⚡ 💥 💯
         ❤️‍🔥 🫶 🥰 😘 😋 🤤 😴 😷 🤢 🤮 🥵 🥶 🤯 🤔 🤫 🤭 🧐
         👀 👄 💋 🫦 👅 🧠 🫀 🫁 🦷 🦴 👣 🖐️ ✌️ 🤟 🤘 👌 👈 👉 ☝️
         🙏 🤲 👐 👏 🤝 💪 ✊ 👊 🤛 🤜 👋 🖖 🤙 🖕
       </div>
-      <!-- الإيموجي المتحركة (gif) -->
       <div id="tab-animated" class="emoji-grid animated-emojis hidden">
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/25.gif" alt="قوة" title="نقوة">
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/26.gif" alt="قلب" title="قلب">
@@ -87,17 +85,16 @@
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/28.gif" alt="استحمام" title="استحمام">
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/4.gif" alt="صوره" title="صوره">
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/2.gif" alt="دراسه" title="دراسه">
-        <!-- أضف المزيد من الروابط إذا أردت -->
       </div>
     </div>
   </div>
-  <!-- لوحة البروفايل الشخصي (مع التحسينات الجديدة) -->
+
+  <!-- بروفايل المستخدم الحالي -->
   <div id="myProfilePanel" class="profile-panel">
     <div class="profile-header">
       <h3>بروفايلك</h3>
       <span id="closeMyProfile" class="close-panel">×</span>
     </div>
-    <!-- الخلفية الجديدة (Cover) -->
     <div class="profile-cover-section">
       <div class="cover-photo" id="myCoverPhoto" style="background-image: url('https://via.placeholder.com/800x200/0f172a/ffffff?text=خلفيتك+هنا');"></div>
       <div class="profile-cover-overlay">
@@ -117,14 +114,12 @@
       </div>
       <h4 id="myProfileUsername">اسم المستخدم</h4>
     </div>
-    <!-- تبويبات مشابهة للصورة التي أرسلتها -->
     <div class="profile-tabs">
       <button class="tab-btn active"><i class="fas fa-trophy"></i> المزيد</button>
       <button class="tab-btn"><i class="fas fa-star"></i> المميزات</button>
       <button class="tab-btn"><i class="fas fa-gift"></i> الهدايا</button>
       <button class="tab-btn"><i class="fas fa-cog"></i> الإعدادات</button>
     </div>
-    <!-- محتوى التبويبات (يمكنك توسيعها لاحقاً) -->
     <div class="profile-tab-content">
       <ul>
         <li><i class="fas fa-edit"></i> تحرير البيانات</li>
@@ -136,7 +131,8 @@
       </ul>
     </div>
   </div>
-  <!-- باقي الأقسام كما هي بدون أي تغيير -->
+
+  <!-- المتجر -->
   <div id="shopPanel" class="shop-panel" style="display:none;">
     <div class="shop-header">
       <h3>المتجر</h3>
@@ -144,9 +140,7 @@
     </div>
     <div class="shop-body">
       <h4>رصيد نقاطك: <span id="myPoints">0</span></h4>
-   
       <div class="shop-items">
-        <!-- سوبر أدمن -->
         <div class="shop-item">
           <div class="item-info">
             <span class="badge superadmin">سوبر أدمن ⚙️</span>
@@ -154,7 +148,6 @@
           </div>
           <button class="buy-btn" data-role="superadmin" data-price="5000">شراء</button>
         </div>
-        <!-- أدمن -->
         <div class="shop-item">
           <div class="item-info">
             <span class="badge admin">أدمن 🔰</span>
@@ -162,7 +155,6 @@
           </div>
           <button class="buy-btn" data-role="admin" data-price="3000">شراء</button>
         </div>
-        <!-- بريميوم -->
         <div class="shop-item">
           <div class="item-info">
             <span class="badge premium">بريميوم 💎</span>
@@ -170,7 +162,6 @@
           </div>
           <button class="buy-btn" data-role="premium" data-price="1500">شراء</button>
         </div>
-        <!-- VIP -->
         <div class="shop-item">
           <div class="item-info">
             <span class="badge vip">VIP ★</span>
@@ -181,19 +172,19 @@
       </div>
     </div>
   </div>
+
+  <!-- لوحة النقاط والمستوى -->
   <div id="levelPointsPanel" class="level-panel hidden">
     <div class="level-panel-content">
       <div class="level-header">
         <h3>نقاطي ومستواي</h3>
         <span class="close-level-panel">×</span>
       </div>
-    
       <div class="level-main-info">
         <div class="level-circle">
           <span class="current-level">1</span>
           <span class="level-label">المستوى</span>
         </div>
-      
         <div class="points-info">
           <div class="points-number">
             <span id="myRealPoints">1</span>
@@ -212,14 +203,12 @@
     </div>
   </div>
 
-  <!-- هنا الـ modal مع الإضافة الجديدة فقط -->
+  <!-- ملف المستخدم الآخر (الـ modal) -->
   <div id="otherUserProfileModal" class="other-profile-modal hidden">
     <div class="modal-content">
       <span class="close-modal" onclick="closeOtherUserProfile()">×</span>
 
-      <!-- ════════════════════════════════════════════════════════════ -->
-      <!-- الإضافة الجديدة فقط: أزرار الإدارة (تظهر فقط للمالك/مديرة) -->
-      <!-- ════════════════════════════════════════════════════════════ -->
+      <!-- الأزرار الإدارية (تظهر فقط للمالك/المديرة) -->
       <div id="adminExtraButtons" style="margin-bottom: 20px; display: none;">
         <button id="checkProfileBtn" style="width:100%; padding:12px; margin-bottom:10px; background:#4f46e5; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
           فحص الملف 🔍
@@ -237,24 +226,46 @@
           <p id="otherUserStatus" class="status-text">We will meet in Paradise</p>
         </div>
       </div>
+
       <div class="profile-actions">
         <button class="action-btn msg-btn" id="sendPrivateMsgBtn">رسالة خاصة</button>
         <button class="action-btn friend-btn" id="addFriendFromProfile">إضافة صديق</button>
         <button class="action-btn report-btn">إبلاغ</button>
       </div>
-    
+
+      <div class="profile-details">
+        <div class="detail-item">
+          <span>رابط الملف</span>
+          <span id="otherProfileUrl">https://chat.arabi.com/u/...</span>
         </div>
-        <div id="adminRankControls" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center; display: none;">
-            <button onclick="toggleRankList()" style="background:#fbbf24; color:black; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
-                <i class="fas fa-gift"></i> إهداء رتبة
-            </button>
-            <div id="ranksListMenu" style="display:none; margin-top:10px; background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; grid-template-columns: 1fr 1fr; gap:8px;">
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'superadmin')" style="background:#6d28d9; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">سوبر أدمن</button>
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'admin')" style="background:#3b82f6; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">أدمن</button>
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'premium')" style="background:#10b981; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">بريميوم</button>
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'vip')" style="background:#f59e0b; color:black; border:none; padding:8px; border-radius:4px; cursor:pointer;">VIP</button>
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'guest')" style="background:#ef4444; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">سحب الرتبة</button>
-            </div>
+        <div class="detail-item">
+          <span>تاريخ الانضمام</span>
+          <span id="otherJoinDate">2026-01-05</span>
+        </div>
+        <div class="detail-item">
+          <span>البلد</span>
+          <span id="otherCountry">الجزائر</span>
+        </div>
+        <div class="detail-item">
+          <span>آخر تواجد</span>
+          <span id="otherLastSeen">الآن</span>
+        </div>
+        <div class="detail-item">
+          <span>النقاط</span>
+          <span id="otherPoints">1821</span>
+        </div>
+      </div>
+
+      <div id="adminRankControls" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center; display: none;">
+        <button onclick="toggleRankList()" style="background:#fbbf24; color:black; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+          <i class="fas fa-gift"></i> إهداء رتبة
+        </button>
+        <div id="ranksListMenu" style="display:none; margin-top:10px; background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; grid-template-columns: 1fr 1fr; gap:8px;">
+          <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'superadmin')" style="background:#6d28d9; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">سوبر أدمن</button>
+          <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'admin')" style="background:#3b82f6; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">أدمن</button>
+          <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'premium')" style="background:#10b981; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">بريميوم</button>
+          <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'vip')" style="background:#f59e0b; color:black; border:none; padding:8px; border-radius:4px; cursor:pointer;">VIP</button>
+          <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'guest')" style="background:#ef4444; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">سحب الرتبة</button>
         </div>
       </div>
     </div>
@@ -263,8 +274,10 @@
   <div id="userProfilePanel" class="user-profile-panel">...</div>
   <div id="privateChatPanel" class="private-chat-panel">...</div>
   <div id="friendRequestsPanel" class="friend-requests-panel">...</div>
+
   <script src="chat.js"></script>
-  <!-- السكريبت الإضافي للتحكم باللوحة + الإيموجي -->
+
+  <!-- السكريبت الإضافي -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const usersPanel = document.getElementById('usersPanel');
@@ -280,7 +293,8 @@
         showBtn.style.display = 'none';
         hideBtn.style.display = 'inline-block';
       });
-      // معاينة الخلفية الجديدة عند الاختيار
+
+      // معاينة الخلفية
       const coverUpload = document.getElementById('coverUpload');
       const myCoverPhoto = document.getElementById('myCoverPhoto');
       if (coverUpload && myCoverPhoto) {
@@ -295,14 +309,16 @@
           }
         });
       }
-      // فتح وإغلاق المتجر
+
+      // فتح/إغلاق المتجر
       document.getElementById('shopBtn')?.addEventListener('click', () => {
         document.getElementById('shopPanel').style.display = 'block';
       });
       document.getElementById('closeShop')?.addEventListener('click', () => {
         document.getElementById('shopPanel').style.display = 'none';
       });
-      // فتح وإغلاق نافذة نقاطي ومستواي
+
+      // فتح/إغلاق لوحة النقاط
       const levelBtn = document.getElementById('myLevelBtn');
       const levelPanel = document.getElementById('levelPointsPanel');
       const closeLevel = document.querySelector('.close-level-panel');
@@ -319,9 +335,8 @@
           levelPanel.classList.add('hidden');
         });
       }
-      // ╔════════════════════════════════════════════════════════════╗
-      // ║ الإيموجي الجديدة ║
-      // ╚════════════════════════════════════════════════════════════╝
+
+      // الإيموجي
       const emojiBtn = document.getElementById('emojiBtn');
       const emojiPicker = document.getElementById('emojiPicker');
       const messageInput = document.getElementById('messageInput');
@@ -335,7 +350,6 @@
             emojiPicker.classList.add('hidden');
           }
         });
-        // تبديل التبويبات
         document.querySelectorAll('.emoji-tab').forEach(tab => {
           tab.addEventListener('click', () => {
             document.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
@@ -344,13 +358,11 @@
             document.getElementById(`tab-${tab.dataset.tab}`).classList.remove('hidden');
           });
         });
-        // إضافة إيموجي عادية
         document.getElementById('tab-common')?.addEventListener('click', e => {
           if (e.target.tagName === 'SPAN') {
             insertAtCursor(messageInput, e.target.textContent.trim());
           }
         });
-        // إضافة إيموجي متحركة (حالياً نضيف النص الموجود في alt)
         document.getElementById('tab-animated')?.addEventListener('click', e => {
           if (e.target.tagName === 'IMG') {
             insertAtCursor(messageInput, e.target.alt);
