@@ -1,5 +1,4 @@
 const express = require('express');
-<<<<<<< HEAD
 const app = express();
 =======
 const { Pool } = require('pg');
@@ -536,3 +535,4 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log('   أو اضغط Ctrl + Click على الرابط فوق 👆');
   console.log('=====================================');
 });
+
