@@ -250,19 +250,27 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('message', async (msg, token) => {
-    try {
-      const decoded = jwt.verify(token, secret);
-      const user = await getUser(decoded.username);
-      if (!user) return;
-      const avatar = user.avatar || 'https://via.placeholder.com/40';
-      io.to(currentRoom).emit('message', {
-        username: decoded.username,
-        msg,
-        avatar
-      });
-    } catch (e) {}
-  });
+socket.on('message', async (msg, token) => {
+  try {
+    const decoded = jwt.verify(token, secret);
+    const user = await getUser(decoded.username);
+    
+    if (!user) return;
+
+    const avatar = user.avatar || 'https://via.placeholder.com/40';
+
+    // التعديل هنا: أضفنا الرتبة (role) لكي تصل للشات
+    io.to(currentRoom).emit('message', {
+      username: decoded.username,
+      msg: msg,
+      avatar: avatar,
+      role: user.rank || 'ضيف' 
+    });
+    
+  } catch (e) {
+    console.log("خطأ في التحقق من التوكن أثناء إرسال الرسالة");
+  }
+});
 
   // طلب صداقة
   socket.on('send friend request', async (targetUsername) => {
@@ -481,10 +489,3 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
 });
-
-
-
-
-
-
-
