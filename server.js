@@ -236,7 +236,103 @@ app.post('/change-rank', verifyToken, async (req, res) => {
 io.on('connection', socket => { // <--- هذا السطر كان مفقوداً عندك
   let currentRoom = null;
   let username = null;
+// --- كود أوامر الإدارة: ضعه تحت سطر let username = null ---
 
+socket.on('admin command', (data) => {
+    const { action, target, token } = data;
+
+    // 1. فحص هل الشخص المرسل هو المالك محمد؟
+    // ملاحظة: تأكد أنك تقوم بتخزين الاسم في socket.username عند تسجيل الدخول
+    if (username !== 'mohamed-dz') { 
+        return socket.emit('chat message', { system: true, msg: "تنبيـه: لا تملك صلاحية الإدارة." });
+    }
+
+// --- تكملة الكود من بعد السطر 250 في صورتك ---
+    
+    let targetSocketId = null;
+    for (let [id, s] of io.sockets.sockets) {
+        // فحصنا هنا يعتمد على أنك تخزن الاسم داخل s.username
+        if (s.username === target) { 
+            targetSocketId = id;
+            break;
+        }
+    }
+
+    const targetSocket = io.sockets.sockets.get(targetSocketId);
+
+    // 3. تنفيذ الأوامر بناءً على النوع المرسل
+    switch (action) {
+        case 'kick':
+        // --- تكملة الكود من بعد السطر 265 ---
+            if (targetSocket) {
+                targetSocket.emit('chat message', { system: true, msg: "لقد تم طردك من قبل الإدارة." });
+                targetSocket.disconnect(); // فصل المستخدم فوراً
+                io.emit('chat message', { system: true, msg: `🛑 تم طرد [${target}] بواسطة المالك.` });
+            }
+            break;
+
+        case 'mute': // تنفيذ أمر الكتم
+            if (targetSocket) {
+                targetSocket.isMuted = true; // وضع علامة الكتم في السيرفر
+                targetSocket.emit('chat message', { system: true, msg: "🔇 تم كتمك من قبل الإدارة، لا يمكنك الكلام حالياً." });
+                socket.emit('chat message', { system: true, msg: `✅ تم كتم المستخدم [${target}] بنجاح.` });
+            }
+            break;
+
+        case 'ban': // تنفيذ أمر الحظر
+            io.emit('chat message', { system: true, msg: `🚫 تم حظر [${target}] نهائياً من دخول الشات.` });
+            if (targetSocket) targetSocket.disconnect();
+            break;
+        }
+  });
+          
+
+        case 'mute': // أمر الكتم
+            if (targetSocket) {
+                targetSocket.isMuted = true; // وضع علامة كتم على سوكت المستخدم
+                targetSocket.emit('chat message', { system: true, msg: "🔇 تم كتمك من قبل الإدارة، لا يمكنك الكلام حالياً." });
+                socket.emit('chat message', { system: true, msg: `✅ تم كتم المستخدم [${target}] بنجاح.` });
+            }
+            break;
+
+        case 'ban': // أمر الحظر
+            io.emit('chat message', { system: true, msg: `🚫 تم حظر [${target}] نهائياً من دخول الشات.` });
+            if (targetSocket) targetSocket.disconnect();
+            // ملاحظة: الحظر الحقيقي يحتاج إضافة الـ IP لقاعدة بيانات (أخبرني إذا أردتها)
+            break;
+  }
+      });// --- أضف هذا السطر هنا لمنع المكتوم من الإرسال ---
+        if (socket.isMuted) {
+            return socket.emit('message', { system: true, msg: "⚠️ أنت مكتوم حالياً ولا يمكنك إرسال رسائل." });
+        }
+ 
+
+    const targetSocket = io.sockets.sockets.get(targetSocketId);
+
+    // 3. تنفيذ الأوامر
+    switch (action) {
+        case 'kick': // طرد
+            if (targetSocket) {
+                targetSocket.emit('chat message', { system: true, msg: "لقد تم طردك من قبل الإدارة." });
+                targetSocket.disconnect(); // قطع الاتصال فوراً
+                io.emit('chat message', { system: true, msg: `🛑 تم طرد [${target}] من الدردشة.` });
+            }
+            break;
+
+        case 'mute': // كتم
+            if (targetSocket) {
+                targetSocket.isMuted = true; // تفعيل خاصية الكتم في السوكت الخاص به
+                targetSocket.emit('chat message', { system: true, msg: "🔇 تم كتمك من قبل الإدارة." });
+                socket.emit('chat message', { system: true, msg: `تم كتم [${target}] بنجاح.` });
+            }
+            break;
+
+        case 'ban': // حظر (مثال بسيط)
+            io.emit('chat message', { system: true, msg: `🚫 تم حظر [${target}] نهائياً.` });
+            if (targetSocket) targetSocket.disconnect();
+            break;
+    }
+});
   socket.on('join', async (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
@@ -289,22 +385,34 @@ io.on('connection', socket => { // <--- هذا السطر كان مفقوداً 
   });
 
   // كود إرسال الرسالة (تم تعديله ليرسل الرتبة مع الرسالة)
-  socket.on('message', async (msg, token) => {
-    try {
-      const decoded = jwt.verify(token, secret);
-      const user = await getUser(decoded.username);
-      if (!user) return;
+ socket.on('message', async (msg, token) => {
+    try {
+        // 1. أضف شرط الكتم هنا (أول شيء داخل الـ try)
+        if (socket.isMuted) {
+            return socket.emit('message', { 
+                system: true, 
+                msg: "⚠️ أنت مكتوم حالياً ولا يمكنك إرسال رسائل." 
+            });
+        }
 
-      const avatar = user.avatar || 'https://via.placeholder.com/40';
+        // 2. كود التحقق من التوكن (موجود عندك أصلاً)
+        const decoded = jwt.verify(token, secret);
+        const user = await getUser(decoded.username);
+        if (!user) return;
 
-      io.to(currentRoom).emit('message', {
-        username: decoded.username,
-        msg,
-        avatar,
-        role: user.rank || 'ضيف' // <--- هذا السطر أهم سطر لتظهر "بريميوم" في الشات
-      });
-    } catch (e) {}
-  });
+        // 3. كود إرسال الرسالة للغرفة (موجود عندك أصلاً)
+        const avatar = user.avatar || 'https://via.placeholder.com/40';
+        io.to(currentRoom).emit('message', {
+            username: decoded.username,
+            msg,
+            avatar,
+            role: user.rank || 'ضيف'
+        });
+
+    } catch (e) {
+        console.log("Error in message:", e);
+    }
+});
 
   // ... (بقية كود طلبات الصداقة والرسائل الخاصة كما هي)
   
