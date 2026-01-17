@@ -1,3 +1,4 @@
+
 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 if (!token) {
     window.location.href = 'index.html';
@@ -35,7 +36,7 @@ socket.on('update users', (users) => {
             <span>${user.username}</span>
         `;
  
-        // ─── الضغط على الصورة يفتح الملف باسم الشخص نفسه ───
+        // الضغط على الصورة يفتح ملف الشخص نفسه
         div.onclick = () => openUserProfile(user.username, user.role || 'guest', user.avatar);
  
         div.addEventListener('dblclick', (e) => {
@@ -258,42 +259,33 @@ function toggleRankList() {
 }
 
 // ────────────────────────────────────────────────
-// الدالة الجديدة: فتح ملف الشخص اللي ضغطت على صورته (باسمه الحقيقي)
+// دالة فتح الملف عند الضغط على الصورة (اسم الشخص الحقيقي)
 // ────────────────────────────────────────────────
 function openUserProfile(username, role = 'guest', avatar = '') {
-    // تحديث اسم الشخص + الصورة في الـ modal
+    // عرض اسم الشخص اللي ضغطت على صورته بالضبط
     document.getElementById('otherUserDisplayName').textContent = username;
     document.getElementById('otherUserAvatarLarge').src = avatar || 'https://via.placeholder.com/80';
 
-    // إظهار الـ modal
     const modal = document.getElementById('otherUserProfileModal');
     modal.classList.remove('hidden');
     modal.style.display = 'flex';
 
-    // إظهار زر "الأوامر" بس للإدارة (مالك / مديرة)
+    // إظهار زر الأوامر فقط للمالك أو المديرة
     const adminBtn = document.getElementById('adminCommandsBtn');
     if (adminBtn) {
         const myName = (myUsername || '').toLowerCase().trim();
         adminBtn.style.display = (myName === 'mohamed-dz' || myName === 'nour') ? 'flex' : 'none';
     }
 
-    // حفظ اسم الشخص الحالي للدردشة الخاصة
     currentPrivateChat = username;
 }
 
 // ────────────────────────────────────────────────
-// دوال الأزرار في الـ modal الجديد
+// دوال الأزرار في الـ modal
 // ────────────────────────────────────────────────
 function showProfile() {
     const name = document.getElementById('otherUserDisplayName').textContent;
-    alert(`عرض الملف الشخصي الكامل لـ ${name} 🔥`);
-    // ممكن هنا تفتح صفحة ملف كامل أو modal أكبر
-}
-
-function sendGift() {
-    const name = document.getElementById('otherUserDisplayName').textContent;
-    alert(`إرسال هدية لـ ${name} 🎁`);
-    // ممكن تفتح متجر هدايا أو prompt
+    alert(`جاري عرض الملف الشخصي لـ ${name}`);
 }
 
 function startPrivateChat() {
@@ -303,16 +295,9 @@ function startPrivateChat() {
     document.getElementById('privateChatWith').textContent = 'دردشة مع ' + name;
 }
 
-function startCall() {
-    const name = document.getElementById('otherUserDisplayName').textContent;
-    alert(`بدء مكالمة مع ${name} 📞`);
-    // ممكن تدمج WebRTC لاحقاً
-}
-
 function showAdminCommands() {
     const name = document.getElementById('otherUserDisplayName').textContent;
-    alert(`فتح الأوامر الإدارية لـ ${name} ⚙️\n(حظر - طرد - كتم - إلخ)`);
-    // هنا ممكن تضيف prompt لاختيار الأمر
+    alert(`الأوامر الإدارية لـ ${name}\n(حظر - طرد - كتم - فك الحظر...)`);
 }
 
 function closeOtherUserProfile() {
@@ -321,9 +306,6 @@ function closeOtherUserProfile() {
     modal.style.display = 'none';
 }
 
-// ────────────────────────────────────────────────
-// باقي الكود الأصلي بدون أي تغيير
-// ────────────────────────────────────────────────
 function setUserRole(targetUsername, newRole) {
     socket.emit('set role', { target: targetUsername, role: newRole });
     alert(`تم تعيين رتبة ${newRole} لـ ${targetUsername}`);
