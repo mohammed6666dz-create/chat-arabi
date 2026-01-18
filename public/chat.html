@@ -204,18 +204,25 @@
       </div>
     </div>
   </div>
-  <!-- ملف المستخدم الآخر (الـ modal) -->
-  <div id="otherUserProfileModal" class="other-profile-modal hidden">
-    <div class="modal-content">
-      <span class="close-modal" onclick="closeOtherUserProfile()">×</span>
-      <!-- الأزرار الإدارية (تظهر فقط للمالك/المديرة) -->
-      <div id="adminExtraButtons" style="margin-bottom: 20px; display: none;">
-        <button id="checkProfileBtn" style="width:100%; padding:12px; margin-bottom:10px; background:#4f46e5; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
-          فحص الملف 🔍
-        </button>
-        <button id="adminCommandsBtn" style="width:100%; padding:12px; background:#dc2626; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
-          أوامر الإدارة ⚡
-        </button>
+ 
+     
+
+      </div>
+  <div id="adminExtraButtons" style="display: none; flex-direction: column; gap: 10px; border: 2px solid #dc2626; padding: 15px; border-radius: 12px; background: #fff1f2; margin-bottom: 20px;">
+        <p style="text-align: center; font-weight: bold; color: #dc2626; margin: 0; font-size: 0.9rem;">لوحة المالك 👑</p>
+        
+        <div style="display: flex; gap: 10px;">
+          <button onclick="checkUserFullData()" style="flex: 1; padding: 10px; background: #4f46e5; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.8rem;">فحص الملف 🔍</button>
+          <button onclick="toggleRankListMenu()" style="flex: 1; padding: 10px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.8rem;">إهداء رتبة 🎁</button>
+        </div>
+
+        <div id="ranksListMenu" style="display:none; margin-top:10px; background:white; padding:10px; border-radius:8px; border: 1px solid #ddd; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <button onclick="giftUserRole('superadmin')" style="background:#6d28d9; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-size: 0.75rem;">سوبر أدمن</button>
+          <button onclick="giftUserRole('admin')" style="background:#3b82f6; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-size: 0.75rem;">أدمن</button>
+          <button onclick="giftUserRole('premium')" style="background:#10b981; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-size: 0.75rem;">بريميوم</button>
+          <button onclick="giftUserRole('vip')" style="background:#f59e0b; color:black; border:none; padding:8px; border-radius:4px; cursor:pointer; font-size: 0.75rem;">VIP ★</button>
+          <button onclick="giftUserRole('guest')" style="background:#64748b; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">سحب الرتبة (عضو)</button>
+        </div>
       </div>
       <div class="profile-cover" id="otherUserCover"></div>
       <div class="profile-header-info">
