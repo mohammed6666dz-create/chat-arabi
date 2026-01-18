@@ -201,6 +201,29 @@ document.getElementById('imageInput')?.addEventListener('change', function(e) {
     };
     reader.readAsDataURL(file);
     this.value = ''; // تفريغ الحقل لاختيار صورة أخرى لاحقاً
+});// --- كود إرسال الصور عبر اللصق (Control + V) ---
+document.addEventListener('paste', function(e) {
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    for (let index in items) {
+        const item = items[index];
+        if (item.kind === 'file' && item.type.startsWith('image/')) {
+            const blob = item.getAsFile();
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imageData = event.target.result;
+                // نجهز وسم الصورة لإرساله بنفس تنسيق الزر
+                const imgTag = `<img src="${imageData}" style="max-width:100%; border-radius:10px; display:block; margin-top:5px; cursor:pointer;" onclick="window.open(this.src)">`;
+                
+                // إرسال الصورة كرسالة
+                socket.emit('message', imgTag, token);
+                
+                // زيادة النقاط عند اللصق أيضاً
+                myPoints++;
+                updatePointsLevelDisplay();
+            };
+            reader.readAsDataURL(blob);
+        }
+    }
 });
 // ─────────────── دالة إضافة الرسالة (تم التعديل لعرض HTML) ───────────────
 function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
