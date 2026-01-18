@@ -150,8 +150,29 @@ document.querySelectorAll('.buy-btn[data-role="premium"]').forEach(btn => {
 
 socket.on('role purchased', ({ role, success, message }) => {
     if (success) {
-        alert(`تم الحصول على رتبة ${role.toUpperCase()} بنجاح! 🎉`);
-        loadMyProfile();
+        // 1. تحديث البروفايل محلياً ليتغير "ضيف" إلى "بريميوم" فوراً في رسائلك القادمة
+        loadMyProfile(); 
+
+        // 2. إرسال رسالة نظام تظهر للجميع في نافذة الشات
+        const chatWindow = document.getElementById('chatWindow');
+        const div = document.createElement('div');
+        div.className = 'system-message';
+        
+        // تنسيق بنفسجي ملكي للرتبة الجديدة
+        div.style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
+        div.style.color = '#fff';
+        div.style.fontWeight = 'bold';
+        div.style.padding = '12px';
+        div.style.borderRadius = '10px';
+        div.style.margin = '10px 0';
+        div.style.textAlign = 'center';
+        div.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.3)';
+        
+        div.innerHTML = `💎 مبروك! البطل <strong>${myUsername}</strong> حصل على رتبة <strong>${role.toUpperCase()}</strong> 🎉`;
+        
+        chatWindow.appendChild(div);
+        scrollToBottom();
+
     } else {
         alert(message || 'فشل الحصول على الرتبة');
     }
