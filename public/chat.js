@@ -646,4 +646,32 @@ document.addEventListener('DOMContentLoaded', () => {
             input.focus();
         }
     });
-});
+});// --- كود لوحة تحكم المالك ---
+
+// 1. دالة تفتح وتغلق قائمة الرتب عند الضغط على الزر
+function toggleRankListMenu() {
+    const menu = document.getElementById('ranksListMenu');
+    if (menu) {
+        menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'grid' : 'none';
+    }
+}
+
+// 2. دالة إرسال الرتبة المختارة للسيرفر
+function giftUserRole(role) {
+    const target = document.getElementById('otherUserDisplayName').textContent;
+    if (!target) return alert("لم يتم العثور على اسم المستخدم");
+
+    if (confirm(`هل تريد منح رتبة [${role}] للمستخدم [${target}]؟`)) {
+        socket.emit('change-rank-gift', { 
+            targetUsername: target, 
+            newRank: role 
+        });
+        document.getElementById('ranksListMenu').style.display = 'none';
+    }
+}
+
+// 3. دالة فحص الملف (اختيارية)
+function checkUserFullData() {
+    const target = document.getElementById('otherUserDisplayName').textContent;
+    alert("جارٍ فحص بيانات المستخدم: " + target);
+}
