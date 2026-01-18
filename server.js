@@ -18,9 +18,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // ────────────────────────────────────────────────
 // إعداد الاتصال بقاعدة البيانات
 // ────────────────────────────────────────────────
-// تعريف الرابط (تأكد أنه خارج أقواس pool)
 const connectionString = process.env.DATABASE_URL || 'postgresql://postgres.wgzikxgbhrcgfewnosiq:mohamedennaiha55@aws-1-eu-west-1.pooler.supabase.com:5432/postgres';
-
 const pool = new Pool({
   connectionString: connectionString,
   ssl: { rejectUnauthorized: false }
@@ -43,7 +41,6 @@ async function initDatabase() {
         notifications JSONB DEFAULT '[]'::jsonb,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
-
       CREATE TABLE IF NOT EXISTS private_messages (
         id SERIAL PRIMARY KEY,
         from_user TEXT NOT NULL,
@@ -52,8 +49,7 @@ async function initDatabase() {
         created_at TIMESTAMPTZ DEFAULT NOW(),
         seen_by TEXT[] DEFAULT '{}'
       );
-
-      CREATE INDEX IF NOT EXISTS idx_pm_users 
+      CREATE INDEX IF NOT EXISTS idx_pm_users
       ON private_messages (from_user, to_user);
     `);
     console.log('✓ الجداول جاهزة (users + private_messages)');
@@ -61,7 +57,6 @@ async function initDatabase() {
     console.error('خطأ في تهيئة الجداول:', err);
   }
 }
-
 initDatabase();
 
 // ────────────────────────────────────────────────
@@ -223,12 +218,16 @@ io.on('connection', socket => {
   let currentRoom = null;
   let username = null;
 
+  // دالة مساعدة لإنشاء اسم غرفة خاصة ثابتة بين شخصين
+  function getPrivateRoomName(u1, u2) {
+    return ['private', ...[u1, u2].sort()].join('_');
+  }
+
   socket.on('join', async (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
       username = decoded.username;
       socket.username = username;
-
       if (currentRoom) {
         socket.leave(currentRoom);
         roomCounts[currentRoom]--;
@@ -236,7 +235,6 @@ io.on('connection', socket => {
         io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
         io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
       }
-
       currentRoom = room;
       socket.join(room);
       roomCounts[room]++;
@@ -250,27 +248,24 @@ io.on('connection', socket => {
     }
   });
 
-socket.on('message', async (msg, token) => {
-  try {
-    const decoded = jwt.verify(token, secret);
-    const user = await getUser(decoded.username);
-    
-    if (!user) return;
-
-    const avatar = user.avatar || 'https://via.placeholder.com/40';
-
-    // التعديل هنا: أضفنا الرتبة (role) لكي تصل للشات
-    io.to(currentRoom).emit('message', {
-      username: decoded.username,
-      msg: msg,
-      avatar: avatar,
-      role: user.rank || 'ضيف' 
-    });
-    
-  } catch (e) {
-    console.log("خطأ في التحقق من التوكن أثناء إرسال الرسالة");
-  }
-});
+  socket.on('message', async (msg, token) => {
+    try {
+      const decoded = jwt.verify(token, secret);
+      const user = await getUser(decoded.username);
+     
+      if (!user) return;
+      const avatar = user.avatar || 'https://via.placeholder.com/40';
+      io.to(currentRoom).emit('message', {
+        username: decoded.username,
+        msg: msg,
+        avatar: avatar,
+        role: user.rank || 'ضيف'
+      });
+     
+    } catch (e) {
+      console.log("خطأ في التحقق من التوكن أثناء إرسال الرسالة");
+    }
+  });
 
   // طلب صداقة
   socket.on('send friend request', async (targetUsername) => {
@@ -285,7 +280,6 @@ socket.on('message', async (msg, token) => {
       target.friend_requests.includes(socket.username) ||
       sender.friends.includes(targetUsername)
     ) return;
-
     await pool.query(
       'UPDATE users SET ' +
       'friend_requests = friend_requests || $1::text, ' +
@@ -297,7 +291,6 @@ socket.on('message', async (msg, token) => {
       'UPDATE users SET sent_requests = sent_requests || $1::text WHERE username = $2',
       [targetUsername, socket.username]
     );
-
     sendNotification(targetUsername, {
       type: 'friend_request',
       from: socket.username,
@@ -315,7 +308,6 @@ socket.on('message', async (msg, token) => {
       getUser(fromUsername)
     ]);
     if (!acceptorUser || !senderUser) return;
-
     await pool.query(
       `UPDATE users
        SET friend_requests = friend_requests - $1::text,
@@ -330,7 +322,6 @@ socket.on('message', async (msg, token) => {
        WHERE username = $2`,
       [acceptor, fromUsername]
     );
-
     sendNotification(fromUsername, {
       type: 'friend_accepted',
       from: acceptor,
@@ -356,41 +347,20 @@ socket.on('message', async (msg, token) => {
 
   // ────────────────────── الرسائل الخاصة ──────────────────────
 
-  // جلب آخر الرسائل بين شخصين (عند فتح الدردشة)
-  socket.on('get private messages', async ({ withUser }) => {
-    if (!socket.username || !withUser) return;
-
-    try {
-      const { rows } = await pool.query(`
-        SELECT id, from_user, to_user, message, created_at,
-               $1 = ANY(seen_by) AS seen
-        FROM private_messages
-        WHERE (from_user = $1 AND to_user = $2)
-           OR (from_user = $2 AND to_user = $1)
-        ORDER BY created_at ASC
-        LIMIT 100
-      `, [socket.username, withUser]);
-
-      socket.emit('private messages history', {
-        with: withUser,
-        messages: rows.map(row => ({
-          id: row.id,
-          from: row.from_user,
-          to: row.to_user,
-          text: row.message,
-          time: row.created_at.toISOString(),
-          seen: row.seen
-        }))
-      });
-    } catch (err) {
-      console.error('خطأ جلب الرسائل الخاصة:', err);
-    }
+  // الانضمام للغرفة الخاصة بين شخصين
+  socket.on('join private', (targetUsername) => {
+    if (!socket.username || !targetUsername || socket.username === targetUsername) return;
+    const roomName = getPrivateRoomName(socket.username, targetUsername);
+    socket.join(roomName);
+    // يمكن إرسال تأكيد أو تحميل رسائل سابقة هنا إذا أردت
   });
 
-  // إرسال رسالة خاصة + حفظها
-  socket.on('private message', async ({ to, text }) => {
+  // إرسال رسالة خاصة + حفظها في قاعدة البيانات
+  socket.on('private message', async ({ to, msg }) => {
     const from = socket.username;
-    if (!from || !to || !text?.trim() || from === to) return;
+    if (!from || !to || !msg?.trim() || from === to) return;
+
+    const trimmedMsg = msg.trim();
 
     try {
       const { rows } = await pool.query(`
@@ -398,26 +368,23 @@ socket.on('message', async (msg, token) => {
         (from_user, to_user, message, created_at)
         VALUES ($1, $2, $3, NOW())
         RETURNING id, created_at
-      `, [from, to, text.trim()]);
+      `, [from, to, trimmedMsg]);
 
-      const message = {
-        id: rows[0].id,
+      const messageData = {
         from,
         to,
-        text: text.trim(),
-        time: rows[0].created_at.toISOString(),
-        seen: false
+        msg: trimmedMsg,
+        avatar: (await getUser(from))?.avatar || 'https://via.placeholder.com/30',
+        createdAt: rows[0].created_at.toISOString()
       };
 
-      // إرسال للمرسل والمستقبل إذا متصلين
-      for (const s of io.sockets.sockets.values()) {
-        if (s.username === from || s.username === to) {
-          s.emit('private message', message);
-        }
-      }
+      const roomName = getPrivateRoomName(from, to);
+      io.to(roomName).emit('private message', messageData);
 
-      // إشعار إذا الطرف الثاني غير متصل
-      const isOnline = Array.from(io.sockets.sockets.values()).some(s => s.username === to);
+      // إشعار إذا الشخص غير متصل
+      const isOnline = Array.from(io.sockets.sockets.values())
+        .some(s => s.username === to);
+
       if (!isOnline) {
         sendNotification(to, {
           type: 'private_message',
@@ -426,25 +393,35 @@ socket.on('message', async (msg, token) => {
           time: new Date().toISOString()
         });
       }
+
     } catch (err) {
-      console.error('خطأ في حفظ الرسالة الخاصة:', err);
+      console.error('خطأ في حفظ/إرسال الرسالة الخاصة:', err);
     }
   });
 
-  // تحديث حالة "شوهدت" للرسائل
-  socket.on('mark as seen', async ({ messageIds }) => {
-    if (!socket.username || !Array.isArray(messageIds) || messageIds.length === 0) return;
-
+  // جلب الرسائل السابقة (اختياري - إذا كنت تستخدمه في الفرونت)
+  socket.on('get private messages', async (targetUsername) => {
+    if (!socket.username || !targetUsername) return;
     try {
-      await pool.query(`
-        UPDATE private_messages
-        SET seen_by = array_append(seen_by, $1)
-        WHERE id = ANY($2)
-          AND to_user = $1
-          AND NOT ($1 = ANY(seen_by))
-      `, [socket.username, messageIds]);
+      const { rows } = await pool.query(`
+        SELECT 
+          from_user AS from,
+          to_user AS to,
+          message AS msg,
+          created_at AS "createdAt"
+        FROM private_messages
+        WHERE (from_user = $1 AND to_user = $2)
+           OR (from_user = $2 AND to_user = $1)
+        ORDER BY created_at ASC
+        LIMIT 50
+      `, [socket.username, targetUsername]);
+
+      socket.emit('previous private messages', {
+        withUser: targetUsername,
+        messages: rows
+      });
     } catch (err) {
-      console.error('خطأ في تحديث حالة المشاهدة:', err);
+      console.error('خطأ في جلب الرسائل السابقة:', err);
     }
   });
 
@@ -465,7 +442,6 @@ async function sendNotification(toUsername, notification) {
       'UPDATE users SET notifications = notifications || $1::jsonb WHERE username = $2',
       [JSON.stringify(notification), toUsername]
     );
-
     for (const socket of io.sockets.sockets.values()) {
       if (socket.username === toUsername) {
         socket.emit('new notification', notification);
