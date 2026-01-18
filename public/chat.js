@@ -674,4 +674,30 @@ function giftUserRole(role) {
 function checkUserFullData() {
     const target = document.getElementById('otherUserDisplayName').textContent;
     alert("جارٍ فحص بيانات المستخدم: " + target);
+}// --- كود تفعيل لوحة المالك عند فتح البروفايل ---
+
+// نقوم بمراقبة أي تغيير في "كلاس" المودال
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.attributeName === "class") {
+            const modal = document.getElementById('otherUserProfileModal');
+            const adminPanel = document.getElementById('adminExtraButtons');
+            
+            // جلب اسمك الحالي من النظام
+            const currentLoggedInUser = localStorage.getItem('username');
+
+            // إذا فُتح المودال وكان المستخدم هو mohamed-dz
+            if (!modal.classList.contains('hidden') && currentLoggedInUser === 'mohamed-dz') {
+                if (adminPanel) adminPanel.style.display = 'flex';
+            } else {
+                if (adminPanel) adminPanel.style.display = 'none';
+            }
+        }
+    });
+});
+
+// تشغيل المراقب على مودال البروفايل
+const targetModal = document.getElementById('otherUserProfileModal');
+if (targetModal) {
+    observer.observe(targetModal, { attributes: true });
 }
