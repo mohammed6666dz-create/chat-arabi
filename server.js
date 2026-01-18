@@ -324,6 +324,41 @@ io.on('connection', socket => {
       [rejector, fromUsername]
     );
     socket.emit('request_rejected', fromUsername);
+  });// ─────────────── كود شراء الرتبة مجاناً (يُوضع عند السطر 326) ───────────────
+  socket.on('buy role', async ({ role }) => {
+    if (!socket.username) return;
+
+    try {
+      // التأكد أن الرتبة المطلوبة هي 'premium' أو 'بريميوم'
+      if (role === 'premium' || role === 'بريميوم') {
+        const newRank = 'بريميوم';
+
+        // 1. تحديث الرتبة في قاعدة بيانات PostgreSQL
+        const success = await updateUserFields(socket.username, { rank: newRank });
+
+        if (success) {
+          // 2. إرسال حدث النجاح للمستخدم لتحديث واجهته
+          socket.emit('role purchased', { 
+            role: newRank, 
+            success: true, 
+            message: 'تهانينا! أصبحت الآن عضو بريميوم 💎' 
+          });
+
+          // 3. إرسال إشعار للنظام في الغرفة الحالية ليراه الجميع
+          if (currentRoom) {
+            io.to(currentRoom).emit('message', {
+              username: 'النظام',
+              msg: `🎉 مبروك! البطل ${socket.username} حصل على رتبة بريميوم!`,
+              avatar: 'https://via.placeholder.com/40',
+              role: 'system'
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error updating rank:', err);
+      socket.emit('role purchased', { success: false, message: 'فشل تحديث الرتبة بالسيرفر' });
+    }
   });
   // ────────────────────── الرسائل الخاصة (الإضافة الجديدة فقط) ──────────────────────
   function getPrivateRoomName(u1, u2) {
@@ -416,3 +451,4 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
 });
+
