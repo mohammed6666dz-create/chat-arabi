@@ -61,6 +61,10 @@
   <!-- حقل الرسالة + زر الإيموجي -->
   <form id="messageForm">
     <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
+    <button type="button" id="imageUploadBtn" class="emoji-btn" title="إرسال صورة" onclick="document.getElementById('imageInput').click();">
+  <i class="fas fa-image"></i>
+</button>
+<input type="file" id="imageInput" accept="image/*" style="display:none;">
     <button type="button" id="emojiBtn" class="emoji-btn" title="اختر إيموجي">😊</button>
     <button type="button" id="sendBtn">إرسال</button>
   </form>
