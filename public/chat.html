@@ -51,7 +51,6 @@
       </button>
     </div>
   </header>
-
   <div class="chat-main">
     <div id="chatWindow"></div>
     <div id="usersPanel">
@@ -59,14 +58,12 @@
       <div id="usersList"></div>
     </div>
   </div>
-
   <!-- حقل الرسالة + زر الإيموجي -->
   <form id="messageForm">
     <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
     <button type="button" id="emojiBtn" class="emoji-btn" title="اختر إيموجي">😊</button>
     <button type="button" id="sendBtn">إرسال</button>
   </form>
-
   <!-- لوحة الإيموجي -->
   <div id="emojiPicker" class="emoji-picker hidden">
     <div class="emoji-tabs">
@@ -92,7 +89,6 @@
       </div>
     </div>
   </div>
-
   <!-- بروفايل المستخدم الحالي -->
   <div id="myProfilePanel" class="profile-panel">
     <div class="profile-header">
@@ -135,7 +131,6 @@
       </ul>
     </div>
   </div>
-
   <!-- المتجر -->
   <div id="shopPanel" class="shop-panel" style="display:none;">
     <div class="shop-header">
@@ -176,7 +171,6 @@
       </div>
     </div>
   </div>
-
   <!-- لوحة النقاط والمستوى -->
   <div id="levelPointsPanel" class="level-panel hidden">
     <div class="level-panel-content">
@@ -206,12 +200,10 @@
       </div>
     </div>
   </div>
-
   <!-- ملف المستخدم الآخر (الـ modal) -->
   <div id="otherUserProfileModal" class="other-profile-modal hidden">
     <div class="modal-content">
       <span class="close-modal" onclick="closeOtherUserProfile()">×</span>
-
       <!-- الأزرار الإدارية (تظهر فقط للمالك/المديرة) -->
       <div id="adminExtraButtons" style="margin-bottom: 20px; display: none;">
         <button id="checkProfileBtn" style="width:100%; padding:12px; margin-bottom:10px; background:#4f46e5; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
@@ -221,7 +213,6 @@
           أوامر الإدارة ⚡
         </button>
       </div>
-
       <div class="profile-cover" id="otherUserCover"></div>
       <div class="profile-header-info">
         <img id="otherUserAvatarLarge" src="https://via.placeholder.com/140" alt="صورة المستخدم" class="large-avatar">
@@ -230,13 +221,11 @@
           <p id="otherUserStatus" class="status-text">We will meet in Paradise</p>
         </div>
       </div>
-
       <div class="profile-actions">
         <button class="action-btn msg-btn" id="sendPrivateMsgBtn">رسالة خاصة</button>
         <button class="action-btn friend-btn" id="addFriendFromProfile">إضافة صديق</button>
         <button class="action-btn report-btn">إبلاغ</button>
       </div>
-
       <div class="profile-details">
         <div class="detail-item">
           <span>رابط الملف</span>
@@ -259,7 +248,6 @@
           <span id="otherPoints">1821</span>
         </div>
       </div>
-
       <div id="adminRankControls" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center; display: none;">
         <button onclick="toggleRankList()" style="background:#fbbf24; color:black; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
           <i class="fas fa-gift"></i> إهداء رتبة
@@ -274,13 +262,10 @@
       </div>
     </div>
   </div>
-
   <div id="userProfilePanel" class="user-profile-panel">...</div>
   <div id="privateChatPanel" class="private-chat-panel">...</div>
   <div id="friendRequestsPanel" class="friend-requests-panel">...</div>
-
   <script src="chat.js"></script>
-
   <!-- السكريبت الإضافي -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -297,7 +282,6 @@
         showBtn.style.display = 'none';
         hideBtn.style.display = 'inline-block';
       });
-
       // معاينة الخلفية
       const coverUpload = document.getElementById('coverUpload');
       const myCoverPhoto = document.getElementById('myCoverPhoto');
@@ -313,7 +297,6 @@
           }
         });
       }
-
       // فتح/إغلاق المتجر
       document.getElementById('shopBtn')?.addEventListener('click', () => {
         document.getElementById('shopPanel').style.display = 'block';
@@ -321,7 +304,6 @@
       document.getElementById('closeShop')?.addEventListener('click', () => {
         document.getElementById('shopPanel').style.display = 'none';
       });
-
       // فتح/إغلاق لوحة النقاط
       const levelBtn = document.getElementById('myLevelBtn');
       const levelPanel = document.getElementById('levelPointsPanel');
@@ -339,7 +321,6 @@
           levelPanel.classList.add('hidden');
         });
       }
-
       // الإيموجي
       const emojiBtn = document.getElementById('emojiBtn');
       const emojiPicker = document.getElementById('emojiPicker');
