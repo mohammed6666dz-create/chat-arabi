@@ -3,11 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>moh-chat</title>
-  <meta name="description" content="Moh Chat - دردشة عربية مجانية بدون تسجيل، تواصل مع أصدقاء جدد بسهولة وآمان">
-<meta name="keywords" content="شات عربي، دردشة، moh-chat، شات بدون تسجيل، محادثة جماعية">
-<meta name="author" content="Moh Chat">
-  <link rel="icon" href="/favicon.ico.png" type="image/png">
+  <title>الشات - شات عربي</title>
   <link rel="stylesheet" href="chat.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="/socket.io/socket.io.js"></script>
@@ -58,16 +54,15 @@
       <div id="usersList"></div>
     </div>
   </div>
-  <!-- حقل الرسالة + زر الإيموجي -->
-  <form id="messageForm">
-    <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
-    <button type="button" id="imageUploadBtn" class="emoji-btn" title="إرسال صورة" onclick="document.getElementById('imageInput').click();">
-  <i class="fas fa-image"></i>
-</button>
-<input type="file" id="imageInput" accept="image/*" style="display:none;">
-    <button type="button" id="emojiBtn" class="emoji-btn" title="اختر إيموجي">😊</button>
-    <button type="button" id="sendBtn">إرسال</button>
-  </form>
+  <!-- ╔════════════════════════════════════════════════════════════╗ -->
+  <!-- ║ حقل الرسالة + زر الإيموجي ║ -->
+  <!-- ╚════════════════════════════════════════════════════════════╝ -->
+<!-- النسخة الأصلية المعدلة قليلاً -->
+<form id="messageForm">
+  <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
+  <button type="button" id="emojiBtn" class="emoji-btn" title="اختر إيموجي">😊</button>
+  <button type="submit">إرسال</button>
+</form>
   <!-- لوحة الإيموجي -->
   <div id="emojiPicker" class="emoji-picker hidden">
     <div class="emoji-tabs">
@@ -75,12 +70,14 @@
       <button class="emoji-tab" data-tab="animated">متحركة</button>
     </div>
     <div class="emoji-content">
+      <!-- الإيموجي العادية (الافتراضية) -->
       <div id="tab-common" class="emoji-grid">
         😊 😂 😍 ❤️ 🔥 👍 👏 🙌 ✨ 🌟 😎 😭 🥺 🤩 🥳 🎉 🎂 🎁 ⚡ 💥 💯
         ❤️‍🔥 🫶 🥰 😘 😋 🤤 😴 😷 🤢 🤮 🥵 🥶 🤯 🤔 🤫 🤭 🧐
         👀 👄 💋 🫦 👅 🧠 🫀 🫁 🦷 🦴 👣 🖐️ ✌️ 🤟 🤘 👌 👈 👉 ☝️
         🙏 🤲 👐 👏 🤝 💪 ✊ 👊 🤛 🤜 👋 🖖 🤙 🖕
       </div>
+      <!-- الإيموجي المتحركة (gif) -->
       <div id="tab-animated" class="emoji-grid animated-emojis hidden">
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/25.gif" alt="قوة" title="نقوة">
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/26.gif" alt="قلب" title="قلب">
@@ -90,15 +87,17 @@
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/28.gif" alt="استحمام" title="استحمام">
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/4.gif" alt="صوره" title="صوره">
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/2.gif" alt="دراسه" title="دراسه">
+        <!-- أضف المزيد من الروابط إذا أردت -->
       </div>
     </div>
   </div>
-  <!-- بروفايل المستخدم الحالي -->
+  <!-- لوحة البروفايل الشخصي (مع التحسينات الجديدة) -->
   <div id="myProfilePanel" class="profile-panel">
     <div class="profile-header">
       <h3>بروفايلك</h3>
       <span id="closeMyProfile" class="close-panel">×</span>
     </div>
+    <!-- الخلفية الجديدة (Cover) -->
     <div class="profile-cover-section">
       <div class="cover-photo" id="myCoverPhoto" style="background-image: url('https://via.placeholder.com/800x200/0f172a/ffffff?text=خلفيتك+هنا');"></div>
       <div class="profile-cover-overlay">
@@ -118,12 +117,14 @@
       </div>
       <h4 id="myProfileUsername">اسم المستخدم</h4>
     </div>
+    <!-- تبويبات مشابهة للصورة التي أرسلتها -->
     <div class="profile-tabs">
       <button class="tab-btn active"><i class="fas fa-trophy"></i> المزيد</button>
       <button class="tab-btn"><i class="fas fa-star"></i> المميزات</button>
       <button class="tab-btn"><i class="fas fa-gift"></i> الهدايا</button>
       <button class="tab-btn"><i class="fas fa-cog"></i> الإعدادات</button>
     </div>
+    <!-- محتوى التبويبات (يمكنك توسيعها لاحقاً) -->
     <div class="profile-tab-content">
       <ul>
         <li><i class="fas fa-edit"></i> تحرير البيانات</li>
@@ -135,7 +136,7 @@
       </ul>
     </div>
   </div>
-  <!-- المتجر -->
+  <!-- باقي الأقسام كما هي بدون أي تغيير -->
   <div id="shopPanel" class="shop-panel" style="display:none;">
     <div class="shop-header">
       <h3>المتجر</h3>
@@ -143,7 +144,9 @@
     </div>
     <div class="shop-body">
       <h4>رصيد نقاطك: <span id="myPoints">0</span></h4>
+   
       <div class="shop-items">
+        <!-- سوبر أدمن -->
         <div class="shop-item">
           <div class="item-info">
             <span class="badge superadmin">سوبر أدمن ⚙️</span>
@@ -151,6 +154,7 @@
           </div>
           <button class="buy-btn" data-role="superadmin" data-price="5000">شراء</button>
         </div>
+        <!-- أدمن -->
         <div class="shop-item">
           <div class="item-info">
             <span class="badge admin">أدمن 🔰</span>
@@ -158,6 +162,7 @@
           </div>
           <button class="buy-btn" data-role="admin" data-price="3000">شراء</button>
         </div>
+        <!-- بريميوم -->
         <div class="shop-item">
           <div class="item-info">
             <span class="badge premium">بريميوم 💎</span>
@@ -165,6 +170,7 @@
           </div>
           <button class="buy-btn" data-role="premium" data-price="1500">شراء</button>
         </div>
+        <!-- VIP -->
         <div class="shop-item">
           <div class="item-info">
             <span class="badge vip">VIP ★</span>
@@ -175,18 +181,19 @@
       </div>
     </div>
   </div>
-  <!-- لوحة النقاط والمستوى -->
   <div id="levelPointsPanel" class="level-panel hidden">
     <div class="level-panel-content">
       <div class="level-header">
         <h3>نقاطي ومستواي</h3>
         <span class="close-level-panel">×</span>
       </div>
+    
       <div class="level-main-info">
         <div class="level-circle">
           <span class="current-level">1</span>
           <span class="level-label">المستوى</span>
         </div>
+      
         <div class="points-info">
           <div class="points-number">
             <span id="myRealPoints">1</span>
@@ -204,26 +211,9 @@
       </div>
     </div>
   </div>
- 
-     
-
-      </div>
-  <div id="adminExtraButtons" style="display: none; flex-direction: column; gap: 10px; border: 2px solid #dc2626; padding: 15px; border-radius: 12px; background: #fff1f2; margin-bottom: 20px;">
-        <p style="text-align: center; font-weight: bold; color: #dc2626; margin: 0; font-size: 0.9rem;">لوحة المالك 👑</p>
-        
-        <div style="display: flex; gap: 10px;">
-          <button onclick="checkUserFullData()" style="flex: 1; padding: 10px; background: #4f46e5; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.8rem;">فحص الملف 🔍</button>
-          <button onclick="toggleRankListMenu()" style="flex: 1; padding: 10px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.8rem;">إهداء رتبة 🎁</button>
-        </div>
-
-        <div id="ranksListMenu" style="display:none; margin-top:10px; background:white; padding:10px; border-radius:8px; border: 1px solid #ddd; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <button onclick="giftUserRole('superadmin')" style="background:#6d28d9; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-size: 0.75rem;">سوبر أدمن</button>
-          <button onclick="giftUserRole('admin')" style="background:#3b82f6; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-size: 0.75rem;">أدمن</button>
-          <button onclick="giftUserRole('premium')" style="background:#10b981; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-size: 0.75rem;">بريميوم</button>
-          <button onclick="giftUserRole('vip')" style="background:#f59e0b; color:black; border:none; padding:8px; border-radius:4px; cursor:pointer; font-size: 0.75rem;">VIP ★</button>
-          <button onclick="giftUserRole('guest')" style="background:#64748b; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">سحب الرتبة (عضو)</button>
-        </div>
-      </div>
+  <div id="otherUserProfileModal" class="other-profile-modal hidden">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeOtherUserProfile()">×</span>
       <div class="profile-cover" id="otherUserCover"></div>
       <div class="profile-header-info">
         <img id="otherUserAvatarLarge" src="https://via.placeholder.com/140" alt="صورة المستخدم" class="large-avatar">
@@ -258,17 +248,17 @@
           <span>النقاط</span>
           <span id="otherPoints">1821</span>
         </div>
-      </div>
-      <div id="adminRankControls" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center; display: none;">
-        <button onclick="toggleRankList()" style="background:#fbbf24; color:black; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
-          <i class="fas fa-gift"></i> إهداء رتبة
-        </button>
-        <div id="ranksListMenu" style="display:none; margin-top:10px; background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; grid-template-columns: 1fr 1fr; gap:8px;">
-          <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'superadmin')" style="background:#6d28d9; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">سوبر أدمن</button>
-          <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'admin')" style="background:#3b82f6; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">أدمن</button>
-          <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'premium')" style="background:#10b981; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">بريميوم</button>
-          <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'vip')" style="background:#f59e0b; color:black; border:none; padding:8px; border-radius:4px; cursor:pointer;">VIP</button>
-          <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'guest')" style="background:#ef4444; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">سحب الرتبة</button>
+        <div id="adminRankControls" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center; display: none;">
+            <button onclick="toggleRankList()" style="background:#fbbf24; color:black; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <i class="fas fa-gift"></i> إهداء رتبة
+            </button>
+            <div id="ranksListMenu" style="display:none; margin-top:10px; background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; grid-template-columns: 1fr 1fr; gap:8px;">
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'superadmin')" style="background:#6d28d9; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">سوبر أدمن</button>
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'admin')" style="background:#3b82f6; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">أدمن</button>
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'premium')" style="background:#10b981; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">بريميوم</button>
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'vip')" style="background:#f59e0b; color:black; border:none; padding:8px; border-radius:4px; cursor:pointer;">VIP</button>
+                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'guest')" style="background:#ef4444; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">سحب الرتبة</button>
+            </div>
         </div>
       </div>
     </div>
@@ -277,7 +267,7 @@
   <div id="privateChatPanel" class="private-chat-panel">...</div>
   <div id="friendRequestsPanel" class="friend-requests-panel">...</div>
   <script src="chat.js"></script>
-  <!-- السكريبت الإضافي -->
+  <!-- السكريبت الإضافي للتحكم باللوحة + الإيموجي -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const usersPanel = document.getElementById('usersPanel');
@@ -293,7 +283,7 @@
         showBtn.style.display = 'none';
         hideBtn.style.display = 'inline-block';
       });
-      // معاينة الخلفية
+      // معاينة الخلفية الجديدة عند الاختيار
       const coverUpload = document.getElementById('coverUpload');
       const myCoverPhoto = document.getElementById('myCoverPhoto');
       if (coverUpload && myCoverPhoto) {
@@ -308,14 +298,14 @@
           }
         });
       }
-      // فتح/إغلاق المتجر
+      // فتح وإغلاق المتجر
       document.getElementById('shopBtn')?.addEventListener('click', () => {
         document.getElementById('shopPanel').style.display = 'block';
       });
       document.getElementById('closeShop')?.addEventListener('click', () => {
         document.getElementById('shopPanel').style.display = 'none';
       });
-      // فتح/إغلاق لوحة النقاط
+      // فتح وإغلاق نافذة نقاطي ومستواي
       const levelBtn = document.getElementById('myLevelBtn');
       const levelPanel = document.getElementById('levelPointsPanel');
       const closeLevel = document.querySelector('.close-level-panel');
@@ -332,7 +322,9 @@
           levelPanel.classList.add('hidden');
         });
       }
-      // الإيموجي
+      // ╔════════════════════════════════════════════════════════════╗
+      // ║ الإيموجي الجديدة ║
+      // ╚════════════════════════════════════════════════════════════╝
       const emojiBtn = document.getElementById('emojiBtn');
       const emojiPicker = document.getElementById('emojiPicker');
       const messageInput = document.getElementById('messageInput');
@@ -346,6 +338,7 @@
             emojiPicker.classList.add('hidden');
           }
         });
+        // تبديل التبويبات
         document.querySelectorAll('.emoji-tab').forEach(tab => {
           tab.addEventListener('click', () => {
             document.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
@@ -354,11 +347,13 @@
             document.getElementById(`tab-${tab.dataset.tab}`).classList.remove('hidden');
           });
         });
+        // إضافة إيموجي عادية
         document.getElementById('tab-common')?.addEventListener('click', e => {
           if (e.target.tagName === 'SPAN') {
             insertAtCursor(messageInput, e.target.textContent.trim());
           }
         });
+        // إضافة إيموجي متحركة (حالياً نضيف النص الموجود في alt)
         document.getElementById('tab-animated')?.addEventListener('click', e => {
           if (e.target.tagName === 'IMG') {
             insertAtCursor(messageInput, e.target.alt);
@@ -375,4 +370,4 @@
     });
   </script>
 </body>
-</html>
+</html> ا
