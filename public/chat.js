@@ -181,7 +181,27 @@ function getUserBadge(username, role = 'guest') {
             return '<span class="badge guest">ضيف</span>';
     }
 }
+// --- كود معالجة إرسال الصور (يتم وضعه عند السطر 184 تقريباً) ---
+document.getElementById('imageInput')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
 
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const imageData = event.target.result;
+        // نجهز وسم الصورة لإرساله
+        const imgTag = `<img src="${imageData}" style="max-width:100%; border-radius:10px; display:block; margin-top:5px; cursor:pointer;" onclick="window.open(this.src)">`;
+        
+        // إرسال الصورة كرسالة
+        socket.emit('message', imgTag, token);
+        
+        // زيادة نقاطك عند إرسال صورة
+        myPoints++;
+        updatePointsLevelDisplay();
+    };
+    reader.readAsDataURL(file);
+    this.value = ''; // تفريغ الحقل لاختيار صورة أخرى لاحقاً
+});
 // ─────────────── دالة إضافة الرسالة (تم التعديل لعرض HTML) ───────────────
 function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     const chatWindow = document.getElementById('chatWindow');
