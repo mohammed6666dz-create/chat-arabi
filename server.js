@@ -359,7 +359,28 @@ io.on('connection', socket => {
       console.error('Error updating rank:', err);
       socket.emit('role purchased', { success: false, message: 'فشل تحديث الرتبة بالسيرفر' });
     }
-  });
+  });// --- كود استقبال أمر إهداء الرتبة من المالك (يتم وضعه في السطر 363) ---
+socket.on('change-rank-gift', async ({ targetUsername, newRank }) => {
+    try {
+        // 1. تحديث الرتبة في قاعدة البيانات للعضو المختار
+        const success = await updateUserFields(targetUsername, { rank: newRank });
+
+        if (success) {
+            // 2. إرسال إعلان للجميع في الدردشة عن الترقية
+            io.emit('message', {
+                username: 'النظام',
+                msg: `🎊 مبارك! لقد منح المالك رتبة [ ${newRank} ] للبطل [ ${targetUsername} ]`,
+                avatar: 'https://via.placeholder.com/40',
+                role: 'system'
+            });
+
+            // 3. تحديث فوري لواجهة المستخدم للشخص الذي تم ترقيته
+            io.emit('rank updated', { username: targetUsername, rank: newRank });
+        }
+    } catch (err) {
+        console.error('Error during rank gift:', err);
+    }
+});
   // ────────────────────── الرسائل الخاصة (الإضافة الجديدة فقط) ──────────────────────
   function getPrivateRoomName(u1, u2) {
     return ['private', ...[u1, u2].sort()].join('_');
@@ -451,4 +472,5 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
 });
+
 
