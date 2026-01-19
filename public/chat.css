@@ -1067,72 +1067,81 @@ header h1 {
 }
 .emoji-content::-webkit-scrollbar-thumb:hover {
   background: #075e54;
-}/* --- أكواد التجاوب لجعل الموقع يعمل على كل الأجهزة --- */
-
-/* 1. للهواتف والأجهزة اللوحية (العرض أقل من 768px) */
+}/* --- تعديلات الهاتف الاحترافية --- */
 @media (max-width: 768px) {
-  body {
-    overflow-x: hidden; /* لمنع التمرير الجانبي المزعج في الجوال */
-  }
+    /* 1. منع التمرير الأفقي وضبط الارتفاع */
+    body {
+        height: 100dvh !important; /* ملء الشاشة بدقة على الجوال */
+        overflow: hidden !important;
+    }
 
-  /* ترتيب العناصر بشكل عمودي */
-  .chat-main {
-    flex-direction: column;
-  }
+    /* 2. تحويل الشات لنمط طولي */
+    .chat-main {
+        flex-direction: column !important;
+    }
 
-  /* إخفاء لوحة المستخدمين الجانبية في الجوال لتوسيع الشات */
-  #usersPanel {
-    display: none; 
-    position: fixed;
-    right: 0;
-    top: 60px;
-    width: 280px;
-    height: calc(100vh - 60px);
-    z-index: 999;
-  }
+    /* 3. إخفاء لوحة المستخدمين (لأنها تأخذ مساحة كبيرة) */
+    #usersPanel {
+        display: none !important;
+    }
 
-  /* جعل نافذة الشات تأخذ كامل العرض */
-  #chatWindow {
-    flex: 1;
-    padding: 10px;
-    width: 100%;
-  }
+    /* 4. جعل نافذة الرسائل تأخذ كامل المساحة */
+    #chatWindow {
+        flex: 1 !important;
+        width: 100% !important;
+        padding: 10px !important;
+    }
 
-  /* تصغير حجم الرسائل لتناسب الشاشة الصغيرة */
-  .message {
-    max-width: 85%;
-  }
+    /* 5. إصلاح عرض الرسائل */
+    .message {
+        max-width: 88% !important;
+    }
+    
+    .message-content {
+        font-size: 14px !important;
+    }
 
-  /* تصغير الهيدر قليلاً */
-  header h1 {
-    font-size: 18px;
-  }
+    /* 6. إصلاح النوافذ المنبثقة (البروفايل، المتجر، الإيموجي) */
+    /* هذا الجزء سيجعل أي نافذة تظهر في وسط الشاشة بشكل مرتب */
+    .profile-panel, 
+    .user-profile-panel, 
+    .private-chat-panel, 
+    .friend-requests-panel,
+    .shop-panel .shop-body,
+    .level-panel-content {
+        width: 92% !important;
+        left: 4% !important;
+        right: 4% !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        position: fixed !important;
+        margin: 0 !important;
+        max-height: 80vh !important;
+        overflow-y: auto !important;
+    }
+
+    /* 7. تعديل شريط الكتابة في الأسفل */
+    #messageForm {
+        padding: 8px !important;
+        gap: 8px !important;
+    }
+
+    #messageInput {
+        padding: 10px 15px !important;
+    }
+
+    #messageForm button {
+        width: 45px !important;
+        height: 45px !important;
+        min-width: 45px !important;
+    }
+
+    /* 8. تصغير الهيدر العلوي */
+    header {
+        padding: 8px 15px !important;
+    }
+    
+    header h1 {
+        font-size: 17px !important;
+    }
 }
-
-/* 2. إصلاح النوافذ المنبثقة (البروفايل، المتجر، الإيموجي) في الجوال */
-@media (max-width: 480px) {
-  .profile-panel, 
-  .private-chat-panel, 
-  .friend-requests-panel,
-  .emoji-picker {
-    width: 94% !important;
-    right: 3% !important;
-    left: 3% !important;
-    bottom: 80px !important;
-    max-height: 70vh;
-  }
-
-  /* تعديل شبكة الإيموجي لتكون واضحة في الجوال */
-  .emoji-grid {
-    grid-template-columns: repeat(6, 1fr);
-    gap: 10px;
-  }
-
-  /* تصغير أزرار الأكشن في البروفايل */
-  .profile-action-buttons {
-    flex-direction: row;
-    gap: 5px;
-  }
-}
-
-/* 3. للكمبيوتر (الشاشات الكبيرة) لضمان ثبات القائمة الجانبية */
