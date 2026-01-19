@@ -12,7 +12,7 @@ const http = require('http').createServer(app);
 const cloudinary = require('cloudinary').v2;
 cloudinary.config({
   cloud_name: 'dgfqrprus',
-  api_key: '921168538269784',
+  api_key: '156257997776869',
   api_secret: 'R_38erQJWoAgw6XQr9BjzvQdAAU'
 });
 const io = require('socket.io')(http);
@@ -482,4 +482,5 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
 });
+
 
