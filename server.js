@@ -179,7 +179,11 @@ app.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res
     const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
     
     // 2. الرفع إلى Cloudinary للحصول على رابط دائم
-    const result = await cloudinary.uploader.upload(dataURI, { folder: "avatars" });
+    // استبدل السطر 182 بهذا الكود المعدل:
+const result = await cloudinary.uploader.upload(dataURI, { 
+    folder: "avatars",
+    upload_preset: "ywfrua3f"  // أضفنا هذا السطر ليعمل الرفع
+});
     
     // 3. تحديث قاعدة البيانات بالرابط الجديد (الذي يبدأ بـ https)
     const success = await updateUserFields(req.user.username, { avatar: result.secure_url });
@@ -192,7 +196,11 @@ app.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res
 });
 
 app.post('/upload-background', verifyToken, upload.single('background'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
+// استبدل السطر 199 بهذا الكود المعدل:
+const result = await cloudinary.uploader.upload(dataURI, { 
+    folder: "backgrounds", 
+    upload_preset: "ywfrua3f" // أضفنا هذا السطر ليعمل الرفع بنجاح
+});
   try {
     const b64 = Buffer.from(req.file.buffer).toString("base64");
     const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
@@ -497,6 +505,7 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
 });
+
 
 
 
