@@ -57,18 +57,6 @@ socket.on('system message', (msg) => {
     document.getElementById('chatWindow').appendChild(div);
     scrollToBottom();
 });
-// استقبال إشعار الطاق الخاص (يصل فقط للشخص المذكور)
-socket.on('mention notification', ({ from, room }) => {
-    mentionSound.currentTime = 0;
-    mentionSound.play().catch(err => {
-        console.log("مشكلة تشغيل صوت الطاق:", err);
-    });
-    const note = document.createElement('div');
-    note.className = 'system-message mention-alert';
-    note.innerHTML = `🐦 طاق من <strong>${from}</strong> في الغرفة!`;
-    document.getElementById('chatWindow').appendChild(note);
-    scrollToBottom();
-});
 // ─────────────── إرسال رسالة + زيادة نقطة ───────────────
 document.getElementById('messageForm').addEventListener('submit', (e) => {
     e.preventDefault();
