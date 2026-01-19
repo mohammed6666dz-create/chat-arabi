@@ -303,7 +303,28 @@ io.on('connection', socket => {
     } catch (e) {
       console.log('خطأ في join:', e.message);
     }
-  });
+  });socket.on('buy role', async ({ role }) => {
+      if (socket.username && role === 'premium') {
+        try {
+          // تحديث الرتبة في قاعدة البيانات (PostgreSQL)
+          await pool.query('UPDATE users SET rank = $1 WHERE username = $2', ['premium', socket.username]);
+          
+          // إشعار المستخدم بنجاح العملية
+          socket.emit('role purchased', { success: true, role: 'premium' });
+  
+          // تحديث رتبة المستخدم أمام الجميع في الشات فوراً
+          io.emit('rank update', { 
+            username: socket.username, 
+            rank: 'premium' 
+          });
+  
+          console.log(`✅ تم ترقية ${socket.username} إلى بريميوم`);
+        } catch (err) {
+          console.error('خطأ في تحديث الرتبة:', err);
+        }
+      }
+    });
+  
 
   socket.on('message', async (msg, token) => {
     try {
@@ -324,6 +345,9 @@ io.on('connection', socket => {
       // إرسال الرسالة للجميع في الغرفة
       io.to(currentRoom).emit('message', {
         username: decoded.username,
+        msg,
+        avatar,
+        role: user.rank || 'ضيف' // <--- هذا السطر الناقص أضفته لك الآن
         msg: msg,
         avatar: avatar,
         role: role
