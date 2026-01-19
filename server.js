@@ -173,16 +173,30 @@ app.get('/profile', verifyToken, async (req, res) => {
 });
 app.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res) => {
   if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
+  
   try {
-    // 1. تحويل الصورة المرفوعة لرفعها سحابياً
+    // 1. تحويل الصورة إلى بيانات نصية (Base64)
     const b64 = Buffer.from(req.file.buffer).toString("base64");
     const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
     
-    // 2. الرفع إلى Cloudinary للحصول على رابط دائم
-    // استبدل السطر 182 بهذا الكود المعدل:
-const result = await cloudinary.uploader.upload(dataURI, { 
-    folder: "avatars",
-    upload_preset: "ywfrua3f"  // أضفنا هذا السطر ليعمل الرفع
+    // 2. الرفع إلى Cloudinary باستخدام الإذن المفتوح (ywfrua3f)
+    const result = await cloudinary.uploader.upload(dataURI, { 
+        folder: "avatars",
+        upload_preset: "ywfrua3f" 
+    });
+    
+    // 3. تحديث قاعدة بيانات المستخدم برابط الصورة الجديد
+    const success = await updateUserFields(req.user.username, { avatar: result.secure_url });
+    
+    if (!success) return res.status(500).json({ msg: 'خطأ في حفظ الرابط بقاعدة البيانات' });
+    
+    // إرسال الرابط الجديد للمتصفح لتحديث الصورة فوراً
+    res.json({ avatar: result.secure_url });
+
+  } catch (err) {
+    console.error("خطأ الرفع:", err);
+    res.status(500).json({ msg: 'فشل الرفع السحابي' });
+  }
 });
     
     // 3. تحديث قاعدة البيانات بالرابط الجديد (الذي يبدأ بـ https)
@@ -505,6 +519,7 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
 });
+
 
 
 
