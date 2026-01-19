@@ -1145,3 +1145,32 @@ header h1 {
         font-size: 17px !important;
     }
 }
+/* ────────────────────────────────────────────────
+   إصلاح نهائي لمشكلة المنشن (الطاق) - سطر 1148
+───────────────────────────────────────────────── */
+
+/* 1. إصلاح ظهور المنشن بشكل مرتب (الاسم + الرمز) */
+.mention, [data-mention] {
+    display: inline-block !important;
+    direction: ltr !important; /* جعل التاق يقرأ من اليسار لليمين لضمان مكان الـ @ */
+    unicode-bidi: isolate !important; /* عزل التاق عن الكلام العربي المحيط به */
+    white-space: nowrap !important; /* منع انقسام التاق لسطرين */
+    color: #3b82f6 !important; /* اللون الأزرق الظاهر في صورتك */
+    font-weight: bold !important;
+    padding: 0 2px !important;
+}
+
+/* 2. تحسين سطر الاسم في الرسالة ليدعم الزخرفة الطويلة */
+.username-line {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 5px !important;
+    max-width: 100% !important;
+}
+
+/* 3. التأكد من أن الحروف المزخرفة لا تخرج عن الإطار */
+.message-content {
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+}
