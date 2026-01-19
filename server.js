@@ -343,16 +343,13 @@ io.on('connection', socket => {
       );
 
       // إرسال الرسالة للجميع في الغرفة
+     // إرسال الرسالة للجميع في الغرفة بشكل صحيح
       io.to(currentRoom).emit('message', {
         username: decoded.username,
-        msg,
-        avatar,
-        role: user.rank || 'ضيف' // <--- هذا السطر الناقص أضفته لك الآن
         msg: msg,
         avatar: avatar,
-        role: role
+        role: user.rank || 'ضيف'
       });
-
       // ────────────── معالجة المنشن (الطاق) ──────────────
       const mentionRegex = /@(\w+)/g;
       let match;
