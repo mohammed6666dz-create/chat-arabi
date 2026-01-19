@@ -2,29 +2,23 @@ const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 if (!token) {
     window.location.href = 'index.html';
 }
-
 const socket = io();
-
 const params = new URLSearchParams(window.location.search);
 const room = params.get('room');
 if (!room) {
     window.location.href = 'rooms.html';
 }
-
 let myUsername = '';
 let myAvatar = 'https://via.placeholder.com/40';
 let currentPrivateChat = null;
 // ─────────────── إضافة نظام النقاط والمستويات ───────────────
 let myPoints = 1; // القيمة الافتراضية لأول مرة
 let myLevel = 1;
-
 // صوت الطاق (عصفور)
 // استخدام الرابط المحلي للملف الذي رفعته
-const mentionSound = new Audio('./bird-chirp-short.mp3'); 
+const mentionSound = new Audio('./bird-chirp-short.mp3');
 mentionSound.volume = 0.7;
-
 socket.emit('join', room, token);
-
 socket.on('previous messages', (messages) => {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.innerHTML = '';
@@ -33,7 +27,6 @@ socket.on('previous messages', (messages) => {
     });
     scrollToBottom();
 });
-
 socket.on('update users', (users) => {
     document.getElementById('userCount').innerText = users.length;
     const list = document.getElementById('usersList');
@@ -54,11 +47,9 @@ socket.on('update users', (users) => {
         list.appendChild(div);
     });
 });
-
 socket.on('message', ({ username, msg, avatar, role }) => {
     appendMessage(username, msg, avatar, username === myUsername, role || 'guest');
 });
-
 socket.on('system message', (msg) => {
     const div = document.createElement('div');
     div.className = 'system-message';
@@ -66,21 +57,18 @@ socket.on('system message', (msg) => {
     document.getElementById('chatWindow').appendChild(div);
     scrollToBottom();
 });
-
 // استقبال إشعار الطاق الخاص (يصل فقط للشخص المذكور)
 socket.on('mention notification', ({ from, room }) => {
     mentionSound.currentTime = 0;
     mentionSound.play().catch(err => {
         console.log("مشكلة تشغيل صوت الطاق:", err);
     });
-
     const note = document.createElement('div');
     note.className = 'system-message mention-alert';
     note.innerHTML = `🐦 طاق من <strong>${from}</strong> في الغرفة!`;
     document.getElementById('chatWindow').appendChild(note);
     scrollToBottom();
 });
-
 // ─────────────── إرسال رسالة + زيادة نقطة ───────────────
 document.getElementById('messageForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -94,14 +82,12 @@ document.getElementById('messageForm').addEventListener('submit', (e) => {
         updatePointsLevelDisplay();
     }
 });
-
 // ─────────────── استقبال تحديث النقاط والمستوى من السيرفر ───────────────
 socket.on('your points updated', ({ points, level }) => {
     myPoints = points;
     myLevel = level;
     updatePointsLevelDisplay();
 });
-
 // ─────────────── إعلان صعود مستوى في الشات العام ───────────────
 socket.on('level up broadcast', ({ username, newLevel }) => {
     const div = document.createElement('div');
@@ -113,7 +99,6 @@ socket.on('level up broadcast', ({ username, newLevel }) => {
     document.getElementById('chatWindow').appendChild(div);
     scrollToBottom();
 });
-
 // ─────────────── دالة تحديث عرض النقاط والمستوى في اللوحة ───────────────
 function updatePointsLevelDisplay() {
     const pointsEl = document.getElementById('myRealPoints');
@@ -126,7 +111,6 @@ function updatePointsLevelDisplay() {
     const progressPercent = (myPoints % 100);
     if (progress) progress.style.width = `${progressPercent}%`;
 }
-
 // ─────────────── فتح لوحة نقاطي ومستواي ───────────────
 document.getElementById('myLevelBtn')?.addEventListener('click', () => {
     const panel = document.getElementById('levelPointsPanel');
@@ -138,7 +122,6 @@ document.getElementById('myLevelBtn')?.addEventListener('click', () => {
         updatePointsLevelDisplay();
     }
 });
-
 // ─────────────── إغلاق لوحة نقاطي ومستواي ───────────────
 document.querySelector('.close-level-panel')?.addEventListener('click', () => {
     const panel = document.getElementById('levelPointsPanel');
@@ -147,32 +130,30 @@ document.querySelector('.close-level-panel')?.addEventListener('click', () => {
         panel.style.display = 'none';
     }
 });
-
 // ─────────────── جعل البريميوم مجاني في المتجر ───────────────
 document.querySelectorAll('.buy-btn[data-role="premium"]').forEach(btn => {
     btn.addEventListener('click', function() {
         const role = this.getAttribute('data-role');
-   
+  
         socket.emit('buy role', { role: role });
-   
+  
         const originalText = this.textContent;
         this.textContent = 'جاري الشراء...';
         this.disabled = true;
-   
+  
         setTimeout(() => {
             this.textContent = originalText;
             this.disabled = false;
         }, 1500);
     });
 });
-
 socket.on('role purchased', ({ role, success, message }) => {
     if (success) {
         loadMyProfile();
         const chatWindow = document.getElementById('chatWindow');
         const div = document.createElement('div');
         div.className = 'system-message';
-       
+      
         div.style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
         div.style.color = '#fff';
         div.style.fontWeight = 'bold';
@@ -181,16 +162,15 @@ socket.on('role purchased', ({ role, success, message }) => {
         div.style.margin = '10px 0';
         div.style.textAlign = 'center';
         div.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.3)';
-       
+      
         div.innerHTML = `💎 مبروك! البطل <strong>${myUsername}</strong> حصل على رتبة <strong>${role.toUpperCase()}</strong> 🎉`;
-       
+      
         chatWindow.appendChild(div);
         scrollToBottom();
     } else {
         alert(message || 'فشل الحصول على الرتبة');
     }
 });
-
 function getUserBadge(username, role = 'guest') {
     const lowerUsername = username.toLowerCase();
     if (lowerUsername === 'nour') {
@@ -215,7 +195,6 @@ function getUserBadge(username, role = 'guest') {
             return '<span class="badge guest">ضيف</span>';
     }
 }
-
 // --- كود معالجة إرسال الصور ---
 document.getElementById('imageInput')?.addEventListener('change', function(e) {
     const file = e.target.files[0];
@@ -231,7 +210,6 @@ document.getElementById('imageInput')?.addEventListener('change', function(e) {
     reader.readAsDataURL(file);
     this.value = '';
 });
-
 document.addEventListener('paste', function(e) {
     const items = (e.clipboardData || e.originalEvent.clipboardData).items;
     for (let index in items) {
@@ -250,24 +228,21 @@ document.addEventListener('paste', function(e) {
         }
     }
 });
-
 // ─────────────── دالة إضافة الرسالة (مع إمكانية المنشن بالضغط على الاسم) ───────────────
 function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
     const badge = getUserBadge(username, role);
-
     // تلوين المنشنات في الرسالة
     let formattedMsg = msg.replace(/@(\w+)/g, '<span style="color:#3b82f6; font-weight:bold;">@$1</span>');
-
     messageDiv.innerHTML = `
         <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}"
              onclick="openUserProfile('${username}', '${role}', '${avatar}')" style="cursor:pointer;">
         <div class="message-content">
             <div class="username-line">
                 ${badge}
-                <strong onclick="mentionUser('${username}'); event.stopPropagation();" 
+                <strong onclick="mentionUser('${username}'); event.stopPropagation();"
                         style="cursor:pointer; color: #3b82f6;">
                     ${username}
                 </strong>
@@ -278,12 +253,10 @@ function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     chatWindow.appendChild(messageDiv);
     scrollToBottom();
 }
-
 function scrollToBottom() {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.scrollTop = chatWindow.scrollHeight;
 }
-
 async function loadMyProfile() {
     try {
         const res = await fetch('/profile', {
@@ -291,7 +264,7 @@ async function loadMyProfile() {
         });
         if (!res.ok) throw new Error('فشل جلب البروفايل');
         const user = await res.json();
-    
+   
         myUsername = user.username;
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
         const timestamp = new Date().getTime();
@@ -304,16 +277,13 @@ async function loadMyProfile() {
     }
 }
 loadMyProfile();
-
 document.getElementById('profileBtn').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'block';
     loadMyProfile();
 });
-
 document.getElementById('closeMyProfile').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'none';
 });
-
 document.getElementById('avatarUpload').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -325,7 +295,7 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
             headers: { Authorization: token },
             body: formData
         });
-    
+   
         const data = await res.json();
         if (data.avatar) {
             const timestamp = new Date().getTime();
@@ -341,7 +311,6 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
         alert('حصل خطأ أثناء رفع الصورة، يرجى المحاولة مرة أخرى');
     }
 });
-
 function toggleRankList() {
     const list = document.getElementById('ranksListMenu');
     if (list.style.display === 'none' || list.style.display === '') {
@@ -350,7 +319,6 @@ function toggleRankList() {
         list.style.display = 'none';
     }
 }
-
 function openUserProfile(username, role = 'guest', avatar = '') {
     document.getElementById('otherUserDisplayName').textContent = username;
     document.getElementById('otherUserAvatarLarge').src = avatar || 'https://via.placeholder.com/80';
@@ -364,44 +332,37 @@ function openUserProfile(username, role = 'guest', avatar = '') {
     }
     currentPrivateChat = username;
 }
-
 function showProfile() {
     const name = document.getElementById('otherUserDisplayName').textContent;
     alert(`جاري عرض الملف الشخصي لـ ${name}`);
 }
-
 function startPrivateChat() {
     const name = document.getElementById('otherUserDisplayName').textContent;
     closeOtherUserProfile();
-   
+  
     currentPrivateChat = name;
     document.getElementById('privateChatPanel').style.display = 'block';
     document.getElementById('privateChatWith').textContent = 'دردشة مع ' + name;
     socket.emit('join private', name);
     socket.emit('get private messages', name);
 }
-
 function showAdminCommands() {
     const name = document.getElementById('otherUserDisplayName').textContent;
     alert(`الأوامر الإدارية لـ ${name}\n(حظر - طرد - كتم - فك الحظر...)`);
 }
-
 function closeOtherUserProfile() {
     const modal = document.getElementById('otherUserProfileModal');
     modal.classList.add('hidden');
     modal.style.display = 'none';
 }
-
 function setUserRole(targetUsername, newRole) {
     socket.emit('set role', { target: targetUsername, role: newRole });
     alert(`تم تعيين رتبة ${newRole} لـ ${targetUsername}`);
     closeOtherUserProfile();
 }
-
 socket.on('role updated', ({ username, role }) => {
     console.log(`تم تحديث رتبة ${username} إلى ${role}`);
 });
-
 document.addEventListener('DOMContentLoaded', () => {
     const usersPanel = document.getElementById('usersPanel');
     const hideBtn = document.getElementById('hideUsersPanelBtn');
@@ -421,13 +382,11 @@ document.addEventListener('DOMContentLoaded', () => {
         hideBtn.style.display = 'inline-block';
     });
 });
-
 document.getElementById('startPrivateChatBtn').onclick = () => {
     closeOtherUserProfile();
     document.getElementById('privateChatPanel').style.display = 'block';
     document.getElementById('privateChatWith').textContent = 'دردشة مع ' + currentPrivateChat;
 };
-
 document.getElementById('addFriendBtn').onclick = () => {
     const target = document.getElementById('otherUserDisplayName').textContent;
     if (target === myUsername) {
@@ -438,27 +397,24 @@ document.getElementById('addFriendBtn').onclick = () => {
     alert(`تم إرسال طلب صداقة إلى ${target}`);
     closeOtherUserProfile();
 };
-
 document.getElementById('closePrivateChat').addEventListener('click', () => {
     document.getElementById('privateChatPanel').style.display = 'none';
 });
-
 document.getElementById('privateChatForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = document.getElementById('privateChatInput');
     const msg = input.value.trim();
-   
+  
     if (msg && currentPrivateChat) {
         socket.emit('private message', {
             to: currentPrivateChat,
             msg
         });
-       
+      
         appendPrivateMessage(myUsername, msg, myAvatar, true);
         input.value = '';
     }
 });
-
 function appendPrivateMessage(username, msg, avatar, isMe) {
     const chat = document.getElementById('privateChatMessages');
     const div = document.createElement('div');
@@ -473,7 +429,6 @@ function appendPrivateMessage(username, msg, avatar, isMe) {
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
 }
-
 socket.on('private message', ({ from, to, msg, avatar }) => {
     if (currentPrivateChat === from || currentPrivateChat === to) {
         const isMe = from === myUsername;
@@ -487,13 +442,12 @@ socket.on('private message', ({ from, to, msg, avatar }) => {
         console.log(`رسالة خاصة جديدة من ${from}`);
     }
 });
-
 socket.on('previous private messages', ({ withUser, messages }) => {
     if (currentPrivateChat !== withUser) return;
-   
+  
     const chat = document.getElementById('privateChatMessages');
     chat.innerHTML = '';
-   
+  
     messages.forEach(m => {
         const isMe = m.from === myUsername;
         appendPrivateMessage(
@@ -504,7 +458,6 @@ socket.on('previous private messages', ({ withUser, messages }) => {
         );
     });
 });
-
 document.getElementById('logoutBtn').addEventListener('click', () => {
     if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
         localStorage.removeItem('token');
@@ -513,13 +466,12 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
         window.location.href = 'rooms.html';
     }
 });
-
 function mentionUser(username) {
     const input = document.getElementById('messageInput');
     if (!input) return;
     const mention = `@${username} `;
     let current = input.value.trim();
-    
+   
     if (current === '') {
         input.value = mention;
     } else {
@@ -531,11 +483,10 @@ function mentionUser(username) {
             input.value = current;
         }
     }
-    
+   
     input.focus();
     input.setSelectionRange(input.value.length, input.value.length);
 }
-
 document.getElementById('showMyFriendsBtn')?.addEventListener('click', () => {
     document.getElementById('profileDynamicContent').innerHTML = `
         <div style="padding: 30px 0; color: #94a3b8; font-style: italic;">
@@ -543,7 +494,6 @@ document.getElementById('showMyFriendsBtn')?.addEventListener('click', () => {
         </div>
     `;
 });
-
 let myCover = 'https://via.placeholder.com/800x200/0f172a/ffffff?text=خلفيتك+هنا';
 document.getElementById('profileBtn').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'block';
@@ -553,7 +503,6 @@ document.getElementById('profileBtn').addEventListener('click', () => {
         coverElement.style.backgroundImage = `url(${myCover})`;
     }
 });
-
 document.getElementById('coverUpload')?.addEventListener('change', async function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -565,7 +514,7 @@ document.getElementById('coverUpload')?.addEventListener('change', async functio
             headers: { 'Authorization': token },
             body: formData
         });
-    
+   
         const data = await res.json();
         if (data.cover) {
             myCover = data.cover + '?t=' + new Date().getTime();
@@ -579,25 +528,24 @@ document.getElementById('coverUpload')?.addEventListener('change', async functio
         alert('حصل خطأ أثناء رفع الخلفية');
     }
 });
-
 document.addEventListener('DOMContentLoaded', () => {
     const emojiBtn = document.getElementById('emojiBtn');
     const emojiPicker = document.getElementById('emojiPicker');
     const messageInput = document.getElementById('messageInput');
-   
+  
     if (!emojiBtn || !emojiPicker || !messageInput) return;
-   
+  
     emojiBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         emojiPicker.classList.toggle('hidden');
     });
-   
+  
     document.addEventListener('click', (e) => {
         if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
             emojiPicker.classList.add('hidden');
         }
     });
-   
+  
     document.querySelectorAll('.emoji-tab')?.forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
@@ -608,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(`tab-${tab.dataset.tab}`)?.classList.remove('hidden');
         });
     });
-   
+  
     emojiPicker.addEventListener('click', function(e) {
         let emojiToInsert = '';
         if (e.target.tagName === 'SPAN') {
@@ -631,14 +579,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
 function toggleRankListMenu() {
     const menu = document.getElementById('ranksListMenu');
     if (menu) {
         menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'grid' : 'none';
     }
 }
-
 function giftUserRole(role) {
     const target = document.getElementById('otherUserDisplayName').textContent;
     if (!target) return alert("لم يتم العثور على اسم المستخدم");
@@ -650,39 +596,31 @@ function giftUserRole(role) {
         document.getElementById('ranksListMenu').style.display = 'none';
     }
 }
-
 function checkUserFullData() {
     const target = document.getElementById('otherUserDisplayName').textContent;
     alert("جارٍ فحص بيانات المستخدم: " + target);
 }
-
 const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 if (!token) {
     window.location.href = 'index.html';
 }
-
 const socket = io();
-
 const params = new URLSearchParams(window.location.search);
 const room = params.get('room');
 if (!room) {
     window.location.href = 'rooms.html';
 }
-
 let myUsername = '';
 let myAvatar = 'https://via.placeholder.com/40';
 let currentPrivateChat = null;
 // ─────────────── إضافة نظام النقاط والمستويات ───────────────
 let myPoints = 1; // القيمة الافتراضية لأول مرة
 let myLevel = 1;
-
 // صوت الطاق (عصفور)
 const mentionSound = new Audio('./bird-chirp-short.mp3');
 mentionSound.volume = 0.7;
-
 socket.emit('join', room, token);
-
 socket.on('previous messages', (messages) => {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.innerHTML = '';
@@ -691,7 +629,6 @@ socket.on('previous messages', (messages) => {
     });
     scrollToBottom();
 });
-
 socket.on('update users', (users) => {
     document.getElementById('userCount').innerText = users.length;
     const list = document.getElementById('usersList');
@@ -712,11 +649,9 @@ socket.on('update users', (users) => {
         list.appendChild(div);
     });
 });
-
 socket.on('message', ({ username, msg, avatar, role }) => {
     appendMessage(username, msg, avatar, username === myUsername, role || 'guest');
 });
-
 socket.on('system message', (msg) => {
     const div = document.createElement('div');
     div.className = 'system-message';
@@ -724,21 +659,18 @@ socket.on('system message', (msg) => {
     document.getElementById('chatWindow').appendChild(div);
     scrollToBottom();
 });
-
 // استقبال إشعار الطاق الخاص (يصل فقط للشخص المذكور)
 socket.on('mention notification', ({ from, room }) => {
     mentionSound.currentTime = 0;
     mentionSound.play().catch(err => {
         console.log("مشكلة تشغيل صوت الطاق:", err);
     });
-
     const note = document.createElement('div');
     note.className = 'system-message mention-alert';
     note.innerHTML = `🐦 طاق من <strong>${from}</strong> في الغرفة!`;
     document.getElementById('chatWindow').appendChild(note);
     scrollToBottom();
 });
-
 // ─────────────── إرسال رسالة + زيادة نقطة ───────────────
 document.getElementById('messageForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -752,14 +684,12 @@ document.getElementById('messageForm').addEventListener('submit', (e) => {
         updatePointsLevelDisplay();
     }
 });
-
 // ─────────────── استقبال تحديث النقاط والمستوى من السيرفر ───────────────
 socket.on('your points updated', ({ points, level }) => {
     myPoints = points;
     myLevel = level;
     updatePointsLevelDisplay();
 });
-
 // ─────────────── إعلان صعود مستوى في الشات العام ───────────────
 socket.on('level up broadcast', ({ username, newLevel }) => {
     const div = document.createElement('div');
@@ -771,7 +701,6 @@ socket.on('level up broadcast', ({ username, newLevel }) => {
     document.getElementById('chatWindow').appendChild(div);
     scrollToBottom();
 });
-
 // ─────────────── دالة تحديث عرض النقاط والمستوى في اللوحة ───────────────
 function updatePointsLevelDisplay() {
     const pointsEl = document.getElementById('myRealPoints');
@@ -784,7 +713,6 @@ function updatePointsLevelDisplay() {
     const progressPercent = (myPoints % 100);
     if (progress) progress.style.width = `${progressPercent}%`;
 }
-
 // ─────────────── فتح لوحة نقاطي ومستواي ───────────────
 document.getElementById('myLevelBtn')?.addEventListener('click', () => {
     const panel = document.getElementById('levelPointsPanel');
@@ -796,7 +724,6 @@ document.getElementById('myLevelBtn')?.addEventListener('click', () => {
         updatePointsLevelDisplay();
     }
 });
-
 // ─────────────── إغلاق لوحة نقاطي ومستواي ───────────────
 document.querySelector('.close-level-panel')?.addEventListener('click', () => {
     const panel = document.getElementById('levelPointsPanel');
@@ -805,32 +732,30 @@ document.querySelector('.close-level-panel')?.addEventListener('click', () => {
         panel.style.display = 'none';
     }
 });
-
 // ─────────────── جعل البريميوم مجاني في المتجر ───────────────
 document.querySelectorAll('.buy-btn[data-role="premium"]').forEach(btn => {
     btn.addEventListener('click', function() {
         const role = this.getAttribute('data-role');
-   
+  
         socket.emit('buy role', { role: role });
-   
+  
         const originalText = this.textContent;
         this.textContent = 'جاري الشراء...';
         this.disabled = true;
-   
+  
         setTimeout(() => {
             this.textContent = originalText;
             this.disabled = false;
         }, 1500);
     });
 });
-
 socket.on('role purchased', ({ role, success, message }) => {
     if (success) {
         loadMyProfile();
         const chatWindow = document.getElementById('chatWindow');
         const div = document.createElement('div');
         div.className = 'system-message';
-       
+      
         div.style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
         div.style.color = '#fff';
         div.style.fontWeight = 'bold';
@@ -839,16 +764,15 @@ socket.on('role purchased', ({ role, success, message }) => {
         div.style.margin = '10px 0';
         div.style.textAlign = 'center';
         div.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.3)';
-       
+      
         div.innerHTML = `💎 مبروك! البطل <strong>${myUsername}</strong> حصل على رتبة <strong>${role.toUpperCase()}</strong> 🎉`;
-       
+      
         chatWindow.appendChild(div);
         scrollToBottom();
     } else {
         alert(message || 'فشل الحصول على الرتبة');
     }
 });
-
 function getUserBadge(username, role = 'guest') {
     const lowerUsername = username.toLowerCase();
     if (lowerUsername === 'nour') {
@@ -873,7 +797,6 @@ function getUserBadge(username, role = 'guest') {
             return '<span class="badge guest">ضيف</span>';
     }
 }
-
 // --- كود معالجة إرسال الصور ---
 document.getElementById('imageInput')?.addEventListener('change', function(e) {
     const file = e.target.files[0];
@@ -889,7 +812,6 @@ document.getElementById('imageInput')?.addEventListener('change', function(e) {
     reader.readAsDataURL(file);
     this.value = '';
 });
-
 document.addEventListener('paste', function(e) {
     const items = (e.clipboardData || e.originalEvent.clipboardData).items;
     for (let index in items) {
@@ -908,24 +830,21 @@ document.addEventListener('paste', function(e) {
         }
     }
 });
-
 // ─────────────── دالة إضافة الرسالة (مع إمكانية المنشن بالضغط على الاسم) ───────────────
 function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
     const badge = getUserBadge(username, role);
-
     // تلوين المنشنات في الرسالة
     let formattedMsg = msg.replace(/@(\w+)/g, '<span style="color:#3b82f6; font-weight:bold;">@$1</span>');
-
     messageDiv.innerHTML = `
         <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}"
              onclick="openUserProfile('${username}', '${role}', '${avatar}')" style="cursor:pointer;">
         <div class="message-content">
             <div class="username-line">
                 ${badge}
-                <strong onclick="mentionUser('${username}'); event.stopPropagation();" 
+                <strong onclick="mentionUser('${username}'); event.stopPropagation();"
                         style="cursor:pointer; color: #3b82f6;">
                     ${username}
                 </strong>
@@ -936,12 +855,10 @@ function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     chatWindow.appendChild(messageDiv);
     scrollToBottom();
 }
-
 function scrollToBottom() {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.scrollTop = chatWindow.scrollHeight;
 }
-
 async function loadMyProfile() {
     try {
         const res = await fetch('/profile', {
@@ -949,7 +866,7 @@ async function loadMyProfile() {
         });
         if (!res.ok) throw new Error('فشل جلب البروفايل');
         const user = await res.json();
-    
+   
         myUsername = user.username;
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
         const timestamp = new Date().getTime();
@@ -962,16 +879,13 @@ async function loadMyProfile() {
     }
 }
 loadMyProfile();
-
 document.getElementById('profileBtn').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'block';
     loadMyProfile();
 });
-
 document.getElementById('closeMyProfile').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'none';
 });
-
 document.getElementById('avatarUpload').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -983,7 +897,7 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
             headers: { Authorization: token },
             body: formData
         });
-    
+   
         const data = await res.json();
         if (data.avatar) {
             const timestamp = new Date().getTime();
@@ -999,7 +913,6 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
         alert('حصل خطأ أثناء رفع الصورة، يرجى المحاولة مرة أخرى');
     }
 });
-
 function toggleRankList() {
     const list = document.getElementById('ranksListMenu');
     if (list.style.display === 'none' || list.style.display === '') {
@@ -1008,7 +921,6 @@ function toggleRankList() {
         list.style.display = 'none';
     }
 }
-
 function openUserProfile(username, role = 'guest', avatar = '') {
     document.getElementById('otherUserDisplayName').textContent = username;
     document.getElementById('otherUserAvatarLarge').src = avatar || 'https://via.placeholder.com/80';
@@ -1022,44 +934,37 @@ function openUserProfile(username, role = 'guest', avatar = '') {
     }
     currentPrivateChat = username;
 }
-
 function showProfile() {
     const name = document.getElementById('otherUserDisplayName').textContent;
     alert(`جاري عرض الملف الشخصي لـ ${name}`);
 }
-
 function startPrivateChat() {
     const name = document.getElementById('otherUserDisplayName').textContent;
     closeOtherUserProfile();
-   
+  
     currentPrivateChat = name;
     document.getElementById('privateChatPanel').style.display = 'block';
     document.getElementById('privateChatWith').textContent = 'دردشة مع ' + name;
     socket.emit('join private', name);
     socket.emit('get private messages', name);
 }
-
 function showAdminCommands() {
     const name = document.getElementById('otherUserDisplayName').textContent;
     alert(`الأوامر الإدارية لـ ${name}\n(حظر - طرد - كتم - فك الحظر...)`);
 }
-
 function closeOtherUserProfile() {
     const modal = document.getElementById('otherUserProfileModal');
     modal.classList.add('hidden');
     modal.style.display = 'none';
 }
-
 function setUserRole(targetUsername, newRole) {
     socket.emit('set role', { target: targetUsername, role: newRole });
     alert(`تم تعيين رتبة ${newRole} لـ ${targetUsername}`);
     closeOtherUserProfile();
 }
-
 socket.on('role updated', ({ username, role }) => {
     console.log(`تم تحديث رتبة ${username} إلى ${role}`);
 });
-
 document.addEventListener('DOMContentLoaded', () => {
     const usersPanel = document.getElementById('usersPanel');
     const hideBtn = document.getElementById('hideUsersPanelBtn');
@@ -1079,13 +984,11 @@ document.addEventListener('DOMContentLoaded', () => {
         hideBtn.style.display = 'inline-block';
     });
 });
-
 document.getElementById('startPrivateChatBtn').onclick = () => {
     closeOtherUserProfile();
     document.getElementById('privateChatPanel').style.display = 'block';
     document.getElementById('privateChatWith').textContent = 'دردشة مع ' + currentPrivateChat;
 };
-
 document.getElementById('addFriendBtn').onclick = () => {
     const target = document.getElementById('otherUserDisplayName').textContent;
     if (target === myUsername) {
@@ -1096,27 +999,24 @@ document.getElementById('addFriendBtn').onclick = () => {
     alert(`تم إرسال طلب صداقة إلى ${target}`);
     closeOtherUserProfile();
 };
-
 document.getElementById('closePrivateChat').addEventListener('click', () => {
     document.getElementById('privateChatPanel').style.display = 'none';
 });
-
 document.getElementById('privateChatForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = document.getElementById('privateChatInput');
     const msg = input.value.trim();
-   
+  
     if (msg && currentPrivateChat) {
         socket.emit('private message', {
             to: currentPrivateChat,
             msg
         });
-       
+      
         appendPrivateMessage(myUsername, msg, myAvatar, true);
         input.value = '';
     }
 });
-
 function appendPrivateMessage(username, msg, avatar, isMe) {
     const chat = document.getElementById('privateChatMessages');
     const div = document.createElement('div');
@@ -1131,7 +1031,6 @@ function appendPrivateMessage(username, msg, avatar, isMe) {
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
 }
-
 socket.on('private message', ({ from, to, msg, avatar }) => {
     if (currentPrivateChat === from || currentPrivateChat === to) {
         const isMe = from === myUsername;
@@ -1145,13 +1044,12 @@ socket.on('private message', ({ from, to, msg, avatar }) => {
         console.log(`رسالة خاصة جديدة من ${from}`);
     }
 });
-
 socket.on('previous private messages', ({ withUser, messages }) => {
     if (currentPrivateChat !== withUser) return;
-   
+  
     const chat = document.getElementById('privateChatMessages');
     chat.innerHTML = '';
-   
+  
     messages.forEach(m => {
         const isMe = m.from === myUsername;
         appendPrivateMessage(
@@ -1162,7 +1060,6 @@ socket.on('previous private messages', ({ withUser, messages }) => {
         );
     });
 });
-
 document.getElementById('logoutBtn').addEventListener('click', () => {
     if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
         localStorage.removeItem('token');
@@ -1171,13 +1068,12 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
         window.location.href = 'rooms.html';
     }
 });
-
 function mentionUser(username) {
     const input = document.getElementById('messageInput');
     if (!input) return;
     const mention = `@${username} `;
     let current = input.value.trim();
-    
+   
     if (current === '') {
         input.value = mention;
     } else {
@@ -1189,11 +1085,10 @@ function mentionUser(username) {
             input.value = current;
         }
     }
-    
+   
     input.focus();
     input.setSelectionRange(input.value.length, input.value.length);
 }
-
 document.getElementById('showMyFriendsBtn')?.addEventListener('click', () => {
     document.getElementById('profileDynamicContent').innerHTML = `
         <div style="padding: 30px 0; color: #94a3b8; font-style: italic;">
@@ -1201,7 +1096,6 @@ document.getElementById('showMyFriendsBtn')?.addEventListener('click', () => {
         </div>
     `;
 });
-
 let myCover = 'https://via.placeholder.com/800x200/0f172a/ffffff?text=خلفيتك+هنا';
 document.getElementById('profileBtn').addEventListener('click', () => {
     document.getElementById('myProfilePanel').style.display = 'block';
@@ -1211,7 +1105,6 @@ document.getElementById('profileBtn').addEventListener('click', () => {
         coverElement.style.backgroundImage = `url(${myCover})`;
     }
 });
-
 document.getElementById('coverUpload')?.addEventListener('change', async function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -1223,7 +1116,7 @@ document.getElementById('coverUpload')?.addEventListener('change', async functio
             headers: { 'Authorization': token },
             body: formData
         });
-    
+   
         const data = await res.json();
         if (data.cover) {
             myCover = data.cover + '?t=' + new Date().getTime();
@@ -1237,25 +1130,24 @@ document.getElementById('coverUpload')?.addEventListener('change', async functio
         alert('حصل خطأ أثناء رفع الخلفية');
     }
 });
-
 document.addEventListener('DOMContentLoaded', () => {
     const emojiBtn = document.getElementById('emojiBtn');
     const emojiPicker = document.getElementById('emojiPicker');
     const messageInput = document.getElementById('messageInput');
-   
+  
     if (!emojiBtn || !emojiPicker || !messageInput) return;
-   
+  
     emojiBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         emojiPicker.classList.toggle('hidden');
     });
-   
+  
     document.addEventListener('click', (e) => {
         if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
             emojiPicker.classList.add('hidden');
         }
     });
-   
+  
     document.querySelectorAll('.emoji-tab')?.forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
@@ -1266,7 +1158,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(`tab-${tab.dataset.tab}`)?.classList.remove('hidden');
         });
     });
-   
+  
     emojiPicker.addEventListener('click', function(e) {
         let emojiToInsert = '';
         if (e.target.tagName === 'SPAN') {
@@ -1289,14 +1181,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
 function toggleRankListMenu() {
     const menu = document.getElementById('ranksListMenu');
     if (menu) {
         menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'grid' : 'none';
     }
 }
-
 function giftUserRole(role) {
     const target = document.getElementById('otherUserDisplayName').textContent;
     if (!target) return alert("لم يتم العثور على اسم المستخدم");
@@ -1308,18 +1198,16 @@ function giftUserRole(role) {
         document.getElementById('ranksListMenu').style.display = 'none';
     }
 }
-
 function checkUserFullData() {
     const target = document.getElementById('otherUserDisplayName').textContent;
     alert("جارٍ فحص بيانات المستخدم: " + target);
 }
-
 const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
         if (mutation.attributeName === "class") {
             const modal = document.getElementById('otherUserProfileModal');
             const adminPanel = document.getElementById('adminExtraButtons');
-           
+          
             const currentLoggedInUser = localStorage.getItem('username');
             if (!modal.classList.contains('hidden') && currentLoggedInUser === 'mohamed-dz') {
                 if (adminPanel) adminPanel.style.display = 'flex';
@@ -1329,7 +1217,6 @@ const observer = new MutationObserver((mutations) => {
         }
     });
 });
-
 const targetModal = document.getElementById('otherUserProfileModal');
 if (targetModal) {
     observer.observe(targetModal, { attributes: true });
@@ -1337,7 +1224,7 @@ if (targetModal) {
         if (mutation.attributeName === "class") {
             const modal = document.getElementById('otherUserProfileModal');
             const adminPanel = document.getElementById('adminExtraButtons');
-           
+          
             const currentLoggedInUser = localStorage.getItem('username');
             if (!modal.classList.contains('hidden') && currentLoggedInUser === 'mohamed-dz') {
                 if (adminPanel) adminPanel.style.display = 'flex';
@@ -1347,8 +1234,31 @@ if (targetModal) {
         }
     });
 });
-
 const targetModal = document.getElementById('otherUserProfileModal');
 if (targetModal) {
     observer.observe(targetModal, { attributes: true });
 }
+
+
+// ─────────────── الإضافة الجديدة للأزرار الثلاثة ───────────────
+document.addEventListener('DOMContentLoaded', () => {
+    function closeAllSidePanels() {
+        document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel')
+            .forEach(p => p.style.display = 'none');
+    }
+
+    document.getElementById('privateMsgBtn')?.addEventListener('click', () => {
+        closeAllSidePanels();
+        document.getElementById('conversationsPanel').style.display = 'block';
+    });
+
+    document.getElementById('friendReqBtn')?.addEventListener('click', () => {
+        closeAllSidePanels();
+        document.getElementById('friendRequestsPanel').style.display = 'block';
+    });
+
+    document.getElementById('reportsBtn')?.addEventListener('click', () => {
+        closeAllSidePanels();
+        document.getElementById('reportsPanel').style.display = 'block';
+    });
+});
