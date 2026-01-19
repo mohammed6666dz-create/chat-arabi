@@ -3,12 +3,20 @@ const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ storage: multer.memoryStorage() });
 const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
 const app = express();
 const http = require('http').createServer(app);
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({ 
+  cloud_name: 'dgfqrprus', 
+  api_key: '921168538269784', 
+  api_secret: 'R_38erQJWoAgw6XQr9BjzvQdAAU' 
+});
+
 const io = require('socket.io')(http);
 
 app.use(bodyParser.json());
@@ -165,21 +173,38 @@ app.get('/profile', verifyToken, async (req, res) => {
 });
 app.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res) => {
   if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
-  const avatarPath = '/uploads/' + req.file.filename;
-  const success = await updateUserFields(req.user.username, { avatar: avatarPath });
-  if (!success) {
-    return res.status(500).json({ msg: 'خطأ في حفظ الصورة' });
+  try {
+    // 1. تحويل الصورة المرفوعة لرفعها سحابياً
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+    
+    // 2. الرفع إلى Cloudinary للحصول على رابط دائم
+    const result = await cloudinary.uploader.upload(dataURI, { folder: "avatars" });
+    
+    // 3. تحديث قاعدة البيانات بالرابط الجديد (الذي يبدأ بـ https)
+    const success = await updateUserFields(req.user.username, { avatar: result.secure_url });
+    
+    if (!success) return res.status(500).json({ msg: 'خطأ في حفظ الرابط بقاعدة البيانات' });
+    res.json({ avatar: result.secure_url });
+  } catch (err) {
+    res.status(500).json({ msg: 'فشل الرفع السحابي' });
   }
-  res.json({ avatar: avatarPath });
 });
+
 app.post('/upload-background', verifyToken, upload.single('background'), async (req, res) => {
   if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
-  const bgPath = '/uploads/' + req.file.filename;
-  const success = await updateUserFields(req.user.username, { background: bgPath });
-  if (!success) {
-    return res.status(500).json({ msg: 'خطأ في حفظ الخلفية' });
+  try {
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+    const result = await cloudinary.uploader.upload(dataURI, { folder: "backgrounds" });
+    
+    const success = await updateUserFields(req.user.username, { background: result.secure_url });
+    
+    if (!success) return res.status(500).json({ msg: 'خطأ في حفظ رابط الخلفية' });
+    res.json({ background: result.secure_url });
+  } catch (err) {
+    res.status(500).json({ msg: 'فشل الرفع السحابي' });
   }
-  res.json({ background: bgPath });
 });
 app.get('/room-counts', (req, res) => {
   res.json(roomCounts);
@@ -472,5 +497,6 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
 });
+
 
 
