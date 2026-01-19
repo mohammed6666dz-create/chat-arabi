@@ -10,19 +10,15 @@ const bodyParser = require('body-parser');
 const app = express();
 const http = require('http').createServer(app);
 const cloudinary = require('cloudinary').v2;
-
-cloudinary.config({ 
-  cloud_name: 'dgfqrprus', 
-  api_key: '921168538269784', 
-  api_secret: 'R_38erQJWoAgw6XQr9BjzvQdAAU' 
+cloudinary.config({
+  cloud_name: 'dgfqrprus',
+  api_key: '921168538269784',
+  api_secret: 'R_38erQJWoAgw6XQr9BjzvQdAAU'
 });
-
 const io = require('socket.io')(http);
-
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 // ────────────────────────────────────────────────
 // إعداد الاتصال بقاعدة البيانات
 // ────────────────────────────────────────────────
@@ -66,7 +62,6 @@ async function initDatabase() {
   }
 }
 initDatabase();
-
 // ────────────────────────────────────────────────
 // المتغيرات المؤقتة (اللي ما تحتاج حفظ دائم)
 let roomUsers = { general: [], algeria: [], all_countries: [] };
@@ -75,7 +70,6 @@ let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
 const RANKS = ['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'];
 const secret = 'secretkey';
 const PORT = process.env.PORT || 3000;
-
 // ────────────────────────────────────────────────
 // دوال مساعدة للتعامل مع قاعدة البيانات
 // ────────────────────────────────────────────────
@@ -122,7 +116,6 @@ async function updateUserFields(username, updates) {
     return false;
   }
 }
-
 // ────────────────────────────────────────────────
 // Routes
 // ────────────────────────────────────────────────
@@ -171,63 +164,55 @@ app.get('/profile', verifyToken, async (req, res) => {
     rank: user.rank || 'ضيف'
   });
 });
+
+// ────────────── رفع الصورة الشخصية (تم التصحيح هنا فقط) ──────────────
 app.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res) => {
   if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
-  
+
   try {
-    // 1. تحويل الصورة إلى بيانات نصية (Base64)
     const b64 = Buffer.from(req.file.buffer).toString("base64");
     const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
-    
-    // 2. الرفع إلى Cloudinary باستخدام الإذن المفتوح (ywfrua3f)
-    const result = await cloudinary.uploader.upload(dataURI, { 
-        folder: "avatars",
-        upload_preset: "ywfrua3f" 
-    });
-    
-    // 3. تحديث قاعدة بيانات المستخدم برابط الصورة الجديد
-    const success = await updateUserFields(req.user.username, { avatar: result.secure_url });
-    
-    if (!success) return res.status(500).json({ msg: 'خطأ في حفظ الرابط بقاعدة البيانات' });
-    
-    // إرسال الرابط الجديد للمتصفح لتحديث الصورة فوراً
-    res.json({ avatar: result.secure_url });
 
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: "avatars",
+      upload_preset: "ywfrua3f"
+    });
+
+    const success = await updateUserFields(req.user.username, { avatar: result.secure_url });
+
+    if (!success) return res.status(500).json({ msg: 'خطأ في حفظ الرابط بقاعدة البيانات' });
+
+    res.json({ avatar: result.secure_url });
   } catch (err) {
     console.error("خطأ الرفع:", err);
     res.status(500).json({ msg: 'فشل الرفع السحابي' });
   }
 });
-    
-    // 3. تحديث قاعدة البيانات بالرابط الجديد (الذي يبدأ بـ https)
-    const success = await updateUserFields(req.user.username, { avatar: result.secure_url });
-    
-    if (!success) return res.status(500).json({ msg: 'خطأ في حفظ الرابط بقاعدة البيانات' });
-    res.json({ avatar: result.secure_url });
+
+// ────────────── رفع صورة الخلفية (تم التصحيح هنا فقط) ──────────────
+app.post('/upload-background', verifyToken, upload.single('background'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
+
+  try {
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: "backgrounds",
+      upload_preset: "ywfrua3f"
+    });
+
+    const success = await updateUserFields(req.user.username, { background: result.secure_url });
+
+    if (!success) return res.status(500).json({ msg: 'خطأ في حفظ رابط الخلفية' });
+
+    res.json({ background: result.secure_url });
   } catch (err) {
+    console.error("خطأ الرفع:", err);
     res.status(500).json({ msg: 'فشل الرفع السحابي' });
   }
 });
 
-app.post('/upload-background', verifyToken, upload.single('background'), async (req, res) => {
-// استبدل السطر 199 بهذا الكود المعدل:
-const result = await cloudinary.uploader.upload(dataURI, { 
-    folder: "backgrounds", 
-    upload_preset: "ywfrua3f" // أضفنا هذا السطر ليعمل الرفع بنجاح
-});
-  try {
-    const b64 = Buffer.from(req.file.buffer).toString("base64");
-    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
-    const result = await cloudinary.uploader.upload(dataURI, { folder: "backgrounds" });
-    
-    const success = await updateUserFields(req.user.username, { background: result.secure_url });
-    
-    if (!success) return res.status(500).json({ msg: 'خطأ في حفظ رابط الخلفية' });
-    res.json({ background: result.secure_url });
-  } catch (err) {
-    res.status(500).json({ msg: 'فشل الرفع السحابي' });
-  }
-});
 app.get('/room-counts', (req, res) => {
   res.json(roomCounts);
 });
@@ -247,7 +232,6 @@ app.post('/change-rank', verifyToken, async (req, res) => {
   io.emit('rank update', { username: targetUsername, rank: newRank });
   res.json({ msg: 'تم تغيير الرتبة بنجاح' });
 });
-
 // ────────────────────────────────────────────────
 // Socket.IO
 // ────────────────────────────────────────────────
@@ -282,17 +266,16 @@ io.on('connection', socket => {
     try {
       const decoded = jwt.verify(token, secret);
       const user = await getUser(decoded.username);
-     
+    
       if (!user) return;
       const avatar = user.avatar || 'https://via.placeholder.com/40';
-      // التعديل هنا: أضفنا الرتبة (role) لكي تصل للشات
       io.to(currentRoom).emit('message', {
         username: decoded.username,
         msg: msg,
         avatar: avatar,
         role: user.rank || 'ضيف'
       });
-     
+    
     } catch (e) {
       console.log("خطأ في التحقق من التوكن أثناء إرسال الرسالة");
     }
@@ -371,27 +354,20 @@ io.on('connection', socket => {
       [rejector, fromUsername]
     );
     socket.emit('request_rejected', fromUsername);
-  });// ─────────────── كود شراء الرتبة مجاناً (يُوضع عند السطر 326) ───────────────
+  });
+  // كود شراء الرتبة مجاناً
   socket.on('buy role', async ({ role }) => {
     if (!socket.username) return;
-
     try {
-      // التأكد أن الرتبة المطلوبة هي 'premium' أو 'بريميوم'
       if (role === 'premium' || role === 'بريميوم') {
         const newRank = 'بريميوم';
-
-        // 1. تحديث الرتبة في قاعدة بيانات PostgreSQL
         const success = await updateUserFields(socket.username, { rank: newRank });
-
         if (success) {
-          // 2. إرسال حدث النجاح للمستخدم لتحديث واجهته
-          socket.emit('role purchased', { 
-            role: newRank, 
-            success: true, 
-            message: 'تهانينا! أصبحت الآن عضو بريميوم 💎' 
+          socket.emit('role purchased', {
+            role: newRank,
+            success: true,
+            message: 'تهانينا! أصبحت الآن عضو بريميوم 💎'
           });
-
-          // 3. إرسال إشعار للنظام في الغرفة الحالية ليراه الجميع
           if (currentRoom) {
             io.to(currentRoom).emit('message', {
               username: 'النظام',
@@ -406,53 +382,44 @@ io.on('connection', socket => {
       console.error('Error updating rank:', err);
       socket.emit('role purchased', { success: false, message: 'فشل تحديث الرتبة بالسيرفر' });
     }
-  });// --- كود استقبال أمر إهداء الرتبة من المالك (يتم وضعه في السطر 363) ---
-socket.on('change-rank-gift', async ({ targetUsername, newRank }) => {
+  });
+  // كود إهداء الرتبة من المالك
+  socket.on('change-rank-gift', async ({ targetUsername, newRank }) => {
     try {
-        // 1. تحديث الرتبة في قاعدة البيانات للعضو المختار
-        const success = await updateUserFields(targetUsername, { rank: newRank });
-
-        if (success) {
-            // 2. إرسال إعلان للجميع في الدردشة عن الترقية
-            io.emit('message', {
-                username: 'النظام',
-                msg: `🎊 مبارك! لقد منح المالك رتبة [ ${newRank} ] للبطل [ ${targetUsername} ]`,
-                avatar: 'https://via.placeholder.com/40',
-                role: 'system'
-            });
-
-            // 3. تحديث فوري لواجهة المستخدم للشخص الذي تم ترقيته
-            io.emit('rank updated', { username: targetUsername, rank: newRank });
-        }
+      const success = await updateUserFields(targetUsername, { rank: newRank });
+      if (success) {
+        io.emit('message', {
+          username: 'النظام',
+          msg: `🎊 مبارك! لقد منح المالك رتبة [ ${newRank} ] للبطل [ ${targetUsername} ]`,
+          avatar: 'https://via.placeholder.com/40',
+          role: 'system'
+        });
+        io.emit('rank updated', { username: targetUsername, rank: newRank });
+      }
     } catch (err) {
-        console.error('Error during rank gift:', err);
+      console.error('Error during rank gift:', err);
     }
-});
-  // ────────────────────── الرسائل الخاصة (الإضافة الجديدة فقط) ──────────────────────
+  });
+  // الرسائل الخاصة
   function getPrivateRoomName(u1, u2) {
     return ['private', ...[u1, u2].sort()].join('_');
   }
-
   socket.on('join private', (targetUsername) => {
     if (!socket.username || !targetUsername || socket.username === targetUsername) return;
     const roomName = getPrivateRoomName(socket.username, targetUsername);
     socket.join(roomName);
   });
-
   socket.on('private message', async ({ to, msg }) => {
     const from = socket.username;
     if (!from || !to || !msg?.trim() || from === to) return;
-
     const trimmedMsg = msg.trim();
-
     try {
       const { rows } = await pool.query(`
-        INSERT INTO private_messages 
+        INSERT INTO private_messages
         (from_user, to_user, message, created_at)
         VALUES ($1, $2, $3, NOW())
         RETURNING id, created_at
       `, [from, to, trimmedMsg]);
-
       const messageData = {
         from,
         to,
@@ -460,11 +427,8 @@ socket.on('change-rank-gift', async ({ targetUsername, newRank }) => {
         avatar: (await getUser(from))?.avatar || 'https://via.placeholder.com/30',
         createdAt: rows[0].created_at.toISOString()
       };
-
       const roomName = getPrivateRoomName(from, to);
       io.to(roomName).emit('private message', messageData);
-
-      // إشعار إذا الطرف الآخر غير متصل
       const isOnline = Array.from(io.sockets.sockets.values()).some(s => s.username === to);
       if (!isOnline) {
         sendNotification(to, {
@@ -478,7 +442,6 @@ socket.on('change-rank-gift', async ({ targetUsername, newRank }) => {
       console.error('خطأ في حفظ الرسالة الخاصة:', err);
     }
   });
-
   socket.on('disconnect', () => {
     if (currentRoom && username) {
       roomCounts[currentRoom]--;
@@ -489,7 +452,6 @@ socket.on('change-rank-gift', async ({ targetUsername, newRank }) => {
     socket.username = null;
   });
 });
-
 async function sendNotification(toUsername, notification) {
   try {
     await pool.query(
@@ -506,7 +468,6 @@ async function sendNotification(toUsername, notification) {
     console.error('خطأ في إرسال الإشعار:', err);
   }
 }
-
 // ────────────────────────────────────────────────
 // تشغيل السيرفر
 // ────────────────────────────────────────────────
@@ -519,8 +480,3 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
 });
-
-
-
-
-
