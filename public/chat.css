@@ -1145,32 +1145,15 @@ header h1 {
         font-size: 17px !important;
     }
 }
-/* ────────────────────────────────────────────────
-   إصلاح نهائي لمشكلة المنشن (الطاق) - سطر 1148
-───────────────────────────────────────────────── */
-
-/* 1. إصلاح ظهور المنشن بشكل مرتب (الاسم + الرمز) */
+/* الحل النهائي والكامل لمشكلة انقسام المنشن والرمز المقلوب */
 .mention, [data-mention] {
-    display: inline-block !important;
-    direction: ltr !important; /* جعل التاق يقرأ من اليسار لليمين لضمان مكان الـ @ */
-    unicode-bidi: isolate !important; /* عزل التاق عن الكلام العربي المحيط به */
-    white-space: nowrap !important; /* منع انقسام التاق لسطرين */
-    color: #3b82f6 !important; /* اللون الأزرق الظاهر في صورتك */
-    font-weight: bold !important;
-    padding: 0 2px !important;
-}
-
-/* 2. تحسين سطر الاسم في الرسالة ليدعم الزخرفة الطويلة */
-.username-line {
-    display: flex !important;
-    flex-wrap: wrap !important;
+    display: inline-flex !important; /* يمنع انقسام الاسم لنصفين */
+    flex-direction: row-reverse !important; /* يضع الرمز على يسار الاسم الإنجليزي في بيئة عربية */
     align-items: center !important;
-    gap: 5px !important;
-    max-width: 100% !important;
-}
-
-/* 3. التأكد من أن الحروف المزخرفة لا تخرج عن الإطار */
-.message-content {
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
+    direction: ltr !important; /* إجبار الترتيب من اليسار لليمين */
+    unicode-bidi: bidi-override !important;
+    white-space: nowrap !important; /* يمنع نزول جزء من الاسم لسطر جديد */
+    color: #3b82f6 !important;
+    font-weight: bold !important;
+    padding: 0 4px !important;
 }
