@@ -19,15 +19,16 @@ const io = require('socket.io')(http);
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // ────────────────────────────────────────────────
 // إعداد الاتصال بقاعدة البيانات
 // ────────────────────────────────────────────────
-// تعريف الرابط (تأكد أنه خارج أقواس pool)
 const connectionString = process.env.DATABASE_URL || 'postgresql://postgres.wgzikxgbhrcgfewnosiq:mohamedennaiha55@aws-1-eu-west-1.pooler.supabase.com:5432/postgres';
 const pool = new Pool({
   connectionString: connectionString,
   ssl: { rejectUnauthorized: false }
 });
+
 // إنشاء الجداول إذا ما كانت موجودة
 async function initDatabase() {
   try {
@@ -45,6 +46,7 @@ async function initDatabase() {
         notifications JSONB DEFAULT '[]'::jsonb,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+
       CREATE TABLE IF NOT EXISTS private_messages (
         id SERIAL PRIMARY KEY,
         from_user TEXT NOT NULL,
@@ -53,25 +55,43 @@ async function initDatabase() {
         created_at TIMESTAMPTZ DEFAULT NOW(),
         seen_by TEXT[] DEFAULT '{}'
       );
+
+      CREATE TABLE IF NOT EXISTS room_messages (
+        id SERIAL PRIMARY KEY,
+        room TEXT NOT NULL,
+        username TEXT NOT NULL,
+        message TEXT NOT NULL,
+        avatar TEXT,
+        role TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
       CREATE INDEX IF NOT EXISTS idx_pm_users
       ON private_messages (from_user, to_user);
+
+      CREATE INDEX IF NOT EXISTS idx_room_messages_room_created
+      ON room_messages (room, created_at DESC);
     `);
-    console.log('✓ الجداول جاهزة (users + private_messages)');
+    console.log('✓ الجداول جاهزة (users + private_messages + room_messages)');
   } catch (err) {
     console.error('خطأ في تهيئة الجداول:', err);
   }
 }
 initDatabase();
+
 // ────────────────────────────────────────────────
-// المتغيرات المؤقتة (اللي ما تحتاج حفظ دائم)
+// المتغيرات المؤقتة
+// ────────────────────────────────────────────────
 let roomUsers = { general: [], algeria: [], all_countries: [] };
 let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
+
 // الرتب المتاحة
 const RANKS = ['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'];
 const secret = 'secretkey';
 const PORT = process.env.PORT || 3000;
+
 // ────────────────────────────────────────────────
-// دوال مساعدة للتعامل مع قاعدة البيانات
+// دوال مساعدة
 // ────────────────────────────────────────────────
 async function getUser(username) {
   try {
@@ -82,6 +102,7 @@ async function getUser(username) {
     return null;
   }
 }
+
 async function createUser(username, passwordHash) {
   try {
     await pool.query(
@@ -96,6 +117,7 @@ async function createUser(username, passwordHash) {
     return false;
   }
 }
+
 async function updateUserFields(username, updates) {
   if (!Object.keys(updates).length) return false;
   const setParts = [];
@@ -116,6 +138,7 @@ async function updateUserFields(username, updates) {
     return false;
   }
 }
+
 // ────────────────────────────────────────────────
 // Routes
 // ────────────────────────────────────────────────
@@ -133,6 +156,7 @@ app.post('/register', async (req, res) => {
   }
   res.json({ msg: 'تم التسجيل بنجاح' });
 });
+
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   const user = await getUser(username);
@@ -142,6 +166,7 @@ app.post('/login', async (req, res) => {
   const token = jwt.sign({ username }, secret, { expiresIn: '7d' });
   res.json({ token });
 });
+
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ msg: 'لا يوجد توكن' });
@@ -153,6 +178,7 @@ const verifyToken = (req, res, next) => {
     res.status(401).json({ msg: 'توكن غير صالح' });
   }
 };
+
 app.get('/profile', verifyToken, async (req, res) => {
   const user = await getUser(req.user.username);
   if (!user) return res.status(404).json({ msg: 'المستخدم غير موجود' });
@@ -165,24 +191,18 @@ app.get('/profile', verifyToken, async (req, res) => {
   });
 });
 
-// ────────────── رفع الصورة الشخصية (تم التصحيح هنا فقط) ──────────────
 app.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res) => {
   if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
-
   try {
     const b64 = Buffer.from(req.file.buffer).toString("base64");
     const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
-
-   const result = await cloudinary.uploader.upload(dataURI, { 
-    folder: "avatars", 
-    unsigned: true, // أضفنا هذا السطر
-    upload_preset: "ywfrua3f" 
-});
-
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: "avatars",
+      unsigned: true,
+      upload_preset: "ywfrua3f"
+    });
     const success = await updateUserFields(req.user.username, { avatar: result.secure_url });
-
     if (!success) return res.status(500).json({ msg: 'خطأ في حفظ الرابط بقاعدة البيانات' });
-
     res.json({ avatar: result.secure_url });
   } catch (err) {
     console.error("خطأ الرفع:", err);
@@ -190,24 +210,18 @@ app.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res
   }
 });
 
-// ────────────── رفع صورة الخلفية (تم التصحيح هنا فقط) ──────────────
 app.post('/upload-background', verifyToken, upload.single('background'), async (req, res) => {
   if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
-
   try {
     const b64 = Buffer.from(req.file.buffer).toString("base64");
     const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
-
-   const result = await cloudinary.uploader.upload(dataURI, { 
-    folder: "backgrounds", 
-    unsigned: true, // أضفنا هذا السطر
-    upload_preset: "ywfrua3f" 
-});
-
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: "backgrounds",
+      unsigned: true,
+      upload_preset: "ywfrua3f"
+    });
     const success = await updateUserFields(req.user.username, { background: result.secure_url });
-
     if (!success) return res.status(500).json({ msg: 'خطأ في حفظ رابط الخلفية' });
-
     res.json({ background: result.secure_url });
   } catch (err) {
     console.error("خطأ الرفع:", err);
@@ -218,6 +232,7 @@ app.post('/upload-background', verifyToken, upload.single('background'), async (
 app.get('/room-counts', (req, res) => {
   res.json(roomCounts);
 });
+
 app.post('/change-rank', verifyToken, async (req, res) => {
   const changer = await getUser(req.user.username);
   if (!changer || changer.rank !== 'صاحب الموقع') {
@@ -234,17 +249,20 @@ app.post('/change-rank', verifyToken, async (req, res) => {
   io.emit('rank update', { username: targetUsername, rank: newRank });
   res.json({ msg: 'تم تغيير الرتبة بنجاح' });
 });
+
 // ────────────────────────────────────────────────
 // Socket.IO
 // ────────────────────────────────────────────────
 io.on('connection', socket => {
   let currentRoom = null;
   let username = null;
+
   socket.on('join', async (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
       username = decoded.username;
       socket.username = username;
+
       if (currentRoom) {
         socket.leave(currentRoom);
         roomCounts[currentRoom]--;
@@ -252,37 +270,74 @@ io.on('connection', socket => {
         io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
         io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
       }
+
       currentRoom = room;
       socket.join(room);
       roomCounts[room]++;
+
       const user = await getUser(username);
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
       roomUsers[room].push({ username, avatar });
+
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
+
+      // ────────────── تحميل الرسائل القديمة ──────────────
+      const NEW_USER_LIMIT = 100;
+      const OLD_USER_LIMIT = 5000;
+
+      // شرط بسيط نسبياً: إذا كان الحساب أقل من 14 يوم → جديد
+      const isNewUser = user.created_at > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+
+      const limit = isNewUser ? NEW_USER_LIMIT : OLD_USER_LIMIT;
+
+      const { rows: messages } = await pool.query(`
+        SELECT username, message AS msg, avatar, role
+        FROM room_messages
+        WHERE room = $1
+        ORDER BY created_at DESC
+        LIMIT $2
+      `, [room, limit]);
+
+      // عكس الترتيب ليظهر الأقدم أولاً
+      const messagesToSend = messages.reverse();
+
+      socket.emit('load messages', messagesToSend);
+
     } catch (e) {
-      console.log('توكن غير صالح في join');
+      console.log('خطأ في join:', e.message);
     }
   });
+
   socket.on('message', async (msg, token) => {
     try {
       const decoded = jwt.verify(token, secret);
       const user = await getUser(decoded.username);
-    
       if (!user) return;
+
       const avatar = user.avatar || 'https://via.placeholder.com/40';
+      const role = user.rank || 'ضيف';
+
+      // حفظ الرسالة في قاعدة البيانات
+      await pool.query(
+        `INSERT INTO room_messages (room, username, message, avatar, role, created_at)
+         VALUES ($1, $2, $3, $4, $5, NOW())`,
+        [currentRoom, decoded.username, msg, avatar, role]
+      );
+
       io.to(currentRoom).emit('message', {
         username: decoded.username,
         msg: msg,
         avatar: avatar,
-        role: user.rank || 'ضيف'
+        role: role
       });
-    
+
     } catch (e) {
-      console.log("خطأ في التحقق من التوكن أثناء إرسال الرسالة");
+      console.log("خطأ في التحقق من التوكن أثناء إرسال الرسالة:", e.message);
     }
   });
-  // طلب صداقة
+
+  // باقي الأحداث بدون تغيير
   socket.on('send friend request', async (targetUsername) => {
     if (!socket.username || socket.username === targetUsername) return;
     const [sender, target] = await Promise.all([
@@ -314,7 +369,7 @@ io.on('connection', socket => {
     });
     socket.emit('request_sent', targetUsername);
   });
-  // قبول طلب
+
   socket.on('accept friend request', async (fromUsername) => {
     const acceptor = socket.username;
     const [acceptorUser, senderUser] = await Promise.all([
@@ -344,7 +399,7 @@ io.on('connection', socket => {
     });
     socket.emit('friend_accepted', fromUsername);
   });
-  // رفض طلب
+
   socket.on('reject friend request', async (fromUsername) => {
     const rejector = socket.username;
     await pool.query(
@@ -357,7 +412,7 @@ io.on('connection', socket => {
     );
     socket.emit('request_rejected', fromUsername);
   });
-  // كود شراء الرتبة مجاناً
+
   socket.on('buy role', async ({ role }) => {
     if (!socket.username) return;
     try {
@@ -385,7 +440,7 @@ io.on('connection', socket => {
       socket.emit('role purchased', { success: false, message: 'فشل تحديث الرتبة بالسيرفر' });
     }
   });
-  // كود إهداء الرتبة من المالك
+
   socket.on('change-rank-gift', async ({ targetUsername, newRank }) => {
     try {
       const success = await updateUserFields(targetUsername, { rank: newRank });
@@ -402,15 +457,17 @@ io.on('connection', socket => {
       console.error('Error during rank gift:', err);
     }
   });
-  // الرسائل الخاصة
+
   function getPrivateRoomName(u1, u2) {
     return ['private', ...[u1, u2].sort()].join('_');
   }
+
   socket.on('join private', (targetUsername) => {
     if (!socket.username || !targetUsername || socket.username === targetUsername) return;
     const roomName = getPrivateRoomName(socket.username, targetUsername);
     socket.join(roomName);
   });
+
   socket.on('private message', async ({ to, msg }) => {
     const from = socket.username;
     if (!from || !to || !msg?.trim() || from === to) return;
@@ -444,6 +501,7 @@ io.on('connection', socket => {
       console.error('خطأ في حفظ الرسالة الخاصة:', err);
     }
   });
+
   socket.on('disconnect', () => {
     if (currentRoom && username) {
       roomCounts[currentRoom]--;
@@ -454,6 +512,7 @@ io.on('connection', socket => {
     socket.username = null;
   });
 });
+
 async function sendNotification(toUsername, notification) {
   try {
     await pool.query(
@@ -470,6 +529,7 @@ async function sendNotification(toUsername, notification) {
     console.error('خطأ في إرسال الإشعار:', err);
   }
 }
+
 // ────────────────────────────────────────────────
 // تشغيل السيرفر
 // ────────────────────────────────────────────────
@@ -482,5 +542,3 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
 });
-
-
