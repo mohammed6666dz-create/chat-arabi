@@ -6,7 +6,6 @@
   <title>الشات - شات عربي</title>
   <link rel="icon" href="/favicon.ico.png" type="image/png">
   <link rel="apple-touch-icon" href="/favicon.ico.png">
-
  <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -22,6 +21,63 @@
   <link rel="stylesheet" href="chat.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="/socket.io/socket.io.js"></script>
+  <style>
+    /* أنماط سريعة للوحات الجديدة (يمكنك نقلها لاحقاً إلى chat.css) */
+    .conversations-panel, .friend-requests-panel, .reports-panel {
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      width: 320px;
+      max-height: 80vh;
+      background: #1e293b;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      z-index: 1000;
+      overflow-y: auto;
+      padding: 15px;
+      color: white;
+      display: none;
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 10px;
+    }
+    .panel-header h3 { margin: 0; font-size: 1.2rem; }
+    .close-panel { cursor: pointer; font-size: 1.5rem; }
+    .conversation-item, .request-item, .report-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: #0f172a;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .conversation-item:hover, .request-item:hover, .report-item:hover {
+      background: #1e40af;
+    }
+    .conversation-item img, .request-item img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+    .action-btn-small {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+    }
+    .accept-btn { background: #10b981; color: white; }
+    .reject-btn { background: #ef4444; color: white; }
+    .report-item .reporter { font-weight: bold; color: #fbbf24; }
+  </style>
 </head>
 <body>
   <header>
@@ -62,6 +118,38 @@
       </button>
     </div>
   </header>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- اللوحات الجديدة التي طلبتها -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+
+  <!-- لوحة المحادثات الخاصة الرئيسية -->
+  <div id="conversationsPanel" class="conversations-panel">
+    <div class="panel-header">
+      <h3>المحادثات الخاصة</h3>
+      <span class="close-panel" onclick="document.getElementById('conversationsPanel').style.display='none'">×</span>
+    </div>
+    <div id="conversationsList"></div>
+  </div>
+
+  <!-- لوحة طلبات الصداقة -->
+  <div id="friendRequestsPanel" class="friend-requests-panel">
+    <div class="panel-header">
+      <h3>طلبات الصداقة</h3>
+      <span class="close-panel" onclick="document.getElementById('friendRequestsPanel').style.display='none'">×</span>
+    </div>
+    <div id="friendRequestsList"></div>
+  </div>
+
+  <!-- لوحة الإبلاغات -->
+  <div id="reportsPanel" class="reports-panel">
+    <div class="panel-header">
+      <h3>الإبلاغات الواردة</h3>
+      <span class="close-panel" onclick="document.getElementById('reportsPanel').style.display='none'">×</span>
+    </div>
+    <div id="reportsList"></div>
+  </div>
+
   <div class="chat-main">
     <div id="chatWindow"></div>
     <div id="usersPanel">
@@ -69,34 +157,29 @@
       <div id="usersList"></div>
     </div>
   </div>
-  <!-- ╔════════════════════════════════════════════════════════════╗ -->
-  <!-- ║ حقل الرسالة + زر الإيموجي ║ -->
-  <!-- ╚════════════════════════════════════════════════════════════╝ -->
-<!-- النسخة الأصلية المعدلة قليلاً -->
-<form id="messageForm">
-  <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
-  <button type="button" id="imageUploadBtn" class="emoji-btn" title="إرسال صورة" onclick="document.getElementById('imageInput').click();">
-  <i class="fas fa-image"></i>
-</button>
-<input type="file" id="imageInput" accept="image/*" style="display:none;">
-  <button type="button" id="emojiBtn" class="emoji-btn" title="اختر إيموجي">😊</button>
-  <button type="submit">إرسال</button>
-</form>
-  <!-- لوحة الإيموجي -->
+
+  <form id="messageForm">
+    <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
+    <button type="button" id="imageUploadBtn" class="emoji-btn" title="إرسال صورة" onclick="document.getElementById('imageInput').click();">
+      <i class="fas fa-image"></i>
+    </button>
+    <input type="file" id="imageInput" accept="image/*" style="display:none;">
+    <button type="button" id="emojiBtn" class="emoji-btn" title="اختر إيموجي">😊</button>
+    <button type="submit">إرسال</button>
+  </form>
+
   <div id="emojiPicker" class="emoji-picker hidden">
     <div class="emoji-tabs">
       <button class="emoji-tab active" data-tab="common">الأكثر استخداماً</button>
       <button class="emoji-tab" data-tab="animated">متحركة</button>
     </div>
     <div class="emoji-content">
-      <!-- الإيموجي العادية (الافتراضية) -->
       <div id="tab-common" class="emoji-grid">
         😊 😂 😍 ❤️ 🔥 👍 👏 🙌 ✨ 🌟 😎 😭 🥺 🤩 🥳 🎉 🎂 🎁 ⚡ 💥 💯
         ❤️‍🔥 🫶 🥰 😘 😋 🤤 😴 😷 🤢 🤮 🥵 🥶 🤯 🤔 🤫 🤭 🧐
         👀 👄 💋 🫦 👅 🧠 🫀 🫁 🦷 🦴 👣 🖐️ ✌️ 🤟 🤘 👌 👈 👉 ☝️
         🙏 🤲 👐 👏 🤝 💪 ✊ 👊 🤛 🤜 👋 🖖 🤙 🖕
       </div>
-      <!-- الإيموجي المتحركة (gif) -->
       <div id="tab-animated" class="emoji-grid animated-emojis hidden">
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/25.gif" alt="قوة" title="نقوة">
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/26.gif" alt="قلب" title="قلب">
@@ -106,17 +189,15 @@
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/28.gif" alt="استحمام" title="استحمام">
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/4.gif" alt="صوره" title="صوره">
         <img src="https://www.allsmileys.com/files/kolobok/vishenk/2.gif" alt="دراسه" title="دراسه">
-        <!-- أضف المزيد من الروابط إذا أردت -->
       </div>
     </div>
   </div>
-  <!-- لوحة البروفايل الشخصي (مع التحسينات الجديدة) -->
+
   <div id="myProfilePanel" class="profile-panel">
     <div class="profile-header">
       <h3>بروفايلك</h3>
       <span id="closeMyProfile" class="close-panel">×</span>
     </div>
-    <!-- الخلفية الجديدة (Cover) -->
     <div class="profile-cover-section">
       <div class="cover-photo" id="myCoverPhoto" style="background-image: url('https://via.placeholder.com/800x200/0f172a/ffffff?text=خلفيتك+هنا');"></div>
       <div class="profile-cover-overlay">
@@ -136,14 +217,12 @@
       </div>
       <h4 id="myProfileUsername">اسم المستخدم</h4>
     </div>
-    <!-- تبويبات مشابهة للصورة التي أرسلتها -->
     <div class="profile-tabs">
       <button class="tab-btn active"><i class="fas fa-trophy"></i> المزيد</button>
       <button class="tab-btn"><i class="fas fa-star"></i> المميزات</button>
       <button class="tab-btn"><i class="fas fa-gift"></i> الهدايا</button>
       <button class="tab-btn"><i class="fas fa-cog"></i> الإعدادات</button>
     </div>
-    <!-- محتوى التبويبات (يمكنك توسيعها لاحقاً) -->
     <div class="profile-tab-content">
       <ul>
         <li><i class="fas fa-edit"></i> تحرير البيانات</li>
@@ -155,7 +234,7 @@
       </ul>
     </div>
   </div>
-  <!-- باقي الأقسام كما هي بدون أي تغيير -->
+
   <div id="shopPanel" class="shop-panel" style="display:none;">
     <div class="shop-header">
       <h3>المتجر</h3>
@@ -163,7 +242,7 @@
     </div>
     <div class="shop-body">
       <h4>رصيد نقاطك: <span id="myPoints">0</span></h4>
-   
+  
       <div class="shop-items">
         <!-- سوبر أدمن -->
         <div class="shop-item">
@@ -200,19 +279,20 @@
       </div>
     </div>
   </div>
+
   <div id="levelPointsPanel" class="level-panel hidden">
     <div class="level-panel-content">
       <div class="level-header">
         <h3>نقاطي ومستواي</h3>
         <span class="close-level-panel">×</span>
       </div>
-    
+   
       <div class="level-main-info">
         <div class="level-circle">
           <span class="current-level">1</span>
           <span class="level-label">المستوى</span>
         </div>
-      
+     
         <div class="points-info">
           <div class="points-number">
             <span id="myRealPoints">1</span>
@@ -230,6 +310,7 @@
       </div>
     </div>
   </div>
+
   <div id="otherUserProfileModal" class="other-profile-modal hidden">
     <div class="modal-content">
       <span class="close-modal" onclick="closeOtherUserProfile()">×</span>
@@ -282,11 +363,13 @@
       </div>
     </div>
   </div>
+
   <div id="userProfilePanel" class="user-profile-panel">...</div>
   <div id="privateChatPanel" class="private-chat-panel">...</div>
-  <div id="friendRequestsPanel" class="friend-requests-panel">...</div>
+
   <script src="chat.js"></script>
-  <!-- السكريبت الإضافي للتحكم باللوحة + الإيموجي -->
+
+  <!-- السكريبت الإضافي للتحكم باللوحة + الإيموجي + اللوحات الجديدة -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const usersPanel = document.getElementById('usersPanel');
@@ -302,6 +385,7 @@
         showBtn.style.display = 'none';
         hideBtn.style.display = 'inline-block';
       });
+
       // معاينة الخلفية الجديدة عند الاختيار
       const coverUpload = document.getElementById('coverUpload');
       const myCoverPhoto = document.getElementById('myCoverPhoto');
@@ -317,6 +401,7 @@
           }
         });
       }
+
       // فتح وإغلاق المتجر
       document.getElementById('shopBtn')?.addEventListener('click', () => {
         document.getElementById('shopPanel').style.display = 'block';
@@ -324,6 +409,7 @@
       document.getElementById('closeShop')?.addEventListener('click', () => {
         document.getElementById('shopPanel').style.display = 'none';
       });
+
       // فتح وإغلاق نافذة نقاطي ومستواي
       const levelBtn = document.getElementById('myLevelBtn');
       const levelPanel = document.getElementById('levelPointsPanel');
@@ -341,6 +427,7 @@
           levelPanel.classList.add('hidden');
         });
       }
+
       // ╔════════════════════════════════════════════════════════════╗
       // ║ الإيموجي الجديدة ║
       // ╚════════════════════════════════════════════════════════════╝
@@ -357,7 +444,6 @@
             emojiPicker.classList.add('hidden');
           }
         });
-        // تبديل التبويبات
         document.querySelectorAll('.emoji-tab').forEach(tab => {
           tab.addEventListener('click', () => {
             document.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
@@ -366,13 +452,11 @@
             document.getElementById(`tab-${tab.dataset.tab}`).classList.remove('hidden');
           });
         });
-        // إضافة إيموجي عادية
         document.getElementById('tab-common')?.addEventListener('click', e => {
           if (e.target.tagName === 'SPAN') {
             insertAtCursor(messageInput, e.target.textContent.trim());
           }
         });
-        // إضافة إيموجي متحركة (حالياً نضيف النص الموجود في alt)
         document.getElementById('tab-animated')?.addEventListener('click', e => {
           if (e.target.tagName === 'IMG') {
             insertAtCursor(messageInput, e.target.alt);
@@ -386,7 +470,44 @@
           input.focus();
         }
       }
+
+      // ╔════════════════════════════════════════════════════════════╗
+      // ║ فتح اللوحات الجديدة التي طلبتها ║
+      // ╚════════════════════════════════════════════════════════════╝
+
+      // 1. لوحة المحادثات الخاصة (زر الظرف)
+      document.getElementById('privateMsgBtn')?.addEventListener('click', () => {
+        document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel').forEach(p => p.style.display = 'none');
+        const panel = document.getElementById('conversationsPanel');
+        if (panel) {
+          panel.style.display = 'block';
+          // هنا يمكنك طلب قائمة المحادثات من السيرفر
+          // socket.emit('get private conversations');
+        }
+      });
+
+      // 2. لوحة طلبات الصداقة
+      document.getElementById('friendReqBtn')?.addEventListener('click', () => {
+        document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel').forEach(p => p.style.display = 'none');
+        const panel = document.getElementById('friendRequestsPanel');
+        if (panel) {
+          panel.style.display = 'block';
+          // هنا يمكنك طلب طلبات الصداقة من السيرفر
+          // socket.emit('get friend requests');
+        }
+      });
+
+      // 3. لوحة الإبلاغات
+      document.getElementById('reportsBtn')?.addEventListener('click', () => {
+        document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel').forEach(p => p.style.display = 'none');
+        const panel = document.getElementById('reportsPanel');
+        if (panel) {
+          panel.style.display = 'block';
+          // هنا يمكنك طلب الإبلاغات من السيرفر (للأدمن فقط)
+          // socket.emit('get reports');
+        }
+      });
     });
   </script>
 </body>
-</html> ا
+</html>
