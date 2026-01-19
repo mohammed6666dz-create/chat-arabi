@@ -235,7 +235,7 @@ function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
     const badge = getUserBadge(username, role);
     // تلوين المنشنات في الرسالة
-    let formattedMsg = msg.replace(/@(\w+)/g, '<span style="color:#3b82f6; font-weight:bold;">@$1</span>');
+    let formattedMsg = msg.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
     messageDiv.innerHTML = `
         <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}"
              onclick="openUserProfile('${username}', '${role}', '${avatar}')" style="cursor:pointer;">
