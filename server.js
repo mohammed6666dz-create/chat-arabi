@@ -46,7 +46,6 @@ async function initDatabase() {
         notifications JSONB DEFAULT '[]'::jsonb,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
-
       CREATE TABLE IF NOT EXISTS private_messages (
         id SERIAL PRIMARY KEY,
         from_user TEXT NOT NULL,
@@ -55,7 +54,6 @@ async function initDatabase() {
         created_at TIMESTAMPTZ DEFAULT NOW(),
         seen_by TEXT[] DEFAULT '{}'
       );
-
       CREATE TABLE IF NOT EXISTS room_messages (
         id SERIAL PRIMARY KEY,
         room TEXT NOT NULL,
@@ -65,10 +63,8 @@ async function initDatabase() {
         role TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
-
       CREATE INDEX IF NOT EXISTS idx_pm_users
       ON private_messages (from_user, to_user);
-
       CREATE INDEX IF NOT EXISTS idx_room_messages_room_created
       ON room_messages (room, created_at DESC);
     `);
@@ -325,12 +321,42 @@ io.on('connection', socket => {
         [currentRoom, decoded.username, msg, avatar, role]
       );
 
+      // إرسال الرسالة للجميع في الغرفة
       io.to(currentRoom).emit('message', {
         username: decoded.username,
         msg: msg,
         avatar: avatar,
         role: role
       });
+
+      // ────────────── معالجة المنشن (الطاق) ──────────────
+      const mentionRegex = /@(\w+)/g;
+      let match;
+      const mentionedUsers = new Set();
+
+      // جمع كل الأسماء المذكورة
+      while ((match = mentionRegex.exec(msg)) !== null) {
+        const mentionedUsername = match[1];
+        // ما نرسل إشعار للشخص نفسه إذا ذكر اسمه
+        if (mentionedUsername !== decoded.username) {
+          mentionedUsers.add(mentionedUsername);
+        }
+      }
+
+      // إذا وجد أشخاص تم ذكرهم
+      if (mentionedUsers.size > 0) {
+        for (const mentioned of mentionedUsers) {
+          // نبحث عن كل السوكتس الخاصة بهذا المستخدم (يدعم الاتصال من أكثر من جهاز)
+          for (const clientSocket of io.sockets.sockets.values()) {
+            if (clientSocket.username === mentioned) {
+              clientSocket.emit('mention notification', {
+                from: decoded.username,
+                room: currentRoom
+              });
+            }
+          }
+        }
+      }
 
     } catch (e) {
       console.log("خطأ في التحقق من التوكن أثناء إرسال الرسالة:", e.message);
