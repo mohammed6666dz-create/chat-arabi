@@ -678,7 +678,7 @@ let myPoints = 1; // القيمة الافتراضية لأول مرة
 let myLevel = 1;
 
 // صوت الطاق (عصفور)
-const mentionSound = new Audio('https://assets.codepen.io/605876/bird-chirp-short.mp3');
+const mentionSound = new Audio('./bird-chirp-short.mp3');
 mentionSound.volume = 0.7;
 
 socket.emit('join', room, token);
