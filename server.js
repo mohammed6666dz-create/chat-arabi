@@ -231,7 +231,7 @@ app.get('/room-counts', (req, res) => {
 
 app.post('/change-rank', verifyToken, async (req, res) => {
   const changer = await getUser(req.user.username);
-  if (!changer || changer.rank !== 'صاحب الموقع') {
+  if (!changer || changer.rank !== 'مالك') {
     return res.status(403).json({ msg: 'غير مصرح لك' });
   }
   const { targetUsername, newRank } = req.body;
@@ -355,12 +355,12 @@ io.on('connection', socket => {
       let match;
       const mentionedUsers = new Set();
 
-      // جمع كل الأسماء المذكورة
+     // جمع كل الأسماء المذكورة
       while ((match = mentionRegex.exec(msg)) !== null) {
         const mentionedUsername = match[1];
-        // ما نرسل إشعار للشخص نفسه إذا ذكر اسمه
-        if (mentionedUsername !== decoded.username) {
-          mentionedUsers.add(mentionedUsername);
+        
+        // أضف هذا السطر مباشرة بدون شرط الـ if
+        mentionedUsers.add(mentionedUsername);
         }
       }
 
