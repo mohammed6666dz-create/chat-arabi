@@ -173,10 +173,11 @@ app.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res
     const b64 = Buffer.from(req.file.buffer).toString("base64");
     const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
 
-    const result = await cloudinary.uploader.upload(dataURI, {
-      folder: "avatars",
-      upload_preset: "ywfrua3f"
-    });
+   const result = await cloudinary.uploader.upload(dataURI, { 
+    folder: "avatars", 
+    unsigned: true, // أضفنا هذا السطر
+    upload_preset: "ywfrua3f" 
+});
 
     const success = await updateUserFields(req.user.username, { avatar: result.secure_url });
 
@@ -197,10 +198,11 @@ app.post('/upload-background', verifyToken, upload.single('background'), async (
     const b64 = Buffer.from(req.file.buffer).toString("base64");
     const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
 
-    const result = await cloudinary.uploader.upload(dataURI, {
-      folder: "backgrounds",
-      upload_preset: "ywfrua3f"
-    });
+   const result = await cloudinary.uploader.upload(dataURI, { 
+    folder: "backgrounds", 
+    unsigned: true, // أضفنا هذا السطر
+    upload_preset: "ywfrua3f" 
+});
 
     const success = await updateUserFields(req.user.username, { background: result.secure_url });
 
@@ -480,3 +482,4 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
 });
+
