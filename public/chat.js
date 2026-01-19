@@ -14,7 +14,16 @@ let currentPrivateChat = null;
 // ─────────────── إضافة نظام النقاط والمستويات ───────────────
 let myPoints = 1; // القيمة الافتراضية لأول مرة
 let myLevel = 1;
-// صوت الطاق (عصفور)
+socket.on('message', ({ username, msg, avatar, role }) => {
+    // عرض الرسالة للجميع
+    appendMessage(username, msg, avatar, username === myUsername, role || 'guest');
+
+    // كود تشغيل الصوت إذا تمت منشنتك (يدعم المزخرف والعربي)
+    if (myUsername && msg.includes(`@${myUsername}`) && username !== myUsername) {
+        mentionSound.currentTime = 0; // لإعادة الصوت من البداية
+        mentionSound.play().catch(e => console.log("الصوت يحتاج تفاعل مع الصفحة"));
+    }
+});
 // استخدام الرابط المحلي للملف الذي رفعته
 const mentionSound = new Audio('./bird-chirp-short.mp3');
 mentionSound.volume = 0.7;
