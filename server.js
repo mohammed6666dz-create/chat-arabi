@@ -362,7 +362,6 @@ io.on('connection', socket => {
         // أضف هذا السطر مباشرة بدون شرط الـ if
         mentionedUsers.add(mentionedUsername);
         }
-      }
 
       // إذا وجد أشخاص تم ذكرهم
       if (mentionedUsers.size > 0) {
