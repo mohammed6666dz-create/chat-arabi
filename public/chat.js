@@ -1,4 +1,4 @@
-const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+ const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 if (!token) {
     window.location.href = 'index.html';
 }
@@ -14,7 +14,7 @@ let currentPrivateChat = null;
 // ─────────────── إضافة نظام النقاط والمستويات ───────────────
 let myPoints = 1; // القيمة الافتراضية لأول مرة
 let myLevel = 1;
-
+// صوت الطاق (عصفور)
 // استخدام الرابط المحلي للملف الذي رفعته
 const mentionSound = new Audio('./bird-chirp-short.mp3');
 mentionSound.volume = 0.7;
@@ -55,6 +55,18 @@ socket.on('system message', (msg) => {
     div.className = 'system-message';
     div.textContent = msg;
     document.getElementById('chatWindow').appendChild(div);
+    scrollToBottom();
+});
+// استقبال إشعار الطاق الخاص (يصل فقط للشخص المذكور)
+socket.on('mention notification', ({ from, room }) => {
+    mentionSound.currentTime = 0;
+    mentionSound.play().catch(err => {
+        console.log("مشكلة تشغيل صوت الطاق:", err);
+    });
+    const note = document.createElement('div');
+    note.className = 'system-message mention-alert';
+    note.innerHTML = `🐦 طاق من <strong>${from}</strong> في الغرفة!`;
+    document.getElementById('chatWindow').appendChild(note);
     scrollToBottom();
 });
 // ─────────────── إرسال رسالة + زيادة نقطة ───────────────
@@ -164,7 +176,7 @@ function getUserBadge(username, role = 'guest') {
     if (lowerUsername === 'nour') {
         return '<span class="badge owner">مديرة الموقع 👑</span>';
     }
-    if (lowerUsername === 'mohamed') {
+    if (lowerUsername === 'mohamed-dz') {
         return '<span class="badge owner">مالك 👑</span>';
     }
     if (lowerUsername === 'malak16') {
@@ -223,7 +235,7 @@ function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
     const badge = getUserBadge(username, role);
     // تلوين المنشنات في الرسالة
-    let formattedMsg = msg.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+    let formattedMsg = msg.replace(/@(\w+)/g, '<span style="color:#3b82f6; font-weight:bold;">@$1</span>');
     messageDiv.innerHTML = `
         <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}"
              onclick="openUserProfile('${username}', '${role}', '${avatar}')" style="cursor:pointer;">
@@ -825,7 +837,7 @@ function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
     const badge = getUserBadge(username, role);
     // تلوين المنشنات في الرسالة
-let formattedMsg = msg.replace(/(^|\s)@(\S+)/g, '$1<span style="color:#3b82f6; font-weight:bold;">@$2</span>');
+    let formattedMsg = msg.replace(/@(\w+)/g, '<span style="color:#3b82f6; font-weight:bold;">@$1</span>');
     messageDiv.innerHTML = `
         <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}"
              onclick="openUserProfile('${username}', '${role}', '${avatar}')" style="cursor:pointer;">
@@ -1226,27 +1238,3 @@ const targetModal = document.getElementById('otherUserProfileModal');
 if (targetModal) {
     observer.observe(targetModal, { attributes: true });
 }
-
-
-// ─────────────── الإضافة الجديدة للأزرار الثلاثة ───────────────
-document.addEventListener('DOMContentLoaded', () => {
-    function closeAllSidePanels() {
-        document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel')
-            .forEach(p => p.style.display = 'none');
-    }
-
-    document.getElementById('privateMsgBtn')?.addEventListener('click', () => {
-        closeAllSidePanels();
-        document.getElementById('conversationsPanel').style.display = 'block';
-    });
-
-    document.getElementById('friendReqBtn')?.addEventListener('click', () => {
-        closeAllSidePanels();
-        document.getElementById('friendRequestsPanel').style.display = 'block';
-    });
-
-    document.getElementById('reportsBtn')?.addEventListener('click', () => {
-        closeAllSidePanels();
-        document.getElementById('reportsPanel').style.display = 'block';
-    });
-});
