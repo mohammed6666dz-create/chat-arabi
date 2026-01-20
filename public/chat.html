@@ -206,17 +206,41 @@
         </label>
         <input type="file" id="coverUpload" accept="image/*" style="display:none;">
       </div>
+  <div id="myProfilePanel" class="profile-panel modern-design">
+    <div class="profile-header">
+        <span id="closeMyProfile" class="close-panel"><i class="fas fa-times"></i></span>
     </div>
-   <div class="profile-body">
-      <div class="avatar-container">
-        <img id="myProfileAvatar" src="https://via.placeholder.com/90" alt="صورتك">
-        <label for="avatarUpload" class="change-avatar">
-          <i class="fas fa-camera"></i>
-        </label>
-        <input type="file" id="avatarUpload" accept="image/*" style="display:none;">
-      </div>
-      <h4 id="myProfileUsername">اسم المستخدم</h4>
+
+    <div class="profile-cover-section">
+        <div class="cover-photo" id="myCoverPhoto" style="background-image: url('https://via.placeholder.com/800x400');"></div>
+        <div class="cover-overlay">
+            <label for="coverUpload"><i class="fas fa-camera"></i></label>
+            <input type="file" id="coverUpload" hidden>
+        </div>
     </div>
+
+    <div class="profile-main-content">
+        <div class="avatar-wrapper">
+            <img id="myProfileAvatar" src="https://via.placeholder.com/120" alt="صورتك">
+            <label for="avatarUpload" class="edit-avatar"><i class="fas fa-camera"></i></label>
+            <input type="file" id="avatarUpload" hidden>
+        </div>
+
+        <div class="user-meta">
+            <h4 id="myProfileUsername">MOHAMED-DZ <i class="fas fa-edit edit-icon"></i></h4>
+            <p class="user-status">ضع حالتك هنا <i class="fas fa-edit edit-icon"></i></p>
+        </div>
+    </div>
+
+    <div class="modern-tabs">
+        <button class="m-tab active">معلوماتي</button>
+        <button class="m-tab">الأصدقاء</button>
+        <button class="m-tab">تجاهل</button>
+        <button class="m-tab">خيارات</button>
+        <button class="m-tab highlight">المميزات</button>
+        <button class="m-tab">الحساب</button>
+    </div>
+</div>
   </div> <div id="shopPanel" class="shop-panel" style="display:none;">
     <div class="shop-header">
       <h3>المتجر</h3>
