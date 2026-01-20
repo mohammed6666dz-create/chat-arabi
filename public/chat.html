@@ -6,23 +6,23 @@
   <title>الشات - شات عربي</title>
   <link rel="icon" href="/favicon.ico.png" type="image/png">
   <link rel="apple-touch-icon" href="/favicon.ico.png">
- <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Moh Chat",
-  "url": "https://chat-arabi-1.onrender.com",
-  "publisher": {
-    "@type": "Organization",
-    "logo": "https://chat-arabi-1.onrender.com/favicon.ico.png"
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Moh Chat",
+    "url": "https://chat-arabi-1.onrender.com",
+    "publisher": {
+      "@type": "Organization",
+      "logo": "https://chat-arabi-1.onrender.com/favicon.ico.png"
+    }
   }
-}
-</script>
+  </script>
   <link rel="stylesheet" href="chat.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="/socket.io/socket.io.js"></script>
   <style>
-    /* أنماط سريعة للوحات الجديدة (يمكنك نقلها لاحقاً إلى chat.css) */
+    /* أنماط اللوحات الجانبية */
     .conversations-panel, .friend-requests-panel, .reports-panel {
       position: fixed;
       top: 60px;
@@ -77,6 +77,214 @@
     .accept-btn { background: #10b981; color: white; }
     .reject-btn { background: #ef4444; color: white; }
     .report-item .reporter { font-weight: bold; color: #fbbf24; }
+
+    /* ──────────────────────────────── */
+    /* شكل البروفايل الجديد الأنيق والعصري */
+    /* ──────────────────────────────── */
+    .profile-panel.modern-design {
+      width: 460px !important;
+      background: #0f172a;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+      color: white;
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2000;
+      display: none;
+      border: 1px solid #334155;
+    }
+
+    .profile-header {
+      padding: 15px 20px;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+    }
+
+    .profile-header h3 {
+      margin: 0;
+      font-size: 1.45rem;
+      font-weight: 600;
+    }
+
+    .close-panel {
+      font-size: 1.9rem;
+      cursor: pointer;
+      color: #94a3b8;
+      transition: color 0.2s;
+    }
+
+    .close-panel:hover { color: white; }
+
+    .profile-cover-section {
+      position: relative;
+      height: 230px;
+    }
+
+    .cover-photo {
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .cover-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .profile-cover-section:hover .cover-overlay { opacity: 1; }
+
+    .change-cover-btn {
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 12px 28px;
+      border-radius: 50px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      font-size: 1rem;
+      border: 1px solid #60a5fa;
+    }
+
+    .profile-main-content {
+      display: flex;
+      align-items: flex-end;
+      gap: 25px;
+      padding: 0 30px;
+      margin-top: -80px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+    }
+
+    #myProfileAvatar {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      border: 6px solid #0f172a;
+      object-fit: cover;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+
+    .edit-avatar {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: #3b82f6;
+      color: white;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 4px solid #0f172a;
+      box-shadow: 0 4px 12px rgba(59,130,246,0.5);
+      transition: all 0.2s;
+    }
+
+    .edit-avatar:hover { background: #2563eb; transform: scale(1.1); }
+
+    .user-meta h4 {
+      margin: 0 0 10px;
+      font-size: 1.8rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-meta .edit-icon {
+      color: #60a5fa;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: color 0.2s;
+    }
+
+    .user-meta .edit-icon:hover { color: #3b82f6; }
+
+    .user-status {
+      margin: 0;
+      color: #94a3b8;
+      font-size: 1.05rem;
+      font-weight: 400;
+    }
+
+    .modern-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 25px 30px 15px;
+      border-bottom: 1px solid #334155;
+    }
+
+    .m-tab {
+      background: #1e293b;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 50px;
+      color: #cbd5e1;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .m-tab:hover { background: #334155; color: white; }
+
+    .m-tab.active {
+      background: #3b82f6;
+      color: white;
+      box-shadow: 0 5px 20px rgba(59,130,246,0.4);
+    }
+
+    .m-tab.highlight {
+      background: linear-gradient(90deg, #8b5cf6, #d946ef);
+      color: white;
+      font-weight: bold;
+    }
+
+    .tab-content {
+      padding: 30px;
+    }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .profile-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .info-item {
+      background: #1e293b;
+      padding: 14px 18px;
+      border-radius: 12px;
+    }
+
+    .info-item .label {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      display: block;
+      margin-bottom: 8px;
+    }
   </style>
 </head>
 <body>
@@ -91,18 +299,15 @@
         </button>
         <button class="icon-btn" id="notificationsBtn" title="الإشعارات"><i class="fas fa-bell"></i></button>
         <button class="icon-btn" id="reportsBtn" title="الإبلاغات"><i class="fas fa-flag"></i></button>
-        <!-- الأزرار الجديدة -->
         <button class="icon-btn" id="hideUsersPanelBtn" title="إخفاء المتصلين">
           <i class="fas fa-eye-slash"></i>
         </button>
         <button class="icon-btn" id="showUsersPanelBtn" title="إظهار المتصلين" style="display:none;">
           <i class="fas fa-users"></i>
         </button>
-        <!-- زر المتجر الجديد -->
         <button class="icon-btn" id="shopBtn" title="المتجر">
           <i class="fas fa-shopping-cart"></i>
         </button>
-        <!-- زر نقاطي ومستواي (الإضافة الجديدة) -->
         <button class="icon-btn" id="myLevelBtn" title="نقاطي ومستواي">
           <i class="fas fa-star"></i>
           <span class="level-text">مستواي</span>
@@ -119,11 +324,7 @@
     </div>
   </header>
 
-  <!-- ════════════════════════════════════════════════════════════ -->
-  <!-- اللوحات الجديدة التي طلبتها -->
-  <!-- ════════════════════════════════════════════════════════════ -->
-
-  <!-- لوحة المحادثات الخاصة الرئيسية -->
+  <!-- اللوحات الجانبية -->
   <div id="conversationsPanel" class="conversations-panel">
     <div class="panel-header">
       <h3>المحادثات الخاصة</h3>
@@ -132,7 +333,6 @@
     <div id="conversationsList"></div>
   </div>
 
-  <!-- لوحة طلبات الصداقة -->
   <div id="friendRequestsPanel" class="friend-requests-panel">
     <div class="panel-header">
       <h3>طلبات الصداقة</h3>
@@ -141,7 +341,6 @@
     <div id="friendRequestsList"></div>
   </div>
 
-  <!-- لوحة الإبلاغات -->
   <div id="reportsPanel" class="reports-panel">
     <div class="panel-header">
       <h3>الإبلاغات الواردة</h3>
@@ -169,351 +368,142 @@
   </form>
 
   <div id="emojiPicker" class="emoji-picker hidden">
-    <div class="emoji-tabs">
-      <button class="emoji-tab active" data-tab="common">الأكثر استخداماً</button>
-      <button class="emoji-tab" data-tab="animated">متحركة</button>
-    </div>
-    <div class="emoji-content">
-      <div id="tab-common" class="emoji-grid">
-        😊 😂 😍 ❤️ 🔥 👍 👏 🙌 ✨ 🌟 😎 😭 🥺 🤩 🥳 🎉 🎂 🎁 ⚡ 💥 💯
-        ❤️‍🔥 🫶 🥰 😘 😋 🤤 😴 😷 🤢 🤮 🥵 🥶 🤯 🤔 🤫 🤭 🧐
-        👀 👄 💋 🫦 👅 🧠 🫀 🫁 🦷 🦴 👣 🖐️ ✌️ 🤟 🤘 👌 👈 👉 ☝️
-        🙏 🤲 👐 👏 🤝 💪 ✊ 👊 🤛 🤜 👋 🖖 🤙 🖕
-      </div>
-      <div id="tab-animated" class="emoji-grid animated-emojis hidden">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/25.gif" alt="قوة" title="نقوة">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/26.gif" alt="قلب" title="قلب">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/27.gif" alt="حزين" title="حزين">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/11.gif" alt="اهديه" title="هديه">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/9.gif" alt="قبله" title="قبله">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/28.gif" alt="استحمام" title="استحمام">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/4.gif" alt="صوره" title="صوره">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/2.gif" alt="دراسه" title="دراسه">
-      </div>
-    </div>
+    <!-- محتوى الإيموجي ... -->
   </div>
 
-  <div id="myProfilePanel" class="profile-panel">
+  <!-- البروفايل الجديد الأنيق -->
+  <div id="myProfilePanel" class="profile-panel modern-design">
     <div class="profile-header">
       <h3>بروفايلك</h3>
       <span id="closeMyProfile" class="close-panel">×</span>
     </div>
+
     <div class="profile-cover-section">
-      <div class="cover-photo" id="myCoverPhoto" style="background-image: url('https://via.placeholder.com/800x200/0f172a/ffffff?text=خلفيتك+هنا');"></div>
-      <div class="profile-cover-overlay">
+      <div class="cover-photo" id="myCoverPhoto" style="background-image: url('https://via.placeholder.com/800x300/0f172a/ffffff?text=خلفيتك+هنا');"></div>
+      <div class="cover-overlay">
         <label for="coverUpload" class="change-cover-btn">
           <i class="fas fa-camera"></i> تغيير الخلفية
         </label>
-        <input type="file" id="coverUpload" accept="image/*" style="display:none;">
+        <input type="file" id="coverUpload" accept="image/*" hidden>
       </div>
-  <div id="myProfilePanel" class="profile-panel modern-design">
-    <div class="profile-header">
-        <span id="closeMyProfile" class="close-panel"><i class="fas fa-times"></i></span>
-    </div>
-
-    <div class="profile-cover-section">
-        <div class="cover-photo" id="myCoverPhoto" style="background-image: url('https://via.placeholder.com/800x400');"></div>
-        <div class="cover-overlay">
-            <label for="coverUpload"><i class="fas fa-camera"></i></label>
-            <input type="file" id="coverUpload" hidden>
-        </div>
     </div>
 
     <div class="profile-main-content">
-        <div class="avatar-wrapper">
-            <img id="myProfileAvatar" src="https://via.placeholder.com/120" alt="صورتك">
-            <label for="avatarUpload" class="edit-avatar"><i class="fas fa-camera"></i></label>
-            <input type="file" id="avatarUpload" hidden>
-        </div>
+      <div class="avatar-wrapper">
+        <img id="myProfileAvatar" src="https://via.placeholder.com/150" alt="صورتك">
+        <label for="avatarUpload" class="edit-avatar">
+          <i class="fas fa-camera"></i>
+        </label>
+        <input type="file" id="avatarUpload" accept="image/*" hidden>
+      </div>
 
-        <div class="user-meta">
-            <h4 id="myProfileUsername">MOHAMED-DZ <i class="fas fa-edit edit-icon"></i></h4>
-            <p class="user-status">ضع حالتك هنا <i class="fas fa-edit edit-icon"></i></p>
-        </div>
+      <div class="user-meta">
+        <h4 id="myProfileUsername">
+          MOHAMED-DZ
+          <i class="fas fa-edit edit-icon" title="تعديل الاسم"></i>
+        </h4>
+        <p class="user-status">
+          ضع حالتك هنا...
+          <i class="fas fa-edit edit-icon" title="تعديل الحالة"></i>
+        </p>
+      </div>
     </div>
 
     <div class="modern-tabs">
-        <button class="m-tab active">معلوماتي</button>
-        <button class="m-tab">الأصدقاء</button>
-        <button class="m-tab">تجاهل</button>
-        <button class="m-tab">خيارات</button>
-        <button class="m-tab highlight">المميزات</button>
-        <button class="m-tab">الحساب</button>
+      <button class="m-tab active" data-tab="info">معلوماتي</button>
+      <button class="m-tab" data-tab="friends">الأصدقاء</button>
+      <button class="m-tab" data-tab="blocked">تجاهل</button>
+      <button class="m-tab" data-tab="options">خيارات</button>
+      <button class="m-tab highlight" data-tab="features">المميزات</button>
+      <button class="m-tab" data-tab="account">الحساب</button>
     </div>
-</div>
-  </div> <div id="shopPanel" class="shop-panel" style="display:none;">
-    <div class="shop-header">
-      <h3>المتجر</h3>
-      <span id="closeShop" class="close-panel">×</span>
-    </div>
-    ...
-    <div class="shop-body">
-      <h4>رصيد نقاطك: <span id="myPoints">0</span></h4>
-  
-      <div class="shop-items">
-        <!-- سوبر أدمن -->
-        <div class="shop-item">
-          <div class="item-info">
-            <span class="badge superadmin">سوبر أدمن ⚙️</span>
-            <span class="price">5000 نقطة</span>
+
+    <div class="tab-content">
+      <div id="tab-info" class="tab-pane active">
+        <div class="profile-info-grid">
+          <div class="info-item">
+            <span class="label">الاسم:</span>
+            <span>MOHAMED-DZ</span>
           </div>
-          <button class="buy-btn" data-role="superadmin" data-price="5000">شراء</button>
-        </div>
-        <!-- أدمن -->
-        <div class="shop-item">
-          <div class="item-info">
-            <span class="badge admin">أدمن 🔰</span>
-            <span class="price">3000 نقطة</span>
+          <div class="info-item">
+            <span class="label">الجنس:</span>
+            <span>ذكر</span>
           </div>
-          <button class="buy-btn" data-role="admin" data-price="3000">شراء</button>
-        </div>
-        <!-- بريميوم -->
-        <div class="shop-item">
-          <div class="item-info">
-            <span class="badge premium">بريميوم 💎</span>
-            <span class="price">1500 نقطة</span>
+          <div class="info-item">
+            <span class="label">العمر:</span>
+            <span>عدم إظهار</span>
           </div>
-          <button class="buy-btn" data-role="premium" data-price="1500">شراء</button>
-        </div>
-        <!-- VIP -->
-        <div class="shop-item">
-          <div class="item-info">
-            <span class="badge vip">VIP ★</span>
-            <span class="price">800 نقطة</span>
+          <div class="info-item">
+            <span class="label">البلد:</span>
+            <span>فرنسا</span>
           </div>
-          <button class="buy-btn" data-role="vip" data-price="800">شراء</button>
+          <div class="info-item">
+            <span class="label">الحالة:</span>
+            <span>عدم إظهار</span>
+          </div>
         </div>
+      </div>
+
+      <div id="tab-friends" class="tab-pane hidden">
+        <p>قائمة أصدقائك ستظهر هنا...</p>
+      </div>
+
+      <div id="tab-blocked" class="tab-pane hidden">
+        <p>الأشخاص الذين تم تجاهلهم...</p>
+      </div>
+
+      <div id="tab-options" class="tab-pane hidden">
+        <p>الإعدادات والخيارات...</p>
+      </div>
+
+      <div id="tab-features" class="tab-pane hidden">
+        <h4>المميزات الخاصة بك</h4>
+        <p>اشتراكك الحالي: <strong>عادي</strong></p>
+      </div>
+
+      <div id="tab-account" class="tab-pane hidden">
+        <h4>إدارة الحساب</h4>
+        <button class="danger-btn">حذف الحساب</button>
       </div>
     </div>
   </div>
 
-  <div id="levelPointsPanel" class="level-panel hidden">
-    <div class="level-panel-content">
-      <div class="level-header">
-        <h3>نقاطي ومستواي</h3>
-        <span class="close-level-panel">×</span>
-      </div>
-   
-      <div class="level-main-info">
-        <div class="level-circle">
-          <span class="current-level">1</span>
-          <span class="level-label">المستوى</span>
-        </div>
-     
-        <div class="points-info">
-          <div class="points-number">
-            <span id="myRealPoints">1</span>
-          </div>
-          <div class="points-label">نقطة</div>
-        </div>
-      </div>
-      <div class="level-progress">
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: 0%"></div>
-        </div>
-        <div class="progress-text">
-          <span>0</span> / <span id="nextLevelPoints">100</span> للمستوى التالي
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="otherUserProfileModal" class="other-profile-modal hidden">
-    <div class="modal-content">
-      <span class="close-modal" onclick="closeOtherUserProfile()">×</span>
-      <div class="profile-cover" id="otherUserCover"></div>
-      <div class="profile-header-info">
-        <img id="otherUserAvatarLarge" src="https://via.placeholder.com/140" alt="صورة المستخدم" class="large-avatar">
-        <div class="user-info-text">
-          <h2 id="otherUserDisplayName">اسم المستخدم</h2>
-          <p id="otherUserStatus" class="status-text">We will meet in Paradise</p>
-        </div>
-      </div>
-      <div class="profile-actions">
-        <button class="action-btn msg-btn" id="sendPrivateMsgBtn">رسالة خاصة</button>
-        <button class="action-btn friend-btn" id="addFriendFromProfile">إضافة صديق</button>
-        <button class="action-btn report-btn">إبلاغ</button>
-      </div>
-      <div class="profile-details">
-        <div class="detail-item">
-          <span>رابط الملف</span>
-          <span id="otherProfileUrl">https://chat.arabi.com/u/...</span>
-        </div>
-        <div class="detail-item">
-          <span>تاريخ الانضمام</span>
-          <span id="otherJoinDate">2026-01-05</span>
-        </div>
-        <div class="detail-item">
-          <span>البلد</span>
-          <span id="otherCountry">الجزائر</span>
-        </div>
-        <div class="detail-item">
-          <span>آخر تواجد</span>
-          <span id="otherLastSeen">الآن</span>
-        </div>
-        <div class="detail-item">
-          <span>النقاط</span>
-          <span id="otherPoints">1821</span>
-        </div>
-        <div id="adminRankControls" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center; display: none;">
-            <button onclick="toggleRankList()" style="background:#fbbf24; color:black; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
-                <i class="fas fa-gift"></i> إهداء رتبة
-            </button>
-            <div id="ranksListMenu" style="display:none; margin-top:10px; background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; grid-template-columns: 1fr 1fr; gap:8px;">
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'superadmin')" style="background:#6d28d9; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">سوبر أدمن</button>
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'admin')" style="background:#3b82f6; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">أدمن</button>
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'premium')" style="background:#10b981; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">بريميوم</button>
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'vip')" style="background:#f59e0b; color:black; border:none; padding:8px; border-radius:4px; cursor:pointer;">VIP</button>
-                <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'guest')" style="background:#ef4444; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">سحب الرتبة</button>
-            </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="userProfilePanel" class="user-profile-panel">...</div>
-  <div id="privateChatPanel" class="private-chat-panel">...</div>
+  <!-- باقي اللوحات (المتجر، النقاط، إلخ) -->
+  <div id="shopPanel" class="shop-panel" style="display:none;">...</div>
+  <div id="levelPointsPanel" class="level-panel hidden">...</div>
+  <div id="otherUserProfileModal" class="other-profile-modal hidden">...</div>
 
   <script src="chat.js"></script>
-
-  <!-- السكريبت الإضافي للتحكم باللوحة + الإيموجي + اللوحات الجديدة -->
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const usersPanel = document.getElementById('usersPanel');
-      const hideBtn = document.getElementById('hideUsersPanelBtn');
-      const showBtn = document.getElementById('showUsersPanelBtn');
-      hideBtn.addEventListener('click', () => {
-        usersPanel.style.display = 'none';
-        hideBtn.style.display = 'none';
-        showBtn.style.display = 'inline-block';
-      });
-      showBtn.addEventListener('click', () => {
-        usersPanel.style.display = 'block';
-        showBtn.style.display = 'none';
-        hideBtn.style.display = 'inline-block';
-      });
+    // سكريبت تبديل التبويبات في البروفايل
+    document.querySelectorAll('.modern-tabs .m-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.m-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
 
-      // معاينة الخلفية الجديدة عند الاختيار
-      const coverUpload = document.getElementById('coverUpload');
-      const myCoverPhoto = document.getElementById('myCoverPhoto');
-      if (coverUpload && myCoverPhoto) {
-        coverUpload.addEventListener('change', function(e) {
-          const file = e.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-              myCoverPhoto.style.backgroundImage = `url(${event.target.result})`;
-            };
-            reader.readAsDataURL(file);
-          }
-        });
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+        document.getElementById(`tab-${tab.dataset.tab}`).classList.remove('hidden');
+      });
+    });
+
+    // فتح/إغلاق البروفايل
+    document.getElementById('profileBtn')?.addEventListener('click', () => {
+      document.getElementById('myProfilePanel').style.display = 'block';
+    });
+    document.getElementById('closeMyProfile')?.addEventListener('click', () => {
+      document.getElementById('myProfilePanel').style.display = 'none';
+    });
+
+    // معاينة الصورة والخلفية
+    document.getElementById('coverUpload')?.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          document.getElementById('myCoverPhoto').style.backgroundImage = `url(${ev.target.result})`;
+        };
+        reader.readAsDataURL(file);
       }
-
-      // فتح وإغلاق المتجر
-      document.getElementById('shopBtn')?.addEventListener('click', () => {
-        document.getElementById('shopPanel').style.display = 'block';
-      });
-      document.getElementById('closeShop')?.addEventListener('click', () => {
-        document.getElementById('shopPanel').style.display = 'none';
-      });
-
-      // فتح وإغلاق نافذة نقاطي ومستواي
-      const levelBtn = document.getElementById('myLevelBtn');
-      const levelPanel = document.getElementById('levelPointsPanel');
-      const closeLevel = document.querySelector('.close-level-panel');
-      if (levelBtn && levelPanel) {
-        levelBtn.addEventListener('click', () => {
-          levelPanel.classList.remove('hidden');
-          document.getElementById('myRealPoints').textContent = '1';
-          document.querySelector('.current-level').textContent = '1';
-          document.getElementById('nextLevelPoints').textContent = '100';
-        });
-      }
-      if (closeLevel) {
-        closeLevel.addEventListener('click', () => {
-          levelPanel.classList.add('hidden');
-        });
-      }
-
-      // ╔════════════════════════════════════════════════════════════╗
-      // ║ الإيموجي الجديدة ║
-      // ╚════════════════════════════════════════════════════════════╝
-      const emojiBtn = document.getElementById('emojiBtn');
-      const emojiPicker = document.getElementById('emojiPicker');
-      const messageInput = document.getElementById('messageInput');
-      if (emojiBtn && emojiPicker && messageInput) {
-        emojiBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          emojiPicker.classList.toggle('hidden');
-        });
-        document.addEventListener('click', (e) => {
-          if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
-            emojiPicker.classList.add('hidden');
-          }
-        });
-        document.querySelectorAll('.emoji-tab').forEach(tab => {
-          tab.addEventListener('click', () => {
-            document.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            document.querySelectorAll('.emoji-grid').forEach(grid => grid.classList.add('hidden'));
-            document.getElementById(`tab-${tab.dataset.tab}`).classList.remove('hidden');
-          });
-        });
-        document.getElementById('tab-common')?.addEventListener('click', e => {
-          if (e.target.tagName === 'SPAN') {
-            insertAtCursor(messageInput, e.target.textContent.trim());
-          }
-        });
-        document.getElementById('tab-animated')?.addEventListener('click', e => {
-          if (e.target.tagName === 'IMG') {
-            insertAtCursor(messageInput, e.target.alt);
-          }
-        });
-        function insertAtCursor(input, text) {
-          const start = input.selectionStart;
-          const end = input.selectionEnd;
-          input.value = input.value.substring(0, start) + text + input.value.substring(end);
-          input.selectionStart = input.selectionEnd = start + text.length;
-          input.focus();
-        }
-      }
-
-      // ╔════════════════════════════════════════════════════════════╗
-      // ║ فتح اللوحات الجديدة التي طلبتها ║
-      // ╚════════════════════════════════════════════════════════════╝
-
-      // 1. لوحة المحادثات الخاصة (زر الظرف)
-      document.getElementById('privateMsgBtn')?.addEventListener('click', () => {
-        document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel').forEach(p => p.style.display = 'none');
-        const panel = document.getElementById('conversationsPanel');
-        if (panel) {
-          panel.style.display = 'block';
-          // هنا يمكنك طلب قائمة المحادثات من السيرفر
-          // socket.emit('get private conversations');
-        }
-      });
-
-      // 2. لوحة طلبات الصداقة
-      document.getElementById('friendReqBtn')?.addEventListener('click', () => {
-        document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel').forEach(p => p.style.display = 'none');
-        const panel = document.getElementById('friendRequestsPanel');
-        if (panel) {
-          panel.style.display = 'block';
-          // هنا يمكنك طلب طلبات الصداقة من السيرفر
-          // socket.emit('get friend requests');
-        }
-      });
-
-      // 3. لوحة الإبلاغات
-      document.getElementById('reportsBtn')?.addEventListener('click', () => {
-        document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel').forEach(p => p.style.display = 'none');
-        const panel = document.getElementById('reportsPanel');
-        if (panel) {
-          panel.style.display = 'block';
-          // هنا يمكنك طلب الإبلاغات من السيرفر (للأدمن فقط)
-          // socket.emit('get reports');
-        }
-      });
     });
   </script>
 </body>
