@@ -182,9 +182,9 @@ function getUserBadge(username, role = 'guest') {
     }
     switch (role.toLowerCase()) {
         case 'superadmin':
-            return '<span class="badge superadmin">سوبر أدمن ⚙️</span>';
+            return '<span class="badge superadmin">superadmin 🌟</span>';
         case 'admin':
-            return '<span class="badge admin">أدمن 🔰</span>';
+            return '<span class="badge admin">admin 🛡️</span>';
         case 'بريميوم':
             return '<span class="badge premium">premium 💎</span>';
         case 'vip':
