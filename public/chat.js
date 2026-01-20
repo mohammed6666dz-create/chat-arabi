@@ -57,17 +57,15 @@ socket.on('system message', (msg) => {
     document.getElementById('chatWindow').appendChild(div);
     scrollToBottom();
 });
-// استقبال إشعار الطاق الخاص (يصل فقط للشخص المذكور)
+// استقبال إشعار الطاق الخاص (يصل فقط للشخص المذكور) - صوت فقط
 socket.on('mention notification', ({ from, room }) => {
+    // تشغيل الصوت فقط
     mentionSound.currentTime = 0;
     mentionSound.play().catch(err => {
         console.log("مشكلة تشغيل صوت الطاق:", err);
     });
-    const note = document.createElement('div');
-    note.className = 'system-message mention-alert';
-    note.innerHTML = `🐦 طاق من <strong>${from}</strong> في الغرفة!`;
-    document.getElementById('chatWindow').appendChild(note);
-    scrollToBottom();
+
+    // تم حذف كود إنشاء الإشعار المكتوب (div) ليبقى الصوت فقط
 });
 // ─────────────── إرسال رسالة + زيادة نقطة ───────────────
 document.getElementById('messageForm').addEventListener('submit', (e) => {
@@ -176,7 +174,7 @@ function getUserBadge(username, role = 'guest') {
     if (lowerUsername === 'nour') {
         return '<span class="badge owner">مديرة الموقع 👑</span>';
     }
-    if (lowerUsername === 'mohamed-dz') {
+    if (lowerUsername === 'MOHAMED') {
         return '<span class="badge owner">مالك 👑</span>';
     }
     if (lowerUsername === 'malak16') {
