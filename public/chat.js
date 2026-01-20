@@ -328,6 +328,26 @@ function openUserProfile(username, role = 'guest', avatar = '') {
         const myName = (myUsername || '').toLowerCase().trim();
         adminBtn.style.display = (myName === 'mohamed-dz' || myName === 'nour') ? 'flex' : 'none';
     }
+ // --- كود أزرار الإدارة الجديد ---
+    const adminBox = document.getElementById('adminActionsContainer');
+    if (adminBox) {
+        // التحقق من الرتبة أو الاسم (استخدمنا المتغير myName الموجود في كودك)
+        const myRank = window.myRank; // تأكد أن الرتبة مخزنة في هذا المتغير عالمياً
+        if (['مالك', 'superadmin', 'admin'].includes(myRank) || myName === 'mohamed-dz' || myName === 'nour') { 
+            adminBox.style.display = 'block';
+            adminBox.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 10px;">
+                    <button onclick="adminAction('kick', '${username}')" class="btn-admin kick">طرد 🚪</button>
+                    <button onclick="adminAction('mute', '${username}')" class="btn-admin mute">كتم 🔇</button>
+                    <button onclick="adminAction('ban', '${username}')" class="btn-admin ban">حظر 🚫</button>
+                    <button onclick="adminAction('unmute', '${username}')" class="btn-admin unmute">فك كتم ✅</button>
+                    <button onclick="adminAction('unban', '${username}')" class="btn-admin unban">فك حظر 🔓</button>
+                </div>
+            `;
+        } else {
+            adminBox.style.display = 'none';
+        }
+    }
     currentPrivateChat = username;
 }
 function showProfile() {
