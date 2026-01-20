@@ -322,7 +322,9 @@ function openUserProfile(username, role = 'guest', avatar = '') {
     document.getElementById('otherUserAvatarLarge').src = avatar || 'https://via.placeholder.com/80';
     const modal = document.getElementById('otherUserProfileModal');
     modal.classList.remove('hidden');
-    modal.style.display = 'flex';
+ modal.style.display = 'flex';
+    modal.style.overflowY = 'auto'; // يسمح بالتمرير إذا زاد طول المحتوى
+    modal.style.maxHeight = '90vh'; // يضمن بقاء النافذة داخل حدود الشاشة
     const adminBtn = document.getElementById('adminCommandsBtn');
     if (adminBtn) {
         const myName = (myUsername || '').toLowerCase().trim();
@@ -337,13 +339,18 @@ function openUserProfile(username, role = 'guest', avatar = '') {
         // نتحقق إذا كنت أنت محمد أو نور أو رتبتك إدارية
         if (myStoredName === 'mohamed-dz' || myStoredName === 'nour' || ['مالك', 'superadmin', 'admin'].includes(window.myRank)) { 
             adminBox.style.display = 'block';
-            adminBox.innerHTML = `
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                    <button onclick="adminAction('kick', '${username}')" style="background: #e67e22; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold;">طرد 🚪</button>
-                    <button onclick="adminAction('mute', '${username}')" style="background: #f1c40f; color: black; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold;">كتم 🔇</button>
-                    <button onclick="adminAction('ban', '${username}')" style="background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold;">حظر 🚫</button>
-                </div>
-            `;
+   adminBox.innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-top: 10px; padding: 5px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                <button onclick="adminAction('kick', '${username}')" style="background: #e67e22; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">طرد 🚪</button>
+                <button onclick="adminAction('mute', '${username}')" style="background: #f1c40f; color: black; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">كتم 🔇</button>
+                <button onclick="adminAction('ban', '${username}')" style="background: #e74c3c; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">حظر 🚫</button>
+                
+                <button onclick="adminAction('unmute', '${username}')" style="background: #2ecc71; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">فك كتم ✅</button>
+                <button onclick="adminAction('unban', '${username}')" style="background: #3498db; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">فك حظر 🔓</button>
+                
+                <button onclick="closeOtherUserProfile()" style="grid-column: span 3; background: #555; color: white; border: none; padding: 4px; margin-top: 2px; border-radius: 4px; cursor: pointer; font-size: 10px;">إغلاق النافذة ×</button>
+            </div>
+        `;
         } else {
             adminBox.style.display = 'none';
         }
