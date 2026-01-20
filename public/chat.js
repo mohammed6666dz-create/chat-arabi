@@ -186,7 +186,7 @@ function getUserBadge(username, role = 'guest') {
         case 'admin':
             return '<span class="badge admin">أدمن 🔰</span>';
         case 'premium':
-            return '<span class="badge premium">بريميوم 💎</span>';
+            return '<span class="badge premium">premium 💎</span>';
         case 'vip':
             return '<span class="badge vip">VIP ★</span>';
         default:
