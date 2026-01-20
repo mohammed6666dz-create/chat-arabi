@@ -38,6 +38,8 @@ async function initDatabase() {
         username TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
         rank TEXT DEFAULT 'ضيف',
+        is_banned BOOLEAN DEFAULT false,
+is_muted BOOLEAN DEFAULT false,
         avatar TEXT DEFAULT '',
         background TEXT DEFAULT '',
         friends JSONB DEFAULT '[]'::jsonb,
@@ -252,7 +254,44 @@ app.post('/change-rank', verifyToken, async (req, res) => {
 io.on('connection', socket => {
   let currentRoom = null;
   let username = null;
+// --- كود أوامر الإدارة (يوضع في السطر 257) ---
+  socket.on('admin command', async (data) => {
+    const { action, target, token } = data;
+    try {
+      const decoded = jwt.verify(token, secret);
+      const user = await getUser(decoded.username);
+      
+      // التأكد من الرتبة (أدمن، صاحب الموقع، أو مالك)
+      if (user && ['أدمن', 'صاحب الموقع', 'مالك'].includes(user.rank)) {
+        
+        if (action === 'ban') {
+          // تحديث حالة الحظر في قاعدة البيانات
+          await pool.query('UPDATE users SET is_banned = true WHERE username = $1', [target]);
+          // إرسال الإشارة لعرض الصورة للمستخدم المستهدف
+          io.emit('execute-ban', { target: target });
+        }
+        
+        if (action === 'unban') {
+          await pool.query('UPDATE users SET is_banned = false WHERE username = $1', [target]);
+          io.emit('system message', `✅ تم فك الحظر عن ${target}`);
+        }
 
+        if (action === 'mute') {
+          await pool.query('UPDATE users SET is_muted = true WHERE username = $1', [target]);
+        }
+
+        if (action === 'unmute') {
+          await pool.query('UPDATE users SET is_muted = false WHERE username = $1', [target]);
+        }
+
+        if (action === 'kick') {
+          io.emit('execute-kick', { target: target });
+        }
+      }
+    } catch (err) {
+      console.error('Admin Error:', err);
+    }
+  });
   socket.on('join', async (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
