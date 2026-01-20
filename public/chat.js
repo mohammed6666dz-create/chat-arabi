@@ -174,7 +174,7 @@ function getUserBadge(username, role = 'guest') {
     if (lowerUsername === 'nour') {
         return '<span class="badge owner">مديرة الموقع 👑</span>';
     }
-    if (lowerUsername === 'MOHAMED') {
+    if (lowerUsername === 'mohamed') {
         return '<span class="badge owner">مالك 👑</span>';
     }
     if (lowerUsername === 'malak16') {
