@@ -713,6 +713,40 @@ socket.on('mention notification', ({ from, room }) => {
     document.getElementById('chatWindow').appendChild(note);
     scrollToBottom();
 });
+    // --- كود استقبال إشارة الحظر وعرض الصورة ---
+socket.on('execute-ban', (data) => {
+    const myCurrentUsername = localStorage.getItem('username');
+    if (data.target === myCurrentUsername) {
+        document.body.innerHTML = `
+            <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:10000000; display:flex; align-items:center; justify-content:center;">
+                <img src="https://chatgpt.com/backend-api/estuary/content?id=file_0000000076d871f58a51f1739dabafff" 
+                     style="width:100%; height:100%; object-fit:contain;">
+            </div>`;
+        socket.disconnect(); // قطع الاتصال بالسيرفر فوراً
+    }
+});
+// --- كود استقبال إشارة الكتم (يوضع بعد السطر 727) ---
+socket.on('mute-update', (data) => {
+    const myName = localStorage.getItem('username');
+    if (data.target === myName) {
+        // تخزين حالة الكتم في المتصفح لمنع الإرسال
+        window.isMuted = data.status; 
+        
+        if (data.status) {
+            alert("🔇 لقد تم كتمك من قبل الإدارة، لا يمكنك إرسال رسائل الآن.");
+        } else {
+            alert("🔊 تم فك الكتم عنك، يمكنك التحدث الآن.");
+        }
+    }
+});
+ // منع إرسال الرسائل إذا كان المستخدم مكتوماً
+document.getElementById('messageForm').addEventListener('submit', (e) => {
+    if (window.isMuted) {
+        e.preventDefault(); // إيقاف إرسال النموذج
+        alert("🔇 لا يمكنك إرسال رسائل، أنت مكتوم حالياً!");
+        return false;
+    }
+});
 // ─────────────── إرسال رسالة + زيادة نقطة ───────────────
 document.getElementById('messageForm').addEventListener('submit', (e) => {
     e.preventDefault();
