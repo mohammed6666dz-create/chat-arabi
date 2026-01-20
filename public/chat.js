@@ -329,19 +329,19 @@ function openUserProfile(username, role = 'guest', avatar = '') {
         adminBtn.style.display = (myName === 'mohamed-dz' || myName === 'nour') ? 'flex' : 'none';
     }
  // --- كود أزرار الإدارة الجديد ---
+ // --- كود أزرار الإدارة المحسن (يوضع في السطر 331) ---
     const adminBox = document.getElementById('adminActionsContainer');
+    const myStoredName = localStorage.getItem('username'); // نتحقق من اسمك المسجل
+
     if (adminBox) {
-        // التحقق من الرتبة أو الاسم (استخدمنا المتغير myName الموجود في كودك)
-        const myRank = window.myRank; // تأكد أن الرتبة مخزنة في هذا المتغير عالمياً
-        if (['مالك', 'superadmin', 'admin'].includes(myRank) || myName === 'mohamed-dz' || myName === 'nour') { 
+        // نتحقق إذا كنت أنت محمد أو نور أو رتبتك إدارية
+        if (myStoredName === 'mohamed-dz' || myStoredName === 'nour' || ['مالك', 'superadmin', 'admin'].includes(window.myRank)) { 
             adminBox.style.display = 'block';
             adminBox.innerHTML = `
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 10px;">
-                    <button onclick="adminAction('kick', '${username}')" class="btn-admin kick">طرد 🚪</button>
-                    <button onclick="adminAction('mute', '${username}')" class="btn-admin mute">كتم 🔇</button>
-                    <button onclick="adminAction('ban', '${username}')" class="btn-admin ban">حظر 🚫</button>
-                    <button onclick="adminAction('unmute', '${username}')" class="btn-admin unmute">فك كتم ✅</button>
-                    <button onclick="adminAction('unban', '${username}')" class="btn-admin unban">فك حظر 🔓</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                    <button onclick="adminAction('kick', '${username}')" style="background: #e67e22; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold;">طرد 🚪</button>
+                    <button onclick="adminAction('mute', '${username}')" style="background: #f1c40f; color: black; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold;">كتم 🔇</button>
+                    <button onclick="adminAction('ban', '${username}')" style="background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold;">حظر 🚫</button>
                 </div>
             `;
         } else {
