@@ -866,6 +866,11 @@ async function loadMyProfile() {
         const user = await res.json();
    
         myUsername = user.username;
+     // تحديث الاسم الكبير في رأس البروفايل
+document.getElementById('myProfileUsername').textContent = myUsername; 
+
+// تحديث الاسم في خانة "الاسم" داخل تبويب معلوماتي
+document.querySelector('#tab-info .info-item span:not(.label)').textContent = myUsername;
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
         const timestamp = new Date().getTime();
         document.getElementById('avatar').src = myAvatar + '?t=' + timestamp;
