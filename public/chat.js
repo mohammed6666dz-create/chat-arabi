@@ -324,8 +324,25 @@ function openUserProfile(username, role = 'guest', avatar = '') {
     modal.classList.remove('hidden');
  modal.style.display = 'flex';
     modal.style.overflowY = 'auto'; // يسمح بالتمرير إذا زاد طول المحتوى
-    modal.style.maxHeight = '90vh'; // يضمن بقاء النافذة داخل حدود الشاشة
-    const adminBtn = document.getElementById('adminCommandsBtn');
+    modal.style.maxHeight = '90vh';
+ // --- كود إغلاق الملف للجميع (مستخدم عادي وأدمن) ---
+    
+    // 1. الإغلاق عند الضغط على المساحة الفارغة خارج البروفايل
+    modal.onclick = (e) => {
+        if (e.target === modal) closeOtherUserProfile();
+    };
+
+    // 2. إضافة زر (X) صغير في الزاوية العلوية يظهر للجميع
+    let closeX = document.getElementById('globalProfileCloseBtn');
+    if (!closeX) {
+        closeX = document.createElement('div');
+        closeX.id = 'globalProfileCloseBtn';
+        closeX.innerHTML = '×';
+        closeX.style = "position: absolute; top: 10px; right: 20px; font-size: 28px; color: white; cursor: pointer; font-weight: bold; z-index: 1000;";
+        closeX.onclick = closeOtherUserProfile;
+        modal.appendChild(closeX);
+    }
+     const adminBtn = document.getElementById('adminCommandsBtn');
     if (adminBtn) {
         const myName = (myUsername || '').toLowerCase().trim();
         adminBtn.style.display = (myName === 'mohamed-dz' || myName === 'nour') ? 'flex' : 'none';
