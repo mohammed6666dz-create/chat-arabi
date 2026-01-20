@@ -1261,3 +1261,14 @@ const targetModal = document.getElementById('otherUserProfileModal');
 if (targetModal) {
     observer.observe(targetModal, { attributes: true });
 }
+// أضف هذا الكود في نهاية الملف تماماً (بعد السطر 1264)
+function adminAction(actionType, targetName) {
+    const actionsNames = { kick: 'طرد', mute: 'كتم', ban: 'حظر', unmute: 'فك كتم', unban: 'فك حظر' };
+    if (confirm(`هل أنت متأكد من تنفيذ ${actionsNames[actionType]} على ${targetName}؟`)) {
+        socket.emit('admin command', {
+            action: actionType,
+            target: targetName,
+            token: localStorage.getItem('token')
+        });
+    }
+}
