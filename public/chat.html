@@ -444,10 +444,27 @@
         <p>الإعدادات والخيارات...</p>
       </div>
 
-      <div id="tab-features" class="tab-pane hidden">
-        <h4>المميزات الخاصة بك</h4>
-        <p>اشتراكك الحالي: <strong>عادي</strong></p>
-      </div>
+     <div id="tab-features" class="tab-pane hidden">
+    
+    <h4 style="margin-bottom: 15px; color: #fff; text-align: center;">إطار الصورة الشخصية</h4>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid #333;">
+        <div onclick="updateAvatarBorder('4px solid #ff0000')" style="aspect-ratio: 1/1; background: red; border-radius: 4px; cursor: pointer;"></div>
+        <div onclick="updateAvatarBorder('4px solid #007bff')" style="aspect-ratio: 1/1; background: #007bff; border-radius: 4px; cursor: pointer;"></div>
+        <div onclick="updateAvatarBorder('4px solid #ffd700')" style="aspect-ratio: 1/1; background: #ffd700; border-radius: 4px; cursor: pointer;"></div>
+        <div onclick="updateAvatarBorder('none')" style="aspect-ratio: 1/1; background: #333; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white;">🗑️</div>
+    </div>
+
+    <div style="margin-top: 15px; display: flex; gap: 10px;">
+        <button onclick="saveBorderSelection()" style="flex: 1; padding: 10px; background: #00bcd4; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">💾 حفظ التعديلات</button>
+    </div>
+
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #333;">
+    
+    <h4>المميزات الخاصة بك</h4>
+    <p>اشتراكك الحالي: <strong>عادي</strong></p>
+
+</div> 
 
       <div id="tab-account" class="tab-pane hidden">
         <h4>إدارة الحساب</h4>
@@ -699,6 +716,6 @@
         });
       });
     });
-  </script>
-</body>
+   </script>
+
 </html>
