@@ -227,16 +227,17 @@ document.addEventListener('paste', function(e) {
     }
 });
 // ─────────────── دالة إضافة الرسالة (مع إمكانية المنشن بالضغط على الاسم) ───────────────
-function appendMessage(username, msg, avatar, isMe = false, role = 'guest') {
+function appendMessage(username, msg, avatar, isMe = false, role = 'guest', border = 'none') {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
     const badge = getUserBadge(username, role);
-    // تلوين المنشنات في الرسالة
+    
     let formattedMsg = msg.replace(/@(\w+)/g, '<span style="color:#3b82f6; font-weight:bold;">@$1</span>');
     messageDiv.innerHTML = `
         <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}"
-             onclick="openUserProfile('${username}', '${role}', '${avatar}')" style="cursor:pointer;">
+             onclick="openUserProfile('${username}', '${role}', '${avatar}')" 
+             style="cursor:pointer; border: ${border}; border-radius: 50%; width: 42px; height: 42px; object-fit: cover; padding: 2px;">
         <div class="message-content">
             <div class="username-line">
                 ${badge}
