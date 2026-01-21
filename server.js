@@ -264,11 +264,27 @@ io.on('connection', socket => {
       // التأكد من الرتبة (أدمن، صاحب الموقع، أو مالك)
       if (user && ['أدمن', 'صاحب الموقع', 'مالك'].includes(user.rank)) {
         
-        if (action === 'ban') {
+   if (action === 'ban') {
           // تحديث حالة الحظر في قاعدة البيانات
           await pool.query('UPDATE users SET is_banned = true WHERE username = $1', [target]);
-          // إرسال الإشارة لعرض الصورة للمستخدم المستهدف
-          io.emit('execute-ban', { target: target });
+          
+          // البحث عن اتصال المستخدم وطرده فوراً
+          for (const [id, s] of io.sockets.sockets) {
+            if (s.username === target) {
+              s.emit('execute-ban', { target: target });
+              s.disconnect(); // هذا السطر هو الذي يخرجه من الشات فعلياً
+            }
+          }
+        }
+        
+        if (action === 'kick') {
+          // طرد المستخدم بدون حظر دائم
+          for (const [id, s] of io.sockets.sockets) {
+            if (s.username === target) {
+              s.emit('execute-kick', { target: target });
+              s.disconnect();
+            }
+          }
         }
         
         if (action === 'unban') {
@@ -311,6 +327,11 @@ io.on('connection', socket => {
       roomCounts[room]++;
 
       const user = await getUser(username);
+      // --- أضف هذا الفحص هنا (بعد السطر 329) ---
+      if (user && user.is_banned) {
+        socket.emit('execute-ban', { target: user.username });
+        return socket.disconnect(); // يطرده فوراً إذا كان محظوراً
+      }
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
       roomUsers[room].push({ username, avatar });
 
@@ -370,7 +391,11 @@ io.on('connection', socket => {
       const decoded = jwt.verify(token, secret);
       const user = await getUser(decoded.username);
       if (!user) return;
-
+// --- كود منع المكتوم من إرسال الرسائل ---
+      if (user && user.is_muted) {
+        return socket.emit('system message', '🚫 عذراً، أنت مكتوم ولا يمكنك إرسال رسائل حالياً.');
+      }
+      // -------------------------------------
       const avatar = user.avatar || 'https://via.placeholder.com/40';
       const role = user.rank || 'ضيف';
 
