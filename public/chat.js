@@ -1331,4 +1331,16 @@ function adminAction(actionType, targetName) {
             token: localStorage.getItem('token')
         });
     }
+}// إضافة الدالة في نهاية الملف كما أشرت
+function saveBorderSelection() {
+    if (selectedBorderTemp !== "") {
+        // إرسال الطلب للسيرفر ليتم حفظه بشكل دائم
+        socket.emit('update-user-border', { 
+            border: selectedBorderTemp, 
+            token: localStorage.getItem('token') // استخدام التوكن المخزن للحماية
+        });
+        alert("✅ تم حفظ إطار الصورة بنجاح!");
+    } else {
+        alert("⚠️ يرجى اختيار إطار أولاً");
+    }
 }
