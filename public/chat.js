@@ -47,8 +47,9 @@ socket.on('update users', (users) => {
         list.appendChild(div);
     });
 });
-socket.on('message', ({ username, msg, avatar, role }) => {
-    appendMessage(username, msg, avatar, username === myUsername, role || 'guest');
+socket.on('message', ({ username, msg, avatar, role, border }) => {
+    // أضفنا متغير border لضمان ظهور الإطار الدائم للجميع
+    appendMessage(username, msg, avatar, username === myUsername, role || 'guest', border || 'none');
 });
 socket.on('system message', (msg) => {
     const div = document.createElement('div');
