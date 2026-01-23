@@ -164,6 +164,10 @@ app.post('/login', async (req, res) => {
   const token = jwt.sign({ username }, secret, { expiresIn: '7d' });
   res.json({ token });
 });
+// السماح لجوجل بالوصول لملف خريطة الموقع (Sitemap)
+app.get('/sitemap.xml', (req, res) => {
+  res.sendFile(path.join(__dirname, 'sitemap.xml'));
+});
 
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
