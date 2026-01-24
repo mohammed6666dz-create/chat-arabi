@@ -469,14 +469,33 @@ max-height: 80vh;              /* يحدد ارتفاعاً أقصى لمنطق�
   justify-content: space-between;
   align-items: center;
 }
-/* هذا الكود سيصغر الصورة العملاقة في نافذة الدردشة الخاصة */
+/* 1. تصغير الصورة العملاقة وجعلها دائرية ومعتدلة */
 .private-chat-panel img {
-    width: 60px !important;    /* يمكنك تصغير الرقم أكثر إذا أردت */
-    height: 60px !important;
-    border-radius: 12px;       /* تجعل الزوايا ناعمة */
-    object-fit: cover;
-    margin: 10px auto;         /* تتوسط الصورة */
-    display: block;
+    width: 45px !important;    
+    height: 45px !important;
+    border-radius: 50% !important; 
+    object-fit: cover !important;
+    margin: 5px;
+    display: inline-block;
+}
+
+/* 2. تفعيل السكرول (النزول والطلوع) في الرسائل */
+.private-messages {
+    height: calc(100% - 100px);
+    overflow-y: auto !important; 
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* 3. تنسيق فقاعة الرسالة لتكون معتدلة وأنيقة بجانب الصورة */
+.private-message, .my-private-message {
+    max-width: 80% !important;
+    padding: 8px 12px !important;
+    border-radius: 15px !important;
+    font-size: 14px !important;
+    display: inline-block !important;
+    word-wrap: break-word;
 }
 #privateChatForm {
   position: absolute;
