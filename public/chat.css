@@ -100,8 +100,8 @@ header h1 {
 #chatWindow {
   flex: 3;
   padding: 20px;
-  overflow-y: auto;
-  z-index: 2;
+ overflow-y: scroll !important; /* يجبر شريط التمرير على الظهور والعمل */
+max-height: 80vh;              /* يحدد ارتفاعاً أقصى لمنطقة الشات ليظهر التمرير */
   display: flex;
   flex-direction: column;
   gap: 12px;
