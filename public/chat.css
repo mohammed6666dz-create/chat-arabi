@@ -469,34 +469,6 @@ max-height: 80vh;              /* يحدد ارتفاعاً أقصى لمنطق�
   justify-content: space-between;
   align-items: center;
 }
-/* 1. تصغير الصورة العملاقة وجعلها دائرية ومعتدلة */
-.private-chat-panel img {
-    width: 45px !important;    
-    height: 45px !important;
-    border-radius: 50% !important; 
-    object-fit: cover !important;
-    margin: 5px;
-    display: inline-block;
-}
-
-/* 2. تفعيل السكرول (النزول والطلوع) في الرسائل */
-.private-messages {
-    height: calc(100% - 100px);
-    overflow-y: auto !important; 
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-/* 3. تنسيق فقاعة الرسالة لتكون معتدلة وأنيقة بجانب الصورة */
-.private-message, .my-private-message {
-    max-width: 80% !important;
-    padding: 8px 12px !important;
-    border-radius: 15px !important;
-    font-size: 14px !important;
-    display: inline-block !important;
-    word-wrap: break-word;
-}
 #privateChatForm {
   position: absolute;
   bottom: 0;
@@ -535,12 +507,15 @@ max-height: 80vh;              /* يحدد ارتفاعاً أقصى لمنطق�
   font-size: 14px;
   line-height: 1.4;
 }
-
-.private-message {
-  align-self: flex-start; /* الرسائل الواردة على اليمين (بسبب RTL) */
-  background: #2a3942;
-  color: #fff;
-  border-bottom-right-radius: 2px;
+.private-messages {
+    flex: 1;                     /* ليأخذ المساحة المتاحة */
+    height: 300px;               /* حدد طولاً معيناً لكي يظهر السكرول */
+    overflow-y: scroll !important; /* هذا هو السكرول الذي تريده للرسائل الخاصة */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background: #1a2a3a;        /* حسب لون ثيم موقعك */
 }
 
 .my-private-message {
