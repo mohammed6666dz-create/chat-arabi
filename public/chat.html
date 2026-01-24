@@ -253,7 +253,10 @@
     <div class="header-left">
       <h1>شات عربي</h1>
       <div class="header-icons">
-        <button class="icon-btn" id="privateMsgBtn" title="الرسائل الخاصة"><i class="fas fa-envelope"></i></button>
+        <button class="icon-btn" id="privateMsgBtn" title="الرسائل الخاصة">
+          <i class="fas fa-envelope"></i>
+          <span id="msgBadge" class="badge" style="display:none;">0</span>
+        </button>
         <button class="icon-btn" id="friendReqBtn" title="طلبات الصداقة">
           <i class="fas fa-user-plus"></i>
           <span id="friendReqBadge" class="badge">0</span>
@@ -545,6 +548,19 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- نافذة المحادثة الخاصة -->
+  <div id="privateChatPanel" class="private-chat-panel" style="display: none;">
+    <div class="private-header">
+      <h3 id="privateChatWith">دردشة خاصة</h3>
+      <span id="closePrivateChat" class="close-panel" style="cursor:pointer;">×</span>
+    </div>
+    <div id="privateChatMessages" class="private-messages"></div>
+    <form id="privateChatForm">
+      <input type="text" id="privateChatInput" placeholder="اكتب رسالة..." autocomplete="off">
+      <button type="submit"><i class="fas fa-paper-plane"></i></button>
+    </form>
   </div>
 
   <div id="otherUserProfileModal" class="other-profile-modal hidden">
