@@ -119,9 +119,11 @@ header h1 {
   position: relative;
 }
 .message img {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
+    width: 35px !important;    /* هذا يحدد العرض الصغير */
+    height: 35px !important;   /* هذا يحدد الطول الصغير */
+    border-radius: 50%;        /* لجعل الصورة دائرية */
+    object-fit: cover;         /* يمنع تشوه الصورة */
+    flex-shrink: 0;            /* يمنع انكماش الصورة إذا كانت الرسالة طويلة */
 }
 .message-content {
   position: relative;
