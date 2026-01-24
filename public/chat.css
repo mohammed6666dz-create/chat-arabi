@@ -471,14 +471,14 @@ header h1 {
   justify-content: space-between;
   align-items: center;
 }
-.private-messages {
-  height: calc(100% - 100px);
-  padding: 10px;
-  overflow-y: auto;
-  background: #1a2a3a;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+/* هذا الكود سيصغر الصورة العملاقة في نافذة الدردشة الخاصة */
+.private-chat-panel img {
+    width: 60px !important;    /* يمكنك تصغير الرقم أكثر إذا أردت */
+    height: 60px !important;
+    border-radius: 12px;       /* تجعل الزوايا ناعمة */
+    object-fit: cover;
+    margin: 10px auto;         /* تتوسط الصورة */
+    display: block;
 }
 #privateChatForm {
   position: absolute;
