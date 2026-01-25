@@ -325,6 +325,16 @@ header h1 {
 .close-panel:hover {
   color: white;
 }
+/* تنسيق صور الرسائل داخل الشات الخاص */
+.private-messages img {
+    max-width: 180px !important; 
+    height: auto !important;
+    border-radius: 12px;
+    margin: 8px 0;
+    display: block;
+    border: 2px solid rgba(7, 94, 84, 0.4);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
 /* ──────────────────────────────
    تحسين شكل البروفايل الشخصي فقط
 ─────────────────────────────── */
