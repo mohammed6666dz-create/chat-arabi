@@ -1187,3 +1187,21 @@ header h1 {
     font-weight: bold !important;
     padding: 0 4px !important;
 }
+/* تصغير الصور داخل الرسائل الخاصة عشان تكون متناسبة ومش عملاقة */
+.private-message img,
+.my-private-message img {
+    max-width: 260px !important;     /* حجم مريح ومناسب */
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 12px;
+    margin: 6px 0 4px 0;
+    display: block;
+}
+
+/* على الجوال نصغرها شوية أكتر */
+@media (max-width: 768px) {
+    .private-message img,
+    .my-private-message img {
+        max-width: 220px !important;
+    }
+}
