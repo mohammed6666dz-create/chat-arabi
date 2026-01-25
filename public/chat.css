@@ -100,8 +100,8 @@ header h1 {
 #chatWindow {
   flex: 3;
   padding: 20px;
- overflow-y: scroll !important; /* يجبر شريط التمرير على الظهور والعمل */
-max-height: 80vh;              /* يحدد ارتفاعاً أقصى لمنطقة الشات ليظهر التمرير */
+  overflow-y: auto;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -119,9 +119,9 @@ max-height: 80vh;              /* يحدد ارتفاعاً أقصى لمنطق�
   position: relative;
 }
 .message img {
-    width: 42px;         /* الحجم الأصلي الذي كان في كودك */
-    height: 42px;        /* الحجم الأصلي الذي كان في كودك */
-    border-radius: 50%;  /* لجعلها دائرية */
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
 }
 .message-content {
   position: relative;
@@ -469,6 +469,15 @@ max-height: 80vh;              /* يحدد ارتفاعاً أقصى لمنطق�
   justify-content: space-between;
   align-items: center;
 }
+.private-messages {
+  height: calc(100% - 100px);
+  padding: 10px;
+  overflow-y: auto;
+  background: #1a2a3a;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 #privateChatForm {
   position: absolute;
   bottom: 0;
@@ -494,23 +503,25 @@ max-height: 80vh;              /* يحدد ارتفاعاً أقصى لمنطق�
   border-radius: 20px;
   cursor: pointer;
 }
+
+/* تصميم الرسائل الخاصة */
 .private-message, .my-private-message {
-    max-width: 80% !important;
-    padding: 8px 12px !important;
-    border-radius: 15px !important;
-    font-size: 14px;
-    display: inline-block !important;
-    word-wrap: break-word;
+  max-width: 80%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  position: relative;
+  word-wrap: break-word;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  line-height: 1.4;
 }
-.private-messages {
-    flex: 1;                     /* ليأخذ المساحة المتاحة */
-    height: 300px;               /* حدد طولاً معيناً لكي يظهر السكرول */
-    overflow-y: scroll !important; /* هذا هو السكرول الذي تريده للرسائل الخاصة */
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 10px;
-    background: #1a2a3a;        /* حسب لون ثيم موقعك */
+
+.private-message {
+  align-self: flex-start; /* الرسائل الواردة على اليمين (بسبب RTL) */
+  background: #2a3942;
+  color: #fff;
+  border-bottom-right-radius: 2px;
 }
 
 .my-private-message {
