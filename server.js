@@ -23,7 +23,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ────────────────────────────────────────────────
-// إعداد قاعدة البيانات PostgreSQL
+// إعداد قاعدة البيانات
 // ────────────────────────────────────────────────
 const connectionString = process.env.DATABASE_URL || 'postgresql://postgres.wgzikxgbhrcgfewnosiq:mohamedennaiha55@aws-1-eu-west-1.pooler.supabase.com:5432/postgres';
 const pool = new Pool({
@@ -31,7 +31,6 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// إنشاء الجداول إذا ما كانت موجودة
 async function initDatabase() {
   try {
     await pool.query(`
@@ -50,7 +49,6 @@ async function initDatabase() {
         notifications JSONB DEFAULT '[]'::jsonb,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
-
       CREATE TABLE IF NOT EXISTS private_messages (
         id SERIAL PRIMARY KEY,
         from_user TEXT NOT NULL,
@@ -59,7 +57,6 @@ async function initDatabase() {
         created_at TIMESTAMPTZ DEFAULT NOW(),
         seen_by TEXT[] DEFAULT '{}'
       );
-
       CREATE TABLE IF NOT EXISTS room_messages (
         id SERIAL PRIMARY KEY,
         room TEXT NOT NULL,
@@ -69,11 +66,10 @@ async function initDatabase() {
         role TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
-
       CREATE INDEX IF NOT EXISTS idx_pm_users ON private_messages (from_user, to_user);
       CREATE INDEX IF NOT EXISTS idx_room_messages_room_created ON room_messages (room, created_at DESC);
     `);
-    console.log('✓ الجداول جاهزة (users + private_messages + room_messages)');
+    console.log('✓ الجداول جاهزة');
   } catch (err) {
     console.error('خطأ في تهيئة الجداول:', err);
   }
@@ -85,9 +81,8 @@ initDatabase();
 // ────────────────────────────────────────────────
 let roomUsers = { general: [], algeria: [], all_countries: [] };
 let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
-
 const RANKS = ['ضيف', 'عضو', 'بريميوم', 'أدمن', 'superadmin', 'صاحب الموقع', 'مالك'];
-const secret = 'secretkey'; // غيّرها لشيء أقوى في الإنتاج
+const secret = 'secretkey';
 const PORT = process.env.PORT || 3000;
 
 // ────────────────────────────────────────────────
@@ -131,7 +126,7 @@ async function updateUserFields(username, updates) {
 }
 
 // ────────────────────────────────────────────────
-// Routes (HTTP)
+// Routes
 // ────────────────────────────────────────────────
 app.post('/register', async (req, res) => {
   const { username, password } = req.body;
@@ -172,13 +167,11 @@ const verifyToken = (req, res, next) => {
 app.get('/profile', verifyToken, async (req, res) => {
   const user = await getUser(req.user.username);
   if (!user) return res.status(404).json({ msg: 'المستخدم غير موجود' });
-
   const unreadRes = await pool.query(
     `SELECT COUNT(*) FROM private_messages WHERE to_user = $1 AND NOT ($1 = ANY(seen_by))`,
     [req.user.username]
   );
   const unreadCount = parseInt(unreadRes.rows[0].count, 10) || 0;
-
   res.json({
     username: user.username,
     avatar: user.avatar,
@@ -233,7 +226,6 @@ io.on('connection', socket => {
   let currentRoom = null;
   let username = null;
 
-  // الانضمام إلى غرفة
   socket.on('join', async (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
@@ -263,7 +255,6 @@ io.on('connection', socket => {
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
 
-      // تحميل الرسائل السابقة
       const { rows: messages } = await pool.query(`
         SELECT username, message AS msg, avatar, role
         FROM room_messages
@@ -273,11 +264,11 @@ io.on('connection', socket => {
       `, [room]);
       socket.emit('previous messages', messages.reverse());
     } catch (e) {
-      console.log('خطأ في الانضمام:', e.message);
+      console.log('خطأ في join:', e.message);
     }
   });
 
-  // أوامر الإدارة: كتم - فك كتم - حظر - طرد
+  // أوامر الإدارة
   socket.on('admin command', async (data) => {
     const { action, target, token } = data;
     try {
@@ -338,21 +329,19 @@ io.on('connection', socket => {
           }
         }
       }
-
     } catch (err) {
       console.error('Admin command error:', err);
       socket.emit('system message', 'حدث خطأ أثناء تنفيذ الأمر');
     }
   });
 
-  // إرسال رسالة في الغرفة
+  // رسالة عامة
   socket.on('message', async (msg, token) => {
     try {
       const decoded = jwt.verify(token, secret);
       const user = await getUser(decoded.username);
       if (!user) return;
 
-      // منع المكتوم من إرسال الرسائل في الشات العام
       if (user.is_muted) {
         socket.emit('system message', '🚫 أنت مكتوم حالياً ولا يمكنك إرسال رسائل في الشات العام');
         return;
@@ -374,7 +363,6 @@ io.on('connection', socket => {
         role
       });
 
-      // معالجة المنشن (@username)
       const mentionRegex = /@(\w+)/g;
       let match;
       while ((match = mentionRegex.exec(msg)) !== null) {
@@ -390,43 +378,14 @@ io.on('connection', socket => {
     }
   });
 
-  // شراء رتبة (بريميوم مجاني حالياً)
-  socket.on('buy role', async ({ role }) => {
-    if (socket.username && role === 'premium') {
-      try {
-        await pool.query('UPDATE users SET rank = $1 WHERE username = $2', ['بريميوم', socket.username]);
-        socket.emit('role purchased', { success: true, role: 'بريميوم' });
-        io.emit('rank update', { username: socket.username, rank: 'بريميوم' });
-      } catch (err) {
-        console.error('خطأ في شراء الرتبة:', err);
-      }
-    }
-  });
-
-  // منح رتبة من المالك
-  socket.on('change-rank-gift', async ({ targetUsername, newRank }) => {
-    try {
-      await updateUserFields(targetUsername, { rank: newRank });
-      io.emit('message', {
-        username: 'النظام',
-        msg: `🎊 مبارك! تم منح ${targetUsername} رتبة ${newRank}`,
-        avatar: 'https://via.placeholder.com/40',
-        role: 'system'
-      });
-      io.emit('rank updated', { username: targetUsername, rank: newRank });
-    } catch (err) {
-      console.error('خطأ في منح الرتبة:', err);
-    }
-  });
-
-  // ────────────── الدردشة الخاصة ──────────────
+  // ────────────── الرسائل الخاصة ──────────────
   function getPrivateRoomName(u1, u2) {
     return ['private', ...[u1, u2].sort()].join('_');
   }
 
-  socket.on('join private', (target) => {
-    if (!socket.username || !target || socket.username === target) return;
-    const roomName = getPrivateRoomName(socket.username, target);
+  socket.on('join private', (targetUsername) => {
+    if (!socket.username || !targetUsername || socket.username === targetUsername) return;
+    const roomName = getPrivateRoomName(socket.username, targetUsername);
     socket.join(roomName);
   });
 
@@ -460,15 +419,15 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('get private messages', async (target) => {
-    if (!socket.username || !target) return;
+  socket.on('get private messages', async (targetUsername) => {
+    if (!socket.username || !targetUsername) return;
     try {
       const { rows } = await pool.query(`
         SELECT from_user, message, created_at
         FROM private_messages
         WHERE (from_user = $1 AND to_user = $2) OR (from_user = $2 AND to_user = $1)
         ORDER BY created_at ASC LIMIT 50
-      `, [socket.username, target]);
+      `, [socket.username, targetUsername]);
 
       const messages = await Promise.all(rows.map(async m => ({
         from: m.from_user,
@@ -477,7 +436,7 @@ io.on('connection', socket => {
         createdAt: m.created_at
       })));
 
-      socket.emit('previous private messages', { withUser: target, messages });
+      socket.emit('previous private messages', { withUser: targetUsername, messages });
     } catch (err) {
       console.error('خطأ في جلب الرسائل الخاصة:', err);
     }
@@ -494,7 +453,130 @@ io.on('connection', socket => {
     socket.emit('messages read confirmed', { count: res.rowCount });
   });
 
-  // الخروج
+  // طلبات الصداقة
+  socket.on('send friend request', async (targetUsername) => {
+    if (!socket.username || socket.username === targetUsername) return;
+    const [sender, target] = await Promise.all([
+      getUser(socket.username),
+      getUser(targetUsername)
+    ]);
+    if (!sender || !target) return;
+
+    if (
+      sender.sent_requests.includes(targetUsername) ||
+      target.friend_requests.includes(socket.username) ||
+      sender.friends.includes(targetUsername)
+    ) return;
+
+    await pool.query(
+      'UPDATE users SET friend_requests = COALESCE(friend_requests, \'[]\'::jsonb) || jsonb_build_array($1::text) WHERE username = $2',
+      [socket.username, targetUsername]
+    );
+    await pool.query(
+      'UPDATE users SET sent_requests = COALESCE(sent_requests, \'[]\'::jsonb) || jsonb_build_array($1::text) WHERE username = $2',
+      [targetUsername, socket.username]
+    );
+
+    sendNotification(targetUsername, {
+      type: 'friend_request',
+      from: socket.username,
+      message: `${socket.username} أرسل لك طلب صداقة`,
+      time: new Date().toISOString()
+    });
+  });
+
+  socket.on('accept friend request', async (fromUsername) => {
+    const acceptor = socket.username;
+    const [acceptorUser, senderUser] = await Promise.all([
+      getUser(acceptor),
+      getUser(fromUsername)
+    ]);
+    if (!acceptorUser || !senderUser) return;
+
+    await pool.query(
+      `UPDATE users SET friend_requests = friend_requests - $1::text,
+                        friends = COALESCE(friends, '[]'::jsonb) || jsonb_build_array($1::text)
+       WHERE username = $2`,
+      [fromUsername, acceptor]
+    );
+    await pool.query(
+      `UPDATE users SET sent_requests = sent_requests - $1::text,
+                        friends = COALESCE(friends, '[]'::jsonb) || jsonb_build_array($1::text)
+       WHERE username = $2`,
+      [acceptor, fromUsername]
+    );
+
+    sendNotification(fromUsername, {
+      type: 'friend_accepted',
+      from: acceptor,
+      message: `${acceptor} قبل طلب الصداقة`,
+      time: new Date().toISOString()
+    });
+  });
+
+  socket.on('reject friend request', async (fromUsername) => {
+    const rejector = socket.username;
+    await pool.query(
+      'UPDATE users SET friend_requests = friend_requests - $1::text WHERE username = $2',
+      [fromUsername, rejector]
+    );
+    await pool.query(
+      'UPDATE users SET sent_requests = sent_requests - $1::text WHERE username = $2',
+      [rejector, fromUsername]
+    );
+  });
+
+  socket.on('remove friend', async (targetUsername) => {
+    if (!socket.username) return;
+    const user = socket.username;
+
+    await pool.query(
+      'UPDATE users SET friends = friends - $1::text WHERE username = $2',
+      [targetUsername, user]
+    );
+    await pool.query(
+      'UPDATE users SET friends = friends - $1::text WHERE username = $2',
+      [user, targetUsername]
+    );
+
+    socket.emit('friend removed', targetUsername);
+
+    for (const s of io.sockets.sockets.values()) {
+      if (s.username === targetUsername) {
+        s.emit('friend removed', user);
+      }
+    }
+  });
+
+  // شراء رتبة
+  socket.on('buy role', async ({ role }) => {
+    if (socket.username && role === 'premium') {
+      try {
+        await pool.query('UPDATE users SET rank = $1 WHERE username = $2', ['بريميوم', socket.username]);
+        socket.emit('role purchased', { success: true, role: 'بريميوم' });
+        io.emit('rank update', { username: socket.username, rank: 'بريميوم' });
+      } catch (err) {
+        console.error('خطأ في شراء الرتبة:', err);
+      }
+    }
+  });
+
+  // منح رتبة
+  socket.on('change-rank-gift', async ({ targetUsername, newRank }) => {
+    try {
+      await updateUserFields(targetUsername, { rank: newRank });
+      io.emit('message', {
+        username: 'النظام',
+        msg: `🎊 مبارك! تم منح ${targetUsername} رتبة ${newRank}`,
+        avatar: 'https://via.placeholder.com/40',
+        role: 'system'
+      });
+      io.emit('rank updated', { username: targetUsername, rank: newRank });
+    } catch (err) {
+      console.error('خطأ في منح الرتبة:', err);
+    }
+  });
+
   socket.on('disconnect', () => {
     if (currentRoom && username) {
       roomCounts[currentRoom]--;
@@ -506,10 +588,23 @@ io.on('connection', socket => {
   });
 });
 
-// تشغيل السيرفر
+async function sendNotification(toUsername, notification) {
+  try {
+    await pool.query(
+      'UPDATE users SET notifications = notifications || $1::jsonb WHERE username = $2',
+      [JSON.stringify(notification), toUsername]
+    );
+    for (const socket of io.sockets.sockets.values()) {
+      if (socket.username === toUsername) {
+        socket.emit('new notification', notification);
+        break;
+      }
+    }
+  } catch (err) {
+    console.error('خطأ في إرسال الإشعار:', err);
+  }
+}
+
 http.listen(PORT, '0.0.0.0', () => {
-  console.log('=====================================');
-  console.log(`✅ السيرفر يعمل على بورت ${PORT}`);
-  console.log('افتح الشات من: http://localhost:' + PORT);
-  console.log('=====================================');
+  console.log(`السيرفر يعمل على بورت ${PORT}`);
 });
