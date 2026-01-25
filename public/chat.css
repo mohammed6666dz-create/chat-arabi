@@ -328,8 +328,8 @@ header h1 {
 /* تنسيق صور الرسائل داخل الشات الخاص */
 .private-messages img {
     max-width: 100% !important;
-    width: 200px !important;
-    height: auto !important;
+    width: 100px !important;
+    height: 100px !important;
     border-radius: 10px !important;
     display: block !important;
     margin: 0 auto 8px auto !important;
