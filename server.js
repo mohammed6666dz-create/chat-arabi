@@ -119,7 +119,7 @@ setInterval(() => {
 const OPENROUTER_API_KEY = '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';
 
 // نموذج AI مجاني
-const AI_MODEL = 'meta-llama/llama-3.1-8b-instruct:free'; // أو google/gemini-2.0-flash
+const AI_MODEL = 'google/gemini-2.0-flash-lite:free'; // أو google/gemini-2.0-flash
 
 // صورة جي بي تي الرسمية
 const GPT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/2048px-ChatGPT_logo.svg.png';
