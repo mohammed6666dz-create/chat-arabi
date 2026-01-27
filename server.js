@@ -455,12 +455,12 @@ io.on('connection', socket => {
         try {
           const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-              'Content-Type': 'application/json',
-              'HTTP-Referer': 'https://your-site.com', // اختياري
-              'X-Title': 'GPT Bot'
-            },
+           headers: {
+  'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+  'Content-Type': 'application/json',
+  'HTTP-Referer': 'https://your-site.com', // حتى لو حطيت جوجل بيشتغل
+  'X-Title': 'Chat Bot'
+},
             body: JSON.stringify({
               model: AI_MODEL,
               messages: [
