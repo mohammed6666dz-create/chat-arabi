@@ -7,6 +7,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
+const fetch = require('node-fetch'); // أضفناه للاتصال بـ OpenRouter
 const app = express();
 const http = require('http').createServer(app);
 const cloudinary = require('cloudinary').v2;
@@ -83,7 +84,6 @@ let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
 const RANKS = ['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'];
 const secret = 'secretkey';
 const PORT = process.env.PORT || 3000;
-
 // ────────────────────────────────────────────────
 // تذكير تلقائي بالأذكار (كل ~60 ثانية)
 // ────────────────────────────────────────────────
@@ -101,26 +101,29 @@ const adhkar = [
     "اللهم أنت السلام ومنك السلام",
     "اللهم اغفر لي وارحمني"
 ];
-
 const reminderImage = "https://i.pinimg.com/736x/ef/e5/f3/efe5f30586ff8fe7861cdea4bc2f88cf.jpg";
-
 // كل 60 ثانية (يمكنك تغيير الرقم: 30000 = 30 ثانية، 120000 = دقيقتين)
 setInterval(() => {
     const randomDhikr = adhkar[Math.floor(Math.random() * adhkar.length)];
-
     const reminderMessage = `✨ ${randomDhikr} ✨`;
-
     io.emit('message', {
         username: 'تذكير',
         msg: reminderMessage,
         avatar: reminderImage,          // الصورة تكون avatar هنا
         role: 'system'
     });
-
     // اختياري: طباعة في console السيرفر للتأكد
     // console.log(`تذكير أرسل: ${reminderMessage}`);
-
 }, 60000);   // ← غيّر هنا الوقت (بالمللي ثانية)
+
+// مفتاح OpenRouter الخاص بك
+const OPENROUTER_API_KEY = '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';
+
+// نموذج AI مجاني
+const AI_MODEL = 'meta-llama/llama-3.1-8b-instruct:free'; // أو google/gemini-2.0-flash
+
+// صورة جي بي تي الرسمية
+const GPT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/2048px-ChatGPT_logo.svg.png';
 
 // ────────────────────────────────────────────────
 // دوال مساعدة
@@ -431,29 +434,94 @@ io.on('connection', socket => {
          VALUES ($1, $2, $3, $4, $5, NOW())`,
         [currentRoom, decoded.username, msg, avatar, role]
       );
-      // إرسال الرسالة للجميع في الغرفة
-     // إرسال الرسالة للجميع في الغرفة بشكل صحيح
+
+      // ────────────────────────────────────────────────
+      // الجزء الجديد: بوت جي بي تي إذا كتب المستخدم كلمة تحتوي على "gpt"
+      // ────────────────────────────────────────────────
+      const lowerMsg = msg.toLowerCase().trim();
+      if (lowerMsg.includes('gpt')) {
+        let question = msg.trim();
+
+        if (question.length < 5) {
+          io.to(currentRoom).emit('message', {
+            username: 'جي بي تي',
+            msg: '✨ اسألني سؤالك بوضوح أكثر يا بطل!',
+            avatar: GPT_AVATAR,
+            role: 'system'
+          });
+          return;
+        }
+
+        try {
+          const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://your-site.com', // اختياري
+              'X-Title': 'GPT Bot'
+            },
+            body: JSON.stringify({
+              model: AI_MODEL,
+              messages: [
+                {
+                  role: 'system',
+                  content: 'أنت مساعد ذكي ودود، رد بالعربية (فصحى أو جزائرية حسب السياق)، كن مفيداً ومختصراً.'
+                },
+                { role: 'user', content: question }
+              ],
+              temperature: 0.7,
+              max_tokens: 500
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          const aiReply = data.choices[0].message.content.trim();
+
+          io.to(currentRoom).emit('message', {
+            username: 'جي بي تي',
+            msg: `✨ ${aiReply}`,
+            avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/2048px-ChatGPT_logo.svg.png',
+            role: 'system'
+          });
+
+        } catch (err) {
+          console.error('خطأ في رد جي بي تي:', err.message);
+          io.to(currentRoom).emit('message', {
+            username: 'جي بي تي',
+            msg: 'عذراً، حدث خطأ في الرد... جرب مرة أخرى بعد شوية!',
+            avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/2048px-ChatGPT_logo.svg.png',
+            role: 'system'
+          });
+        }
+
+        return; // ما نرسل الرسالة العادية مرتين
+      }
+
+      // ────────────────────────────────────────────────
+      // إرسال الرسالة العادية (إذا ما كانت لجي بي تي)
+      // ────────────────────────────────────────────────
       io.to(currentRoom).emit('message', {
         username: decoded.username,
         msg: msg,
         avatar: avatar,
         role: user.rank || 'ضيف'
       });
+
       // ────────────── معالجة المنشن (الطاق) ──────────────
       const mentionRegex = /@(\w+)/g;
       let match;
       const mentionedUsers = new Set();
-     // جمع كل الأسماء المذكورة
       while ((match = mentionRegex.exec(msg)) !== null) {
         const mentionedUsername = match[1];
-       
-        // أضف هذا السطر مباشرة بدون شرط الـ if
         mentionedUsers.add(mentionedUsername);
-        }
-      // إذا وجد أشخاص تم ذكرهم
+      }
       if (mentionedUsers.size > 0) {
         for (const mentioned of mentionedUsers) {
-          // نبحث عن كل السوكتس الخاصة بهذا المستخدم (يدعم الاتصال من أكثر من جهاز)
           for (const clientSocket of io.sockets.sockets.values()) {
             if (clientSocket.username === mentioned) {
               clientSocket.emit('mention notification', {
@@ -468,6 +536,7 @@ io.on('connection', socket => {
       console.log("خطأ في التحقق من التوكن أثناء إرسال الرسالة:", e.message);
     }
   });
+
   // باقي الأحداث بدون تغيير
   socket.on('send friend request', async (targetUsername) => {
     if (!socket.username || socket.username === targetUsername) return;
@@ -742,7 +811,7 @@ async function sendNotification(toUsername, notification) {
 http.listen(PORT, '0.0.0.0', () => {
   console.log('=====================================');
   console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
-  console.log(' (مع قاعدة بيانات PostgreSQL)');
+  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت)');
   console.log('');
   console.log('افتح الشات من:');
   console.log(`http://localhost:${PORT}/index.html`);
