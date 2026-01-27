@@ -7,7 +7,6 @@ const upload = multer({ storage: multer.memoryStorage() });
 const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
-const fetch = require('node-fetch'); // أضفناه للاتصال بـ OpenRouter
 const app = express();
 const http = require('http').createServer(app);
 const cloudinary = require('cloudinary').v2;
