@@ -116,7 +116,7 @@ setInterval(() => {
 }, 60000);   // ← غيّر هنا الوقت (بالمللي ثانية)
 
 // مفتاح OpenRouter الخاص بك
-const OPENROUTER_API_KEY = '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';
+const OPENROUTER_API_KEY = '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';
 
 // نموذج AI مجاني
 const AI_MODEL = 'meta-llama/llama-3.1-8b-instruct:free'; // أو google/gemini-2.0-flash
