@@ -1,4 +1,4 @@
- const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 if (!token) {
     window.location.href = 'index.html';
 }
@@ -29,7 +29,7 @@ socket.on('previous messages', (messages) => {
 });
 socket.on('update users', (users) => {
     document.getElementById('userCount').innerText = users.length;
-    
+   
     // 1. تفريغ جميع الأجنحة قبل إعادة التوزيع
     const groups = ['list-owner', 'list-superadmin', 'list-premium', 'list-guest', 'list-offline'];
     groups.forEach(id => {
@@ -37,7 +37,12 @@ socket.on('update users', (users) => {
         if (el) el.innerHTML = '';
     });
 
-    // 2. توزيع المستخدمين بناءً على الرتبة
+    let ownerCount = 0;
+    let kingsCount = 0;
+    let premiumCount = 0;
+    let guestCount = 0;
+
+    // 2. توزيع المستخدمين بناءً على الرتبة والاسم
     users.forEach(user => {
         const div = document.createElement('div');
         div.className = 'user-item';
@@ -45,7 +50,7 @@ socket.on('update users', (users) => {
             <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
             <span>${user.username}</span>
         `;
-        
+       
         div.onclick = () => openUserProfile(user.username, user.role || 'guest', user.avatar);
         div.addEventListener('dblclick', (e) => {
             e.preventDefault();
@@ -53,26 +58,46 @@ socket.on('update users', (users) => {
         });
 
         // تحديد الجناح المستهدف
-        let targetListId = 'list-guest'; 
-        const role = (user.role || 'guest').toLowerCase();
-        const name = (user.username || '').toLowerCase();
+        let targetListId = 'list-guest';
+        const usernameUpper = (user.username || '').toUpperCase();
+        const roleLower = (user.role || 'guest').toLowerCase();
 
-        // منطق التوزيع
-      // 1. صاحب الموقع يظهر في جناحه الخاص (الأول)
-        if (name === 'MOHAMED' || name === 'MOHAMED' || role === 'owner' || role === 'صاحب الموقع') {
+        // 1. صاحب الموقع (أولوية أولى)
+        if (
+            usernameUpper.includes('MOHAMED') ||
+            usernameUpper.includes('محمد') ||
+            roleLower.includes('صاحب') ||
+            roleLower.includes('مالك') ||
+            roleLower.includes('owner')
+        ) {
             targetListId = 'list-owner';
-        } 
-        // 2. السوبر أدمن والإدارة يظهرون في جناح الملوك (الثاني)
-        else if (role === 'superadmin' || role === 'ملوك' || role === 'admin' || role === 'أدمن') {
+            ownerCount++;
+        }
+        // 2. جناح الملوك (سوبر أدمن، أدمن، ملك...)
+        else if (
+            roleLower.includes('سوبر') ||
+            roleLower.includes('superadmin') ||
+            roleLower.includes('admin') ||
+            roleLower.includes('أدمن') ||
+            roleLower.includes('ملك')
+        ) {
             targetListId = 'list-superadmin';
-        } 
-        // 3. البريميوم والـ VIP والتميز يظهرون في جناح المميزون (الثالث)
-        else if (role === 'premium' || role === 'بريميوم' || role === 'vip' || role === 'مميز') {
+            kingsCount++;
+        }
+        // 3. جناح المميزين (بريميوم، VIP، مميز...)
+        else if (
+            roleLower.includes('بريميوم') ||
+            roleLower.includes('premium') ||
+            roleLower.includes('vip') ||
+            roleLower.includes('مميز')
+        ) {
             targetListId = 'list-premium';
-        } 
-        // 4. باقي الأعضاء في القائمة العادية
+            premiumCount++;
+        }
+        // 4. باقي الأعضاء
         else {
             targetListId = 'list-guest';
+            guestCount++;
         }
 
         const targetContainer = document.getElementById(targetListId);
@@ -80,6 +105,12 @@ socket.on('update users', (users) => {
             targetContainer.appendChild(div);
         }
     });
+
+    // إخفاء الأجنحة الفارغة (اختياري - يجعل الشكل أنظف)
+    document.getElementById('group-owner').style.display = ownerCount > 0 ? 'block' : 'none';
+    document.getElementById('group-superadmin').style.display = kingsCount > 0 ? 'block' : 'none';
+    document.getElementById('group-premium').style.display = premiumCount > 0 ? 'block' : 'none';
+    document.getElementById('group-guest').style.display = guestCount > 0 ? 'block' : 'none';
 });
 socket.on('message', ({ username, msg, avatar, role, border }) => {
     // أضفنا متغير border لضمان ظهور الإطار الدائم للجميع
@@ -99,7 +130,6 @@ socket.on('mention notification', ({ from, room }) => {
     mentionSound.play().catch(err => {
         console.log("مشكلة تشغيل صوت الطاق:", err);
     });
-
     // تم حذف كود إنشاء الإشعار المكتوب (div) ليبقى الصوت فقط
 });
 // ─────────────── إرسال رسالة + زيادة نقطة ───────────────
@@ -167,13 +197,13 @@ document.querySelector('.close-level-panel')?.addEventListener('click', () => {
 document.querySelectorAll('.buy-btn[data-role="premium"]').forEach(btn => {
     btn.addEventListener('click', function() {
         const role = this.getAttribute('data-role');
-  
+ 
         socket.emit('buy role', { role: role });
-  
+ 
         const originalText = this.textContent;
         this.textContent = 'جاري الشراء...';
         this.disabled = true;
-  
+ 
         setTimeout(() => {
             this.textContent = originalText;
             this.disabled = false;
@@ -186,7 +216,7 @@ socket.on('role purchased', ({ role, success, message }) => {
         const chatWindow = document.getElementById('chatWindow');
         const div = document.createElement('div');
         div.className = 'system-message';
-      
+     
         div.style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
         div.style.color = '#fff';
         div.style.fontWeight = 'bold';
@@ -195,9 +225,9 @@ socket.on('role purchased', ({ role, success, message }) => {
         div.style.margin = '10px 0';
         div.style.textAlign = 'center';
         div.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.3)';
-      
+     
         div.innerHTML = `💎 مبروك! البطل <strong>${myUsername}</strong> حصل على رتبة <strong>${role.toUpperCase()}</strong> 🎉`;
-      
+     
         chatWindow.appendChild(div);
         scrollToBottom();
     } else {
@@ -267,11 +297,11 @@ function appendMessage(username, msg, avatar, isMe = false, role = 'guest', bord
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
     const badge = getUserBadge(username, role);
-    
+   
     let formattedMsg = msg.replace(/@(\w+)/g, '<span style="color:#3b82f6; font-weight:bold;">@$1</span>');
     messageDiv.innerHTML = `
         <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}"
-             onclick="openUserProfile('${username}', '${role}', '${avatar}')" 
+             onclick="openUserProfile('${username}', '${role}', '${avatar}')"
              style="cursor:pointer; border: ${border}; border-radius: 50%; width: 42px; height: 42px; object-fit: cover; padding: 2px;">
         <div class="message-content">
             <div class="username-line">
@@ -298,7 +328,7 @@ async function loadMyProfile() {
         });
         if (!res.ok) throw new Error('فشل جلب البروفايل');
         const user = await res.json();
-   
+  
         myUsername = user.username;
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
         const timestamp = new Date().getTime();
@@ -333,7 +363,7 @@ document.getElementById('avatarUpload').addEventListener('change', async (e) => 
             headers: { Authorization: token },
             body: formData
         });
-   
+  
         const data = await res.json();
         if (data.avatar) {
             const timestamp = new Date().getTime();
@@ -366,22 +396,19 @@ function openUserProfile(username, role = 'guest', avatar = '') {
     modal.style.overflowY = 'auto'; // يسمح بالتمرير إذا زاد طول المحتوى
     modal.style.maxHeight = '90vh';
  // --- كود إغلاق الملف للجميع (مستخدم عادي وأدمن) ---
-    
+   
     // --- إخفاء أزرار التفاعل إذا كان الملف يخصني ---
     const isMe = (username === myUsername);
     const msgBtn = document.getElementById('sendPrivateMsgBtn');
     const friendBtn = document.getElementById('addFriendFromProfile');
     const reportBtns = document.querySelectorAll('.report-btn');
-
     if (msgBtn) msgBtn.style.display = isMe ? 'none' : 'inline-block';
     if (friendBtn) friendBtn.style.display = isMe ? 'none' : 'inline-block';
     reportBtns.forEach(btn => btn.style.display = isMe ? 'none' : 'inline-block');
-
     // 1. الإغلاق عند الضغط على المساحة الفارغة خارج البروفايل
     modal.onclick = (e) => {
         if (e.target === modal) closeOtherUserProfile();
     };
-
     // 2. إضافة زر (X) صغير في الزاوية العلوية يظهر للجميع
     let closeX = document.getElementById('globalProfileCloseBtn');
     if (!closeX) {
@@ -393,13 +420,12 @@ function openUserProfile(username, role = 'guest', avatar = '') {
         modal.appendChild(closeX);
     }
      const adminBtn = document.getElementById('adminCommandsBtn');
-
     // --- تحديث زر الصداقة (إضافة / إلغاء) ---
     if (friendBtn) {
         // إزالة أي أحداث سابقة لتجنب التكرار
         const newBtn = friendBtn.cloneNode(true);
         friendBtn.parentNode.replaceChild(newBtn, friendBtn);
-        
+       
         if (window.myFriends && window.myFriends.includes(username)) {
             newBtn.textContent = 'إلغاء الصداقة';
             newBtn.style.backgroundColor = '#ef4444'; // لون أحمر
@@ -419,7 +445,6 @@ function openUserProfile(username, role = 'guest', avatar = '') {
             };
         }
     }
-
     if (adminBtn) {
         const myName = (myUsername || '').toLowerCase().trim();
         adminBtn.style.display = (myName === 'mohamed-dz' || myName === 'nour') ? 'flex' : 'none';
@@ -428,20 +453,19 @@ function openUserProfile(username, role = 'guest', avatar = '') {
  // --- كود أزرار الإدارة المحسن (يوضع في السطر 331) ---
     const adminBox = document.getElementById('adminActionsContainer');
     const myStoredName = localStorage.getItem('username'); // نتحقق من اسمك المسجل
-
     if (adminBox) {
         // نتحقق إذا كنت أنت محمد أو نور أو رتبتك إدارية
-        if (myStoredName === 'mohamed-dz' || myStoredName === 'nour' || ['مالك', 'superadmin', 'admin'].includes(window.myRank)) { 
+        if (myStoredName === 'mohamed-dz' || myStoredName === 'nour' || ['مالك', 'superadmin', 'admin'].includes(window.myRank)) {
             adminBox.style.display = 'block';
    adminBox.innerHTML = `
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-top: 10px; padding: 5px; background: rgba(0,0,0,0.3); border-radius: 8px;">
                 <button onclick="adminAction('kick', '${username}')" style="background: #e67e22; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">طرد 🚪</button>
                 <button onclick="adminAction('mute', '${username}')" style="background: #f1c40f; color: black; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">كتم 🔇</button>
                 <button onclick="adminAction('ban', '${username}')" style="background: #e74c3c; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">حظر 🚫</button>
-                
+               
                 <button onclick="adminAction('unmute', '${username}')" style="background: #2ecc71; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">فك كتم ✅</button>
                 <button onclick="adminAction('unban', '${username}')" style="background: #3498db; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">فك حظر 🔓</button>
-                
+               
                 <button onclick="closeOtherUserProfile()" style="grid-column: span 3; background: #555; color: white; border: none; padding: 4px; margin-top: 2px; border-radius: 4px; cursor: pointer; font-size: 10px;">إغلاق النافذة ×</button>
             </div>
         `;
@@ -458,7 +482,7 @@ function showProfile() {
 function startPrivateChat(targetName) {
     const name = targetName || document.getElementById('otherUserDisplayName').textContent;
     closeOtherUserProfile();
-  
+ 
     currentPrivateChat = name;
     document.getElementById('privateChatPanel').style.display = 'block';
     document.getElementById('privateChatWith').textContent = 'دردشة مع ' + name;
@@ -512,13 +536,13 @@ document.getElementById('privateChatForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = document.getElementById('privateChatInput');
     const msg = input.value.trim();
-  
+ 
     if (msg && currentPrivateChat) {
         socket.emit('private message', {
             to: currentPrivateChat,
             msg
         });
-      
+     
         appendPrivateMessage(myUsername, msg, myAvatar, true);
         input.value = '';
     }
@@ -553,10 +577,10 @@ socket.on('private message', ({ from, to, msg, avatar }) => {
 });
 socket.on('previous private messages', ({ withUser, messages }) => {
     if (currentPrivateChat !== withUser) return;
-  
+ 
     const chat = document.getElementById('privateChatMessages');
     chat.innerHTML = '';
-  
+ 
     messages.forEach(m => {
         const isMe = m.from === myUsername;
         appendPrivateMessage(
@@ -580,7 +604,7 @@ function mentionUser(username) {
     if (!input) return;
     const mention = `@${username} `;
     let current = input.value.trim();
-   
+  
     if (current === '') {
         input.value = mention;
     } else {
@@ -592,7 +616,7 @@ function mentionUser(username) {
             input.value = current;
         }
     }
-   
+  
     input.focus();
     input.setSelectionRange(input.value.length, input.value.length);
 }
@@ -623,7 +647,7 @@ document.getElementById('coverUpload')?.addEventListener('change', async functio
             headers: { 'Authorization': token },
             body: formData
         });
-   
+  
         const data = await res.json();
         if (data.cover) {
             myCover = data.cover + '?t=' + new Date().getTime();
@@ -641,20 +665,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const emojiBtn = document.getElementById('emojiBtn');
     const emojiPicker = document.getElementById('emojiPicker');
     const messageInput = document.getElementById('messageInput');
-  
+ 
     if (!emojiBtn || !emojiPicker || !messageInput) return;
-  
+ 
     emojiBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         emojiPicker.classList.toggle('hidden');
     });
-  
+ 
     document.addEventListener('click', (e) => {
         if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
             emojiPicker.classList.add('hidden');
         }
     });
-  
+ 
     document.querySelectorAll('.emoji-tab')?.forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
@@ -665,7 +689,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(`tab-${tab.dataset.tab}`)?.classList.remove('hidden');
         });
     });
-  
+ 
     emojiPicker.addEventListener('click', function(e) {
         let emojiToInsert = '';
         if (e.target.tagName === 'SPAN') {
@@ -724,7 +748,6 @@ const targetModal = document.getElementById('otherUserProfileModal');
 if (targetModal) {
     observer.observe(targetModal, { attributes: true });
 }
-
 // --- كود استقبال إشارة الحظر ---
 socket.on('execute-ban', (data) => {
     const myCurrentUsername = localStorage.getItem('username');
@@ -736,12 +759,11 @@ socket.on('execute-ban', (data) => {
         socket.disconnect();
     }
 });
-
 // --- كود استقبال إشارة الكتم ---
 socket.on('mute-update', (data) => {
     const myName = localStorage.getItem('username');
     if (data.target === myName) {
-        window.isMuted = data.status; 
+        window.isMuted = data.status;
         if (data.status) {
             alert("🔇 لقد تم كتمك من قبل الإدارة.");
         } else {
@@ -749,7 +771,6 @@ socket.on('mute-update', (data) => {
         }
     }
 });
-
 // منع إرسال الرسائل إذا كان المستخدم مكتوماً
 document.getElementById('messageForm').addEventListener('submit', (e) => {
     if (window.isMuted) {
@@ -758,7 +779,6 @@ document.getElementById('messageForm').addEventListener('submit', (e) => {
         alert("🔇 لا يمكنك إرسال رسائل، أنت مكتوم حالياً!");
     }
 }, true);
-
 function adminAction(actionType, targetName) {
     const actionsNames = { kick: 'طرد', mute: 'كتم', ban: 'حظر', unmute: 'فك كتم', unban: 'فك حظر' };
     if (confirm(`هل أنت متأكد من تنفيذ ${actionsNames[actionType]} على ${targetName}؟`)) {
@@ -769,7 +789,6 @@ function adminAction(actionType, targetName) {
         });
     }
 }
-
 let selectedBorderTemp = "";
 function updateAvatarBorder(border) {
     selectedBorderTemp = border;
@@ -778,23 +797,20 @@ function updateAvatarBorder(border) {
         myAvatar.style.border = border === 'none' ? '5px solid #0f172a' : border;
     }
 }
-
 function saveBorderSelection() {
     if (selectedBorderTemp !== "") {
-        socket.emit('update-user-border', { 
-            border: selectedBorderTemp, 
-            token: localStorage.getItem('token') 
+        socket.emit('update-user-border', {
+            border: selectedBorderTemp,
+            token: localStorage.getItem('token')
         });
         alert("✅ تم حفظ إطار الصورة بنجاح!");
     } else {
         alert("⚠️ يرجى اختيار إطار أولاً");
     }
 }
-
 document.getElementById('privateMsgBtn')?.addEventListener('click', () => {
     socket.emit('get private conversations');
 });
-
 socket.on('private conversations list', (list) => {
     const container = document.getElementById('conversationsList');
     if (!container) return;
@@ -817,7 +833,6 @@ socket.on('private conversations list', (list) => {
         container.appendChild(div);
     });
 });
-
 // تحديث شارة طلبات الصداقة
 function updateFriendRequestBadge(requests) {
     window.myFriendRequests = requests || [];
@@ -828,7 +843,6 @@ function updateFriendRequestBadge(requests) {
         badge.style.display = count > 0 ? 'block' : 'none';
     }
 }
-
 // استقبال الإشعارات وتحديث الشارة
 socket.on('new notification', (note) => {
     if (note.type === 'friend_request') {
@@ -842,19 +856,17 @@ socket.on('new notification', (note) => {
         mentionSound.play().catch(()=>{});
     }
 });
-
 // عرض قائمة طلبات الصداقة عند الضغط على الزر
 document.getElementById('friendReqBtn')?.addEventListener('click', () => {
     const list = document.getElementById('friendRequestsList');
     if (!list) return;
     list.innerHTML = '';
-    
+   
     const reqs = window.myFriendRequests || [];
     if (reqs.length === 0) {
         list.innerHTML = '<div style="padding:20px; text-align:center; color:#aaa;">لا توجد طلبات صداقة جديدة</div>';
         return;
     }
-
     reqs.forEach(username => {
         const div = document.createElement('div');
         div.className = 'request-item';
@@ -869,44 +881,39 @@ document.getElementById('friendReqBtn')?.addEventListener('click', () => {
         list.appendChild(div);
     });
 });
-
 function handleFriendAction(action, username, element) {
     socket.emit(`${action} friend request`, username);
-    
+   
     // إذا تم القبول، أضفه لقائمة الأصدقاء محلياً
     if (action === 'accept') {
         if (!window.myFriends) window.myFriends = [];
         window.myFriends.push(username);
     }
-
     // تحديث القائمة المحلية والشارة فوراً
     if (window.myFriendRequests) {
         window.myFriendRequests = window.myFriendRequests.filter(u => u !== username);
         updateFriendRequestBadge(window.myFriendRequests);
     }
-    
+   
     // حذف العنصر من الواجهة
     element.remove();
-    
+   
     // إذا أصبحت القائمة فارغة
     const list = document.getElementById('friendRequestsList');
     if (list && list.children.length === 0) {
         list.innerHTML = '<div style="padding:20px; text-align:center; color:#aaa;">لا توجد طلبات صداقة جديدة</div>';
     }
 }
-
 // استقبال تحديثات الصداقة
 socket.on('friend removed', (targetName) => {
     if (window.myFriends) {
         window.myFriends = window.myFriends.filter(f => f !== targetName);
     }
 });
-
 socket.on('friend_accepted', (newFriend) => {
     if (!window.myFriends) window.myFriends = [];
     window.myFriends.push(newFriend);
 });
-
 // --- منطق عداد الرسائل الخاصة ---
 let totalUnreadMsgs = 0;
 function updateMessageBadge(count) {
@@ -917,14 +924,12 @@ function updateMessageBadge(count) {
         badge.style.display = totalUnreadMsgs > 0 ? 'block' : 'none';
     }
 }
-
 socket.on('msg_notification', () => {
     // زيادة العداد عند وصول رسالة جديدة
     totalUnreadMsgs++;
     updateMessageBadge(totalUnreadMsgs);
     mentionSound.play().catch(()=>{});
 });
-
 socket.on('messages read confirmed', ({ count }) => {
     // إنقاص العداد بعدد الرسائل التي تمت قراءتها
     totalUnreadMsgs = Math.max(0, totalUnreadMsgs - count);
