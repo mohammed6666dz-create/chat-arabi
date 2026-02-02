@@ -44,8 +44,7 @@ async function initDatabase() {
         friend_requests JSONB DEFAULT '[]'::jsonb,
         sent_requests JSONB DEFAULT '[]'::jsonb,
         notifications JSONB DEFAULT '[]'::jsonb,
-        created_at TIMESTAMPTZ DEFAULT NOW(),
-        last_room TEXT DEFAULT NULL
+        created_at TIMESTAMPTZ DEFAULT NOW()
       );
       CREATE TABLE IF NOT EXISTS private_messages (
         id SERIAL PRIMARY KEY,
@@ -292,63 +291,9 @@ app.post('/change-rank', verifyToken, async (req, res) => {
 // Socket.IO
 // ────────────────────────────────────────────────
 io.on('connection', socket => {
-
-  // محاولة إعادة الدخول التلقائي لآخر غرفة محفوظة
-  if (socket.handshake.auth?.token) {
-    (async () => {
-      try {
-        const decoded = jwt.verify(socket.handshake.auth.token, secret);
-        const user = await getUser(decoded.username);
-        
-        if (user && user.last_room) {
-          const allowedRooms = ['general', 'algeria', 'all_countries'];
-          
-          if (allowedRooms.includes(user.last_room)) {
-            socket.username = decoded.username;
-            const username = socket.username;
-            const room = user.last_room;
-
-            socket.join(room);
-            roomCounts[room] = (roomCounts[room] || 0) + 1;
-            
-            const avatar = user.avatar || 'https://via.placeholder.com/40';
-            roomUsers[room] = roomUsers[room] || [];
-            roomUsers[room].push({ username, avatar });
-            
-            io.to(room).emit('update users', roomUsers[room]);
-            io.to(room).emit('system message', `${username} عاد إلى الغرفة`);
-            
-            // تحميل الرسائل القديمة (نفس المنطق الموجود في حدث join)
-            const NEW_USER_LIMIT = 100;
-            const OLD_USER_LIMIT = 5000;
-            const isNewUser = user.created_at > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-            const limit = isNewUser ? NEW_USER_LIMIT : OLD_USER_LIMIT;
-            
-            const { rows: messages } = await pool.query(`
-              SELECT username, message AS msg, avatar, role
-              FROM room_messages
-              WHERE room = $1
-              ORDER BY created_at DESC
-              LIMIT $2
-            `, [room, limit]);
-            
-            const messagesToSend = messages.reverse();
-            socket.emit('load messages', messagesToSend);
-            
-            // إشعار الواجهة الأمامية أننا دخلنا تلقائياً
-            socket.emit('auto-joined', { room });
-          }
-        }
-      } catch (err) {
-        console.log('Auto-join failed:', err.message);
-      }
-    })();
-  }
-
   let currentRoom = null;
   let username = null;
-
-  // --- كود أوامر الإدارة (يوضع في السطر 257) ---
+// --- كود أوامر الإدارة (يوضع في السطر 257) ---
   socket.on('admin command', async (data) => {
     const { action, target, token } = data;
     try {
@@ -412,13 +357,6 @@ io.on('connection', socket => {
         io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
       }
       currentRoom = room;
-
-      // حفظ آخر غرفة دخلها المستخدم
-      await pool.query(
-        'UPDATE users SET last_room = $1 WHERE username = $2',
-        [room, username]
-      );
-
       socket.join(room);
       roomCounts[room]++;
       const user = await getUser(username);
@@ -450,9 +388,7 @@ io.on('connection', socket => {
     } catch (e) {
       console.log('خطأ في join:', e.message);
     }
-  });
-
-  socket.on('buy role', async ({ role }) => {
+  });socket.on('buy role', async ({ role }) => {
       if (socket.username && role === 'premium') {
         try {
           // تحديث الرتبة في قاعدة البيانات (PostgreSQL)
