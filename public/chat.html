@@ -246,6 +246,15 @@
       display: block;
       margin-bottom: 6px;
     }
+    /* أجنحة قائمة المتصلين */
+    .user-group { margin-bottom: 12px; border-radius: 12px; background: rgba(15, 23, 42, 0.5); border: 1px solid #334155; overflow: hidden; }
+    .group-header { padding: 10px 15px; font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 10px; color: #fff; }
+    .owner-header { background: linear-gradient(90deg, #991b1b, #ef4444); }
+    .super-header { background: linear-gradient(90deg, #581c87, #a855f7); } /* لون جناح الملوك */
+    .premium-header { background: linear-gradient(90deg, #065f46, #10b981); }
+    .guest-header { background: #334155; }
+    .offline-header { background: #1a1a1a; color: #666; }
+    .group-content { padding: 5px; min-height: 2px; }
   </style>
 </head>
 <body>
@@ -323,7 +332,32 @@
     <div id="chatWindow"></div>
     <div id="usersPanel">
       <h3>المتصلون <span id="userCount">0</span></h3>
-      <div id="usersList"></div>
+      <div id="usersList">
+        <div class="user-group" id="group-owner">
+          <div class="group-header owner-header"><i class="fas fa-crown"></i> جناح المالك</div>
+          <div class="group-content" id="list-owner"></div>
+        </div>
+
+        <div class="user-group" id="group-superadmin">
+          <div class="group-header super-header"><i class="fas fa-bolt"></i> جناح الملوك</div>
+          <div class="group-content" id="list-superadmin"></div>
+        </div>
+
+        <div class="user-group" id="group-premium">
+          <div class="group-header premium-header"><i class="fas fa-gem"></i> جناح المميزون</div>
+          <div class="group-content" id="list-premium"></div>
+        </div>
+
+        <div class="user-group" id="group-guest">
+          <div class="group-header guest-header"><i class="fas fa-users"></i> جناح الأعضاء</div>
+          <div class="group-content" id="list-guest"></div>
+        </div>
+
+        <div class="user-group" id="group-offline">
+          <div class="group-header offline-header"><i class="fas fa-moon"></i> غير متصل</div>
+          <div class="group-content" id="list-offline"></div>
+        </div>
+      </div>
     </div>
   </div>
 
