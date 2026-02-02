@@ -36,13 +36,7 @@ socket.on('update users', (users) => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = '';
     });
-
-    let ownerCount = 0;
-    let kingsCount = 0;
-    let premiumCount = 0;
-    let guestCount = 0;
-
-    // 2. توزيع المستخدمين بناءً على الرتبة والاسم
+    // 2. توزيع المستخدمين بناءً على الرتبة
     users.forEach(user => {
         const div = document.createElement('div');
         div.className = 'user-item';
@@ -56,61 +50,32 @@ socket.on('update users', (users) => {
             e.preventDefault();
             mentionUser(user.username);
         });
-
         // تحديد الجناح المستهدف
         let targetListId = 'list-guest';
-        const usernameUpper = (user.username || '').toUpperCase();
-        const roleLower = (user.role || 'guest').toLowerCase();
-
-        // 1. صاحب الموقع (أولوية أولى)
-        if (
-            usernameUpper.includes('MOHAMED') ||
-            usernameUpper.includes('محمد') ||
-            roleLower.includes('صاحب') ||
-            roleLower.includes('مالك') ||
-            roleLower.includes('owner')
-        ) {
+        const role = (user.role || 'guest').toLowerCase();
+        const name = (user.username || '').toLowerCase();
+        // منطق التوزيع
+      // 1. صاحب الموقع يظهر في جناحه الخاص (الأول)
+        if (name === 'MOHAMED' || name === 'MOHAMED' || role === 'owner' || role === 'صاحب الموقع') {
             targetListId = 'list-owner';
-            ownerCount++;
         }
-        // 2. جناح الملوك (سوبر أدمن، أدمن، ملك...)
-        else if (
-            roleLower.includes('سوبر') ||
-            roleLower.includes('superadmin') ||
-            roleLower.includes('admin') ||
-            roleLower.includes('أدمن') ||
-            roleLower.includes('ملك')
-        ) {
+        // 2. السوبر أدمن والإدارة يظهرون في جناح الملوك (الثاني)
+        else if (role === 'superadmin' || role === 'ملوك' || role === 'admin' || role === 'أدمن') {
             targetListId = 'list-superadmin';
-            kingsCount++;
         }
-        // 3. جناح المميزين (بريميوم، VIP، مميز...)
-        else if (
-            roleLower.includes('بريميوم') ||
-            roleLower.includes('premium') ||
-            roleLower.includes('vip') ||
-            roleLower.includes('مميز')
-        ) {
+        // 3. البريميوم والـ VIP والتميز يظهرون في جناح المميزون (الثالث)
+        else if (role === 'premium' || role === 'بريميوم' || role === 'vip' || role === 'مميز') {
             targetListId = 'list-premium';
-            premiumCount++;
         }
-        // 4. باقي الأعضاء
+        // 4. باقي الأعضاء في القائمة العادية
         else {
             targetListId = 'list-guest';
-            guestCount++;
         }
-
         const targetContainer = document.getElementById(targetListId);
         if (targetContainer) {
             targetContainer.appendChild(div);
         }
     });
-
-    // إخفاء الأجنحة الفارغة (اختياري - يجعل الشكل أنظف)
-    document.getElementById('group-owner').style.display = ownerCount > 0 ? 'block' : 'none';
-    document.getElementById('group-superadmin').style.display = kingsCount > 0 ? 'block' : 'none';
-    document.getElementById('group-premium').style.display = premiumCount > 0 ? 'block' : 'none';
-    document.getElementById('group-guest').style.display = guestCount > 0 ? 'block' : 'none';
 });
 socket.on('message', ({ username, msg, avatar, role, border }) => {
     // أضفنا متغير border لضمان ظهور الإطار الدائم للجميع
