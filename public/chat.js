@@ -58,13 +58,20 @@ socket.on('update users', (users) => {
         const name = (user.username || '').toLowerCase();
 
         // منطق التوزيع
-        if (name === 'MOHAMED' || name === 'nour' || role === 'owner' || role === 'مالك') {
+      // 1. صاحب الموقع يظهر في جناحه الخاص (الأول)
+        if (name === 'MOHAMED' || name === 'MOHAMED' || role === 'owner' || role === 'صاحب الموقع') {
             targetListId = 'list-owner';
-        } else if (role === 'superadmin' || role === 'ملوك') {
+        } 
+        // 2. السوبر أدمن والإدارة يظهرون في جناح الملوك (الثاني)
+        else if (role === 'superadmin' || role === 'ملوك' || role === 'admin' || role === 'أدمن') {
             targetListId = 'list-superadmin';
-        } else if (role === 'premium' || role === 'بريميوم' || role === 'vip') {
+        } 
+        // 3. البريميوم والـ VIP والتميز يظهرون في جناح المميزون (الثالث)
+        else if (role === 'premium' || role === 'بريميوم' || role === 'vip' || role === 'مميز') {
             targetListId = 'list-premium';
-        } else {
+        } 
+        // 4. باقي الأعضاء في القائمة العادية
+        else {
             targetListId = 'list-guest';
         }
 
