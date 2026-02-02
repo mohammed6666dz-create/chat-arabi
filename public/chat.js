@@ -58,7 +58,7 @@ socket.on('update users', (users) => {
         const name = (user.username || '').toLowerCase();
 
         // منطق التوزيع
-        if (name === 'mohamed-dz' || name === 'nour' || role === 'owner' || role === 'مالك') {
+        if (name === 'MOHAMED' || name === 'nour' || role === 'owner' || role === 'مالك') {
             targetListId = 'list-owner';
         } else if (role === 'superadmin' || role === 'ملوك') {
             targetListId = 'list-superadmin';
