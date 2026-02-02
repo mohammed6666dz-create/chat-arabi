@@ -203,7 +203,7 @@ function getUserBadge(username, role = 'guest') {
         return '<span class="badge owner">مديرة الموقع 👑</span>';
     }
     if (lowerUsername === 'mohamed') {
-        return '<span class="badge owner">مالك 👑</span>';
+        return '<span class="badge owner">صاحب الموقع 👑</span>';
     }
     if (lowerUsername === 'malak16') {
         return '<span class="badge owner">ملكة الموقع🌹</span>';
