@@ -366,7 +366,7 @@ io.on('connection', socket => {
         return socket.disconnect(); // يطرده فوراً إذا كان محظوراً
       }
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
-      roomUsers[room].push({ username, avatar });
+    roomUsers[room].push({ username, avatar, role: user.rank || 'ضيف' });
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
       // ────────────── تحميل الرسائل القديمة ──────────────
