@@ -44,7 +44,8 @@ async function initDatabase() {
         friend_requests JSONB DEFAULT '[]'::jsonb,
         sent_requests JSONB DEFAULT '[]'::jsonb,
         notifications JSONB DEFAULT '[]'::jsonb,
-        created_at TIMESTAMPTZ DEFAULT NOW()
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        last_room TEXT DEFAULT NULL
       );
       CREATE TABLE IF NOT EXISTS private_messages (
         id SERIAL PRIMARY KEY,
@@ -108,22 +109,18 @@ setInterval(() => {
     io.emit('message', {
         username: 'تذكير',
         msg: reminderMessage,
-        avatar: reminderImage,          // الصورة تكون avatar هنا
+        avatar: reminderImage, // الصورة تكون avatar هنا
         role: 'system'
     });
     // اختياري: طباعة في console السيرفر للتأكد
     // console.log(`تذكير أرسل: ${reminderMessage}`);
-}, 60000);   // ← غيّر هنا الوقت (بالمللي ثانية)
-
+}, 60000); // ← غيّر هنا الوقت (بالمللي ثانية)
 // مفتاح OpenRouter الخاص بك
 const OPENROUTER_API_KEY = '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';
-
 // نموذج AI مجاني
 const AI_MODEL = 'google/gemini-2.0-flash-lite:free'; // أو google/gemini-2.0-flash
-
 // صورة جي بي تي الرسمية
 const GPT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/2048px-ChatGPT_logo.svg.png';
-
 // ────────────────────────────────────────────────
 // دوال مساعدة
 // ────────────────────────────────────────────────
@@ -220,7 +217,6 @@ const verifyToken = (req, res, next) => {
 app.get('/profile', verifyToken, async (req, res) => {
   const user = await getUser(req.user.username);
   if (!user) return res.status(404).json({ msg: 'المستخدم غير موجود' });
- 
   // حساب عدد الرسائل غير المقروءة
   const unreadRes = await pool.query(
     `SELECT COUNT(*) FROM private_messages WHERE to_user = $1 AND NOT ($1 = ANY(seen_by))`,
@@ -296,22 +292,76 @@ app.post('/change-rank', verifyToken, async (req, res) => {
 // Socket.IO
 // ────────────────────────────────────────────────
 io.on('connection', socket => {
+
+  // محاولة إعادة الدخول التلقائي لآخر غرفة محفوظة
+  if (socket.handshake.auth?.token) {
+    (async () => {
+      try {
+        const decoded = jwt.verify(socket.handshake.auth.token, secret);
+        const user = await getUser(decoded.username);
+        
+        if (user && user.last_room) {
+          const allowedRooms = ['general', 'algeria', 'all_countries'];
+          
+          if (allowedRooms.includes(user.last_room)) {
+            socket.username = decoded.username;
+            const username = socket.username;
+            const room = user.last_room;
+
+            socket.join(room);
+            roomCounts[room] = (roomCounts[room] || 0) + 1;
+            
+            const avatar = user.avatar || 'https://via.placeholder.com/40';
+            roomUsers[room] = roomUsers[room] || [];
+            roomUsers[room].push({ username, avatar });
+            
+            io.to(room).emit('update users', roomUsers[room]);
+            io.to(room).emit('system message', `${username} عاد إلى الغرفة`);
+            
+            // تحميل الرسائل القديمة (نفس المنطق الموجود في حدث join)
+            const NEW_USER_LIMIT = 100;
+            const OLD_USER_LIMIT = 5000;
+            const isNewUser = user.created_at > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+            const limit = isNewUser ? NEW_USER_LIMIT : OLD_USER_LIMIT;
+            
+            const { rows: messages } = await pool.query(`
+              SELECT username, message AS msg, avatar, role
+              FROM room_messages
+              WHERE room = $1
+              ORDER BY created_at DESC
+              LIMIT $2
+            `, [room, limit]);
+            
+            const messagesToSend = messages.reverse();
+            socket.emit('load messages', messagesToSend);
+            
+            // إشعار الواجهة الأمامية أننا دخلنا تلقائياً
+            socket.emit('auto-joined', { room });
+          }
+        }
+      } catch (err) {
+        console.log('Auto-join failed:', err.message);
+      }
+    })();
+  }
+
   let currentRoom = null;
   let username = null;
-// --- كود أوامر الإدارة (يوضع في السطر 257) ---
+
+  // --- كود أوامر الإدارة (يوضع في السطر 257) ---
   socket.on('admin command', async (data) => {
     const { action, target, token } = data;
     try {
       const decoded = jwt.verify(token, secret);
       const user = await getUser(decoded.username);
-     
+    
       // التأكد من الرتبة (أدمن، صاحب الموقع، أو مالك)
       if (user && ['أدمن', 'صاحب الموقع', 'مالك'].includes(user.rank)) {
-       
+      
    if (action === 'ban') {
           // تحديث حالة الحظر في قاعدة البيانات
           await pool.query('UPDATE users SET is_banned = true WHERE username = $1', [target]);
-         
+        
           // البحث عن اتصال المستخدم وطرده فوراً
           for (const [id, s] of io.sockets.sockets) {
             if (s.username === target) {
@@ -320,7 +370,7 @@ io.on('connection', socket => {
             }
           }
         }
-       
+      
         if (action === 'kick') {
           // طرد المستخدم بدون حظر دائم
           for (const [id, s] of io.sockets.sockets) {
@@ -330,7 +380,7 @@ io.on('connection', socket => {
             }
           }
         }
-       
+      
         if (action === 'unban') {
           await pool.query('UPDATE users SET is_banned = false WHERE username = $1', [target]);
           io.emit('system message', `✅ تم فك الحظر عن ${target}`);
@@ -362,6 +412,13 @@ io.on('connection', socket => {
         io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
       }
       currentRoom = room;
+
+      // حفظ آخر غرفة دخلها المستخدم
+      await pool.query(
+        'UPDATE users SET last_room = $1 WHERE username = $2',
+        [room, username]
+      );
+
       socket.join(room);
       roomCounts[room]++;
       const user = await getUser(username);
@@ -393,28 +450,27 @@ io.on('connection', socket => {
     } catch (e) {
       console.log('خطأ في join:', e.message);
     }
-  });socket.on('buy role', async ({ role }) => {
+  });
+
+  socket.on('buy role', async ({ role }) => {
       if (socket.username && role === 'premium') {
         try {
           // تحديث الرتبة في قاعدة البيانات (PostgreSQL)
           await pool.query('UPDATE users SET rank = $1 WHERE username = $2', ['premium', socket.username]);
-         
+        
           // إشعار المستخدم بنجاح العملية
           socket.emit('role purchased', { success: true, role: 'premium' });
- 
           // تحديث رتبة المستخدم أمام الجميع في الشات فوراً
           io.emit('rank update', {
             username: socket.username,
             rank: 'premium'
           });
- 
           console.log(`✅ تم ترقية ${socket.username} إلى بريميوم`);
         } catch (err) {
           console.error('خطأ في تحديث الرتبة:', err);
         }
       }
     });
- 
   socket.on('message', async (msg, token) => {
     try {
       const decoded = jwt.verify(token, secret);
@@ -433,14 +489,12 @@ io.on('connection', socket => {
          VALUES ($1, $2, $3, $4, $5, NOW())`,
         [currentRoom, decoded.username, msg, avatar, role]
       );
-
       // ────────────────────────────────────────────────
       // الجزء الجديد: بوت جي بي تي إذا كتب المستخدم كلمة تحتوي على "gpt"
       // ────────────────────────────────────────────────
       const lowerMsg = msg.toLowerCase().trim();
       if (lowerMsg.includes('gpt')) {
         let question = msg.trim();
-
         if (question.length < 5) {
           io.to(currentRoom).emit('message', {
             username: 'جي بي تي',
@@ -450,7 +504,6 @@ io.on('connection', socket => {
           });
           return;
         }
-
         try {
           const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
@@ -473,21 +526,17 @@ io.on('connection', socket => {
               max_tokens: 500
             })
           });
-
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
-
           const data = await response.json();
           const aiReply = data.choices[0].message.content.trim();
-
           io.to(currentRoom).emit('message', {
             username: 'جي بي تي',
             msg: `✨ ${aiReply}`,
             avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/2048px-ChatGPT_logo.svg.png',
             role: 'system'
           });
-
         } catch (err) {
           console.error('خطأ في رد جي بي تي:', err.message);
           io.to(currentRoom).emit('message', {
@@ -497,10 +546,8 @@ io.on('connection', socket => {
             role: 'system'
           });
         }
-
         return; // ما نرسل الرسالة العادية مرتين
       }
-
       // ────────────────────────────────────────────────
       // إرسال الرسالة العادية (إذا ما كانت لجي بي تي)
       // ────────────────────────────────────────────────
@@ -510,7 +557,6 @@ io.on('connection', socket => {
         avatar: avatar,
         role: user.rank || 'ضيف'
       });
-
       // ────────────── معالجة المنشن (الطاق) ──────────────
       const mentionRegex = /@(\w+)/g;
       let match;
@@ -535,7 +581,6 @@ io.on('connection', socket => {
       console.log("خطأ في التحقق من التوكن أثناء إرسال الرسالة:", e.message);
     }
   });
-
   // باقي الأحداث بدون تغيير
   socket.on('send friend request', async (targetUsername) => {
     if (!socket.username || socket.username === targetUsername) return;
@@ -609,7 +654,7 @@ io.on('connection', socket => {
   socket.on('remove friend', async (targetUsername) => {
     if (!socket.username) return;
     const user = socket.username;
-   
+  
     // حذف الصديق من كلا الطرفين
     await pool.query(
       'UPDATE users SET friends = friends - $1::text WHERE username = $2',
@@ -619,9 +664,9 @@ io.on('connection', socket => {
       'UPDATE users SET friends = friends - $1::text WHERE username = $2',
       [user, targetUsername]
     );
-   
+  
     socket.emit('friend removed', targetUsername);
-   
+  
     // إشعار الطرف الآخر إذا كان متصلاً
     for (const s of io.sockets.sockets.values()) {
         if (s.username === targetUsername) {
@@ -750,7 +795,7 @@ io.on('connection', socket => {
       const roomName = getPrivateRoomName(from, to);
       io.to(roomName).emit('private message', messageData);
       const isOnline = Array.from(io.sockets.sockets.values()).some(s => s.username === to);
-     
+    
       // إشعار المستلم لتحديث عداد الرسائل (سواء كان في الغرفة أم لا)
       for (const s of io.sockets.sockets.values()) {
         if (s.username === to) s.emit('msg_notification', { from });
