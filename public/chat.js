@@ -29,8 +29,15 @@ socket.on('previous messages', (messages) => {
 });
 socket.on('update users', (users) => {
     document.getElementById('userCount').innerText = users.length;
-    const list = document.getElementById('usersList');
-    list.innerHTML = '';
+    
+    // 1. تفريغ جميع الأجنحة قبل إعادة التوزيع
+    const groups = ['list-owner', 'list-superadmin', 'list-premium', 'list-guest', 'list-offline'];
+    groups.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '';
+    });
+
+    // 2. توزيع المستخدمين بناءً على الرتبة
     users.forEach(user => {
         const div = document.createElement('div');
         div.className = 'user-item';
@@ -38,13 +45,33 @@ socket.on('update users', (users) => {
             <img src="${user.avatar || 'https://via.placeholder.com/40'}" alt="${user.username}">
             <span>${user.username}</span>
         `;
-        // الضغط على الصورة يفتح ملف الشخص نفسه
+        
         div.onclick = () => openUserProfile(user.username, user.role || 'guest', user.avatar);
         div.addEventListener('dblclick', (e) => {
             e.preventDefault();
             mentionUser(user.username);
         });
-        list.appendChild(div);
+
+        // تحديد الجناح المستهدف
+        let targetListId = 'list-guest'; 
+        const role = (user.role || 'guest').toLowerCase();
+        const name = (user.username || '').toLowerCase();
+
+        // منطق التوزيع
+        if (name === 'mohamed-dz' || name === 'nour' || role === 'owner' || role === 'مالك') {
+            targetListId = 'list-owner';
+        } else if (role === 'superadmin' || role === 'ملوك') {
+            targetListId = 'list-superadmin';
+        } else if (role === 'premium' || role === 'بريميوم' || role === 'vip') {
+            targetListId = 'list-premium';
+        } else {
+            targetListId = 'list-guest';
+        }
+
+        const targetContainer = document.getElementById(targetListId);
+        if (targetContainer) {
+            targetContainer.appendChild(div);
+        }
     });
 });
 socket.on('message', ({ username, msg, avatar, role, border }) => {
