@@ -850,3 +850,4 @@ socket.on('messages read confirmed', ({ count }) => {
     // إنقاص العداد بعدد الرسائل التي تمت قراءتها
     totalUnreadMsgs = Math.max(0, totalUnreadMsgs - count);
     updateMessageBadge(totalUnreadMsgs);
+});
