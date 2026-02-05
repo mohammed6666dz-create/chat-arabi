@@ -77,7 +77,6 @@
     .accept-btn { background: #10b981; color: white; }
     .reject-btn { background: #ef4444; color: white; }
     .report-item .reporter { font-weight: bold; color: #fbbf24; }
-
     /* تحسين بسيط للبروفايل الخاص (myProfilePanel) */
     #myProfilePanel {
       width: 460px;
@@ -95,7 +94,6 @@
       display: none;
       border: 1px solid #334155;
     }
-
     .profile-header {
       padding: 15px 20px;
       background: linear-gradient(135deg, #1e293b, #0f172a);
@@ -107,21 +105,17 @@
       top: 0;
       z-index: 10;
     }
-
     .profile-header h3 { margin: 0; font-size: 1.4rem; }
-
     .profile-cover-section {
       position: relative;
       height: 200px;
     }
-
     .cover-photo {
       width: 100%;
       height: 100%;
       background-size: cover;
       background-position: center;
     }
-
     .cover-overlay {
       position: absolute;
       inset: 0;
@@ -132,9 +126,7 @@
       opacity: 0;
       transition: opacity 0.3s;
     }
-
     .profile-cover-section:hover .cover-overlay { opacity: 1; }
-
     .change-cover-btn {
       background: rgba(0,0,0,0.6);
       color: white;
@@ -145,7 +137,6 @@
       align-items: center;
       gap: 8px;
     }
-
     .profile-main-content {
       padding: 0 25px;
       margin-top: -70px;
@@ -153,7 +144,6 @@
       z-index: 2;
       text-align: center;
     }
-
     #myProfileAvatar {
       width: 140px;
       height: 140px;
@@ -162,7 +152,6 @@
       object-fit: cover;
       box-shadow: 0 8px 25px rgba(0,0,0,0.5);
     }
-
     .edit-avatar {
       position: absolute;
       bottom: 10px;
@@ -178,17 +167,14 @@
       cursor: pointer;
       border: 3px solid #0f172a;
     }
-
     .user-meta h4 {
       margin: 15px 0 8px;
       font-size: 1.7rem;
     }
-
     .user-status {
       color: #94a3b8;
       font-size: 1rem;
     }
-
     .modern-tabs {
       display: flex;
       flex-wrap: wrap;
@@ -197,7 +183,6 @@
       padding: 20px 25px 10px;
       border-bottom: 1px solid #334155;
     }
-
     .m-tab {
       background: #1e293b;
       border: none;
@@ -208,38 +193,30 @@
       font-weight: 500;
       transition: all 0.3s;
     }
-
     .m-tab:hover { background: #334155; }
-
     .m-tab.active {
       background: #3b82f6;
       color: white;
     }
-
     .m-tab.highlight {
       background: linear-gradient(90deg, #8b5cf6, #d946ef);
       color: white;
     }
-
     .tab-content {
       padding: 25px;
     }
-
     .tab-pane { display: none; }
     .tab-pane.active { display: block; }
-
     .profile-info-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 18px;
     }
-
     .info-item {
       background: #1e293b;
       padding: 12px 16px;
       border-radius: 10px;
     }
-
     .info-item .label {
       color: #94a3b8;
       font-size: 0.9rem;
@@ -299,7 +276,6 @@
       </button>
     </div>
   </header>
-
   <!-- ════════════════════════════════════════════════════════════ -->
   <!-- اللوحات الجديدة التي طلبتها -->
   <!-- ════════════════════════════════════════════════════════════ -->
@@ -327,7 +303,6 @@
     </div>
     <div id="reportsList"></div>
   </div>
-
   <div class="chat-main">
     <div id="chatWindow"></div>
     <div id="usersPanel">
@@ -337,22 +312,18 @@
           <div class="group-header owner-header"><i class="fas fa-crown"></i> جناح المالك</div>
           <div class="group-content" id="list-owner"></div>
         </div>
-
         <div class="user-group" id="group-superadmin">
           <div class="group-header super-header"><i class="fas fa-bolt"></i> جناح الملوك</div>
           <div class="group-content" id="list-superadmin"></div>
         </div>
-
         <div class="user-group" id="group-premium">
           <div class="group-header premium-header"><i class="fas fa-gem"></i> جناح المميزون</div>
           <div class="group-content" id="list-premium"></div>
         </div>
-
         <div class="user-group" id="group-guest">
           <div class="group-header guest-header"><i class="fas fa-users"></i> جناح الأعضاء</div>
           <div class="group-content" id="list-guest"></div>
         </div>
-
         <div class="user-group" id="group-offline">
           <div class="group-header offline-header"><i class="fas fa-moon"></i> غير متصل</div>
           <div class="group-content" id="list-offline"></div>
@@ -360,7 +331,6 @@
       </div>
     </div>
   </div>
-
   <form id="messageForm">
     <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
     <button type="button" id="imageUploadBtn" class="emoji-btn" title="إرسال صورة" onclick="document.getElementById('imageInput').click();">
@@ -370,7 +340,6 @@
     <button type="button" id="emojiBtn" class="emoji-btn" title="اختر إيموجي">😊</button>
     <button type="submit">إرسال</button>
   </form>
-
   <div id="emojiPicker" class="emoji-picker hidden">
     <div class="emoji-tabs">
       <button class="emoji-tab active" data-tab="common">الأكثر استخداماً</button>
@@ -395,14 +364,12 @@
       </div>
     </div>
   </div>
-
   <!-- بروفايلك (مع تحسين بسيط للشكل) -->
   <div id="myProfilePanel" class="profile-panel">
     <div class="profile-header">
       <h3>بروفايلك</h3>
       <span id="closeMyProfile" class="close-panel">×</span>
     </div>
-
     <div class="profile-cover-section">
       <div class="cover-photo" id="myCoverPhoto" style="background-image: url('https://via.placeholder.com/800x300/0f172a/ffffff?text=خلفيتك+هنا');"></div>
       <div class="cover-overlay">
@@ -412,7 +379,6 @@
         <input type="file" id="coverUpload" accept="image/*" hidden>
       </div>
     </div>
-
     <div class="profile-main-content">
       <div class="avatar-wrapper">
         <img id="myProfileAvatar" src="https://via.placeholder.com/140" alt="صورتك">
@@ -421,7 +387,6 @@
         </label>
         <input type="file" id="avatarUpload" accept="image/*" hidden>
       </div>
-
       <div class="user-meta">
         <h4 id="myProfileUsername">
           MOHAMED-DZ
@@ -433,7 +398,6 @@
         </p>
       </div>
     </div>
-
     <div class="modern-tabs">
       <button class="m-tab active" data-tab="info">معلوماتي</button>
       <button class="m-tab" data-tab="friends">الأصدقاء</button>
@@ -442,7 +406,6 @@
       <button class="m-tab highlight" data-tab="features">المميزات</button>
       <button class="m-tab" data-tab="account">الحساب</button>
     </div>
-
     <div class="tab-content">
       <div id="tab-info" class="tab-pane active">
         <div class="profile-info-grid">
@@ -468,39 +431,32 @@
           </div>
         </div>
       </div>
-
       <div id="tab-friends" class="tab-pane hidden">
         <p>قائمة أصدقائك ستظهر هنا...</p>
       </div>
-
       <div id="tab-blocked" class="tab-pane hidden">
         <p>الأشخاص الذين تم تجاهلهم...</p>
       </div>
-
       <div id="tab-options" class="tab-pane hidden">
         <p>الإعدادات والخيارات...</p>
       </div>
 <div id="tab-features" class="tab-pane hidden">
-    
+   
     <h4 style="margin-bottom: 15px; color: #fff; text-align: center;">إطار الصورة الشخصية</h4>
-    
+   
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid #333;">
         <div onclick="updateAvatarBorder('4px solid #ff0000')" style="aspect-ratio: 1/1; background: red; border-radius: 4px; cursor: pointer;"></div>
         <div onclick="updateAvatarBorder('4px solid #007bff')" style="aspect-ratio: 1/1; background: #007bff; border-radius: 4px; cursor: pointer;"></div>
         <div onclick="updateAvatarBorder('4px solid #ffd700')" style="aspect-ratio: 1/1; background: #ffd700; border-radius: 4px; cursor: pointer;"></div>
         <div onclick="updateAvatarBorder('none')" style="aspect-ratio: 1/1; background: #333; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px;">حذف</div>
     </div>
-
     <div style="margin-top: 15px; display: flex; gap: 10px;">
         <button onclick="saveBorderSelection()" style="flex: 1; padding: 10px; background: #00bcd4; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">حفظ الإطار</button>
     </div>
-
     <hr style="margin: 20px 0; border: 0; border-top: 1px solid #333;">
-
     <h4>المميزات الخاصة بك</h4>
     <p>اشتراكك الحالي: <strong>عادي</strong></p>
-
-</div> 
+</div>
 <button class="icon-btn" onclick="showTab('features')" title="المميزات">
     <i class="fas fa-star"></i>
 </button>
@@ -510,7 +466,6 @@
       </div>
     </div>
   </div>
-
   <div id="shopPanel" class="shop-panel" style="display:none;">
     <div class="shop-header">
       <h3>المتجر</h3>
@@ -554,7 +509,6 @@
       </div>
     </div>
   </div>
-
   <div id="levelPointsPanel" class="level-panel hidden">
     <div class="level-panel-content">
       <div class="level-header">
@@ -583,7 +537,6 @@
       </div>
     </div>
   </div>
-
   <!-- نافذة المحادثة الخاصة -->
   <div id="privateChatPanel" class="private-chat-panel" style="display: none;">
     <div class="private-header">
@@ -596,7 +549,6 @@
       <button type="submit"><i class="fas fa-paper-plane"></i></button>
     </form>
   </div>
-
   <div id="otherUserProfileModal" class="other-profile-modal hidden">
     <div class="modal-content">
       <span class="close-modal" onclick="closeOtherUserProfile()">×</span>
@@ -651,7 +603,6 @@
       </div>
     </div>
   </div>
-
   <script src="chat.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -668,7 +619,6 @@
         showBtn.style.display = 'none';
         hideBtn.style.display = 'inline-block';
       });
-
       // معاينة الخلفية الجديدة
       const coverUpload = document.getElementById('coverUpload');
       const myCoverPhoto = document.getElementById('myCoverPhoto');
@@ -684,7 +634,6 @@
           }
         });
       }
-
       // فتح وإغلاق المتجر
       document.getElementById('shopBtn')?.addEventListener('click', () => {
         document.getElementById('shopPanel').style.display = 'block';
@@ -692,7 +641,6 @@
       document.getElementById('closeShop')?.addEventListener('click', () => {
         document.getElementById('shopPanel').style.display = 'none';
       });
-
       // فتح وإغلاق نافذة نقاطي ومستواي
       const levelBtn = document.getElementById('myLevelBtn');
       const levelPanel = document.getElementById('levelPointsPanel');
@@ -707,7 +655,6 @@
           levelPanel.classList.add('hidden');
         });
       }
-
       // الإيموجي
       const emojiBtn = document.getElementById('emojiBtn');
       const emojiPicker = document.getElementById('emojiPicker');
@@ -731,32 +678,26 @@
           });
         });
       }
-
       // فتح اللوحات الجديدة
       document.getElementById('privateMsgBtn')?.addEventListener('click', () => {
         document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel').forEach(p => p.style.display = 'none');
         document.getElementById('conversationsPanel').style.display = 'block';
       });
-
       document.getElementById('friendReqBtn')?.addEventListener('click', () => {
         document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel').forEach(p => p.style.display = 'none');
         document.getElementById('friendRequestsPanel').style.display = 'block';
       });
-
       document.getElementById('reportsBtn')?.addEventListener('click', () => {
         document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel').forEach(p => p.style.display = 'none');
         document.getElementById('reportsPanel').style.display = 'block';
       });
-
       // فتح بروفايلك
       document.getElementById('profileBtn')?.addEventListener('click', () => {
         document.getElementById('myProfilePanel').style.display = 'block';
       });
-
       document.getElementById('closeMyProfile')?.addEventListener('click', () => {
         document.getElementById('myProfilePanel').style.display = 'none';
       });
-
       // تبديل تبويبات البروفايل
       document.querySelectorAll('.modern-tabs .m-tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -768,5 +709,4 @@
       });
     });
    </script>
-
 </html>
