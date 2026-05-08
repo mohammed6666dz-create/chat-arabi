@@ -13,7 +13,7 @@ let myAvatar = 'https://via.placeholder.com/40';
 let currentPrivateChat = null;
 let myPoints = 1;
 let myLevel = 1;
-let myRole = 'guest'; // متغير لتخزين رتبة المستخدم
+let myRole = 'guest';
 const mentionSound = new Audio('./bird-chirp-short.mp3');
 mentionSound.volume = 0.7;
 
@@ -269,7 +269,7 @@ async function loadMyProfile() {
   
         myUsername = user.username;
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
-        myRole = user.rank || 'guest'; // تخزين رتبة المستخدم
+        myRole = user.rank || 'guest';
         const timestamp = new Date().getTime();
         const avatarImg = document.getElementById('avatar');
         const profileAvatar = document.getElementById('myProfileAvatar');
@@ -329,7 +329,6 @@ document.getElementById('avatarUpload')?.addEventListener('change', async (e) =>
     }
 });
 
-// ─────────────── دالة فتح البروفايل مع أزرار الإدارة (للسوبر أدمن فقط) ───────────────
 function openUserProfile(username, role = 'guest', avatar = '') {
     const displayName = document.getElementById('otherUserDisplayName');
     const largeAvatar = document.getElementById('otherUserAvatarLarge');
@@ -389,13 +388,12 @@ function openUserProfile(username, role = 'guest', avatar = '') {
         }
     }
    
-    // ─────────────── أزرار الإدارة (تظهر فقط للسوبر أدمن) ───────────────
     const adminBox = document.getElementById('adminActionsContainer');
     if (adminBox) {
-        // التحقق: هل المستخدم الحالي لديه رتبة "superadmin" في قاعدة البيانات؟
-        const isSuperAdmin = (myRole === 'superadmin');
+        const superAdminRanks = ['superadmin', 'سوبر أدمن', 'Super Admin', 'سوبرادمن'];
+        const isSuperAdmin = superAdminRanks.includes(myRole?.toLowerCase());
         
-        console.log('الرتبة الحالية:', myRole, 'هل هو سوبر أدمن؟', isSuperAdmin);
+        console.log('رتبتي الحالية:', myRole, 'هل أنا سوبر أدمن؟', isSuperAdmin);
         
         if (isSuperAdmin && !isMe) {
             adminBox.style.display = 'block';
@@ -419,7 +417,6 @@ function openUserProfile(username, role = 'guest', avatar = '') {
     currentPrivateChat = username;
 }
 
-// ─────────────── دالة تنفيذ أوامر الإدارة ───────────────
 function adminAction(actionType, targetName) {
     const actionsNames = { 
         kick: 'طرد', 
@@ -781,7 +778,6 @@ socket.on('mute-update', (data) => {
     }
 });
 
-// ─────────────── قائمة المحادثات الخاصة ───────────────
 document.getElementById('privateMsgBtn')?.addEventListener('click', () => {
     console.log('🔘 تم فتح قائمة الرسائل الخاصة');
     
@@ -844,24 +840,33 @@ socket.on('private conversations list', (conversations) => {
     });
 });
 
-// استقبال تحديثات الكتم من السيرفر
-socket.on('mute update', (data) => {
-    if (data.target === myUsername) {
-        window.isMuted = data.status;
-        if (data.status) {
-            alert("🔇 تم كتمك من قبل الإدارة!");
-        } else {
-            alert("🔊 تم فك الكتم عنك!");
-        }
+let savedConversations = [];
+socket.on('private message', ({ from, to, msg, avatar }) => {
+    if (from === myUsername) return;
+    
+    let existing = savedConversations.find(c => c.username === from);
+    if (existing) {
+        existing.last_message = msg.substring(0, 40);
+        existing.avatar = avatar;
+    } else {
+        savedConversations.unshift({
+            username: from,
+            avatar: avatar,
+            last_message: msg.substring(0, 40)
+        });
     }
-});
-
-// استقبال تحديثات الحظر
-socket.on('ban update', (data) => {
-    if (data.target === myUsername) {
-        alert("🚫 تم حظرك من الموقع!");
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        window.location.href = 'index.html';
+    savedConversations = savedConversations.slice(0, 20);
+    
+    if (currentPrivateChat === from || currentPrivateChat === to) {
+        const isMe = from === myUsername;
+        appendPrivateMessage(
+            isMe ? myUsername : from,
+            msg,
+            isMe ? myAvatar : (avatar || 'https://via.placeholder.com/30'),
+            isMe
+        );
+    } else {
+        totalUnreadMsgs++;
+        updateMessageBadge(totalUnreadMsgs);
     }
 });
