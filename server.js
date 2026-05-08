@@ -1,4 +1,4 @@
-const express = require('express');
+طيب هاذا هو كود سرفر لا تحذف اي شي او تخرب بس ضيف يلي قتلك عليه ويصير يشتغل const express = require('express');
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -44,8 +44,6 @@ async function initDatabase() {
         friend_requests JSONB DEFAULT '[]'::jsonb,
         sent_requests JSONB DEFAULT '[]'::jsonb,
         notifications JSONB DEFAULT '[]'::jsonb,
-        points INTEGER DEFAULT 0,
-        level INTEGER DEFAULT 1,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
       CREATE TABLE IF NOT EXISTS private_messages (
@@ -231,8 +229,6 @@ app.get('/profile', verifyToken, async (req, res) => {
     friends: user.friends,
     friend_requests: user.friend_requests || [],
     rank: user.rank || 'ضيف',
-    points: user.points || 0,
-    level: user.level || 1,
     unread_messages: unreadCount
   });
 });
@@ -297,85 +293,57 @@ app.post('/change-rank', verifyToken, async (req, res) => {
 io.on('connection', socket => {
   let currentRoom = null;
   let username = null;
-
-  // ─────────────── أوامر الإدارة (للسوبر أدمن فقط) ───────────────
+// --- كود أوامر الإدارة (يوضع في السطر 257) ---
   socket.on('admin command', async (data) => {
     const { action, target, token } = data;
     try {
       const decoded = jwt.verify(token, secret);
-      const adminUser = await getUser(decoded.username);
+      const user = await getUser(decoded.username);
+    
+      // التأكد من الرتبة (أدمن، صاحب الموقع، أو مالك)
+      if (user && ['أدمن', 'صاحب الموقع', 'مالك'].includes(user.rank)) {
       
-      // التحقق: فقط سوبر أدمن يمكنه تنفيذ الأوامر (مع دعم الكتابة بالعربية والإنجليزية)
-      const isSuperAdmin = adminUser && (adminUser.rank === 'superadmin' || adminUser.rank === 'سوبر أدمن');
-      
-      if (!isSuperAdmin) {
-        console.log(`❌ رفض أمر إداري من ${decoded.username} - الرتبة: ${adminUser?.rank}`);
-        socket.emit('system message', '⛔ غير مصرح لك! فقط سوبر أدمن يمكنه استخدام هذه الأوامر.');
-        return;
-      }
-      
-      console.log(`📢 أمر إداري: ${action} على ${target} من ${decoded.username}`);
-      
-      // تنفيذ الأمر حسب النوع
-      switch(action) {
-        case 'ban':
+   if (action === 'ban') {
+          // تحديث حالة الحظر في قاعدة البيانات
           await pool.query('UPDATE users SET is_banned = true WHERE username = $1', [target]);
+        
+          // البحث عن اتصال المستخدم وطرده فوراً
           for (const [id, s] of io.sockets.sockets) {
             if (s.username === target) {
               s.emit('execute-ban', { target: target });
-              s.emit('system message', '🚫 تم حظرك من الموقع!');
-              setTimeout(() => s.disconnect(), 1000);
+              s.disconnect(); // هذا السطر هو الذي يخرجه من الشات فعلياً
             }
           }
-          io.emit('system message', `🚫 تم حظر المستخدم ${target} بواسطة الإدارة`);
-          break;
-          
-        case 'unban':
+        }
+      
+        if (action === 'kick') {
+          // طرد المستخدم بدون حظر دائم
+          for (const [id, s] of io.sockets.sockets) {
+            if (s.username === target) {
+              s.emit('execute-kick', { target: target });
+              s.disconnect();
+            }
+          }
+        }
+      
+        if (action === 'unban') {
           await pool.query('UPDATE users SET is_banned = false WHERE username = $1', [target]);
-          io.emit('system message', `✅ تم فك الحظر عن المستخدم ${target}`);
-          break;
-          
-        case 'mute':
+          io.emit('system message', `✅ تم فك الحظر عن ${target}`);
+        }
+        if (action === 'mute') {
           await pool.query('UPDATE users SET is_muted = true WHERE username = $1', [target]);
-          for (const [id, s] of io.sockets.sockets) {
-            if (s.username === target) {
-              s.emit('mute-update', { target: target, status: true });
-              s.emit('system message', '🔇 تم كتمك من قبل الإدارة! لا يمكنك إرسال رسائل.');
-            }
-          }
-          io.emit('system message', `🔇 تم كتم المستخدم ${target} بواسطة الإدارة`);
-          break;
-          
-        case 'unmute':
+        }
+        if (action === 'unmute') {
           await pool.query('UPDATE users SET is_muted = false WHERE username = $1', [target]);
-          for (const [id, s] of io.sockets.sockets) {
-            if (s.username === target) {
-              s.emit('mute-update', { target: target, status: false });
-              s.emit('system message', '🔊 تم فك الكتم عنك! يمكنك إرسال الرسائل الآن.');
-            }
-          }
-          io.emit('system message', `✅ تم فك الكتم عن المستخدم ${target}`);
-          break;
-          
-        case 'kick':
-          for (const [id, s] of io.sockets.sockets) {
-            if (s.username === target) {
-              s.emit('system message', '👢 تم طردك من الغرفة بواسطة الإدارة');
-              setTimeout(() => s.disconnect(), 500);
-            }
-          }
-          io.emit('system message', `👢 تم طرد المستخدم ${target} من الغرفة`);
-          break;
-          
-        default:
-          console.log('أمر غير معروف:', action);
+        }
+        if (action === 'kick') {
+          io.emit('execute-kick', { target: target });
+        }
       }
     } catch (err) {
-      console.error('خطأ في أمر الإدارة:', err);
-      socket.emit('system message', '❌ حدث خطأ في تنفيذ الأمر');
+      console.error('Admin Error:', err);
     }
   });
-
   socket.on('join', async (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
@@ -416,12 +384,11 @@ io.on('connection', socket => {
       `, [room, limit]);
       // عكس الترتيب ليظهر الأقدم أولاً
       const messagesToSend = messages.reverse();
-      socket.emit('previous messages', messagesToSend);
+      socket.emit('load messages', messagesToSend);
     } catch (e) {
       console.log('خطأ في join:', e.message);
     }
-  });
-  socket.on('buy role', async ({ role }) => {
+  });socket.on('buy role', async ({ role }) => {
       if (socket.username && role === 'premium') {
         try {
           // تحديث الرتبة في قاعدة البيانات (PostgreSQL)
@@ -458,29 +425,6 @@ io.on('connection', socket => {
          VALUES ($1, $2, $3, $4, $5, NOW())`,
         [currentRoom, decoded.username, msg, avatar, role]
       );
-      
-      // ─────────────── نظام النقاط والمستويات ───────────────
-      let userPoints = (user.points || 0) + 1;
-      let userLevel = user.level || 1;
-      const newLevel = Math.floor(userPoints / 100) + 1;
-      let levelUp = false;
-      
-      if (newLevel > userLevel) {
-        levelUp = true;
-        userLevel = newLevel;
-        await pool.query('UPDATE users SET points = $1, level = $2 WHERE username = $3', [userPoints, userLevel, decoded.username]);
-        socket.emit('your points updated', { points: userPoints, level: userLevel });
-        if (levelUp) {
-          io.to(currentRoom).emit('level up broadcast', {
-            username: decoded.username,
-            newLevel: userLevel
-          });
-        }
-      } else {
-        await pool.query('UPDATE users SET points = $1 WHERE username = $2', [userPoints, decoded.username]);
-        socket.emit('your points updated', { points: userPoints, level: userLevel });
-      }
-      
       // ────────────────────────────────────────────────
       // الجزء الجديد: بوت جي بي تي إذا كتب المستخدم كلمة تحتوي على "gpt"
       // ────────────────────────────────────────────────
