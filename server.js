@@ -19,6 +19,7 @@ const io = require('socket.io')(http);
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // ────────────────────────────────────────────────
 // إعداد الاتصال بقاعدة البيانات
 // ────────────────────────────────────────────────
@@ -27,6 +28,7 @@ const pool = new Pool({
   connectionString: connectionString,
   ssl: { rejectUnauthorized: false }
 });
+
 // إنشاء الجداول إذا ما كانت موجودة
 async function initDatabase() {
   try {
@@ -44,6 +46,8 @@ async function initDatabase() {
         friend_requests JSONB DEFAULT '[]'::jsonb,
         sent_requests JSONB DEFAULT '[]'::jsonb,
         notifications JSONB DEFAULT '[]'::jsonb,
+        points INTEGER DEFAULT 0,
+        level INTEGER DEFAULT 1,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
       CREATE TABLE IF NOT EXISTS private_messages (
@@ -74,15 +78,18 @@ async function initDatabase() {
   }
 }
 initDatabase();
+
 // ────────────────────────────────────────────────
 // المتغيرات المؤقتة
 // ────────────────────────────────────────────────
 let roomUsers = { general: [], algeria: [], all_countries: [] };
 let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
+
 // الرتب المتاحة
-const RANKS = ['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'];
+const RANKS = ['ضيف', 'عضو', 'بريميوم', 'أدمن', 'سوبر أدمن', 'صاحب الموقع'];
 const secret = 'secretkey';
 const PORT = process.env.PORT || 3000;
+
 // ────────────────────────────────────────────────
 // تذكير تلقائي بالأذكار (كل ~60 ثانية)
 // ────────────────────────────────────────────────
@@ -101,25 +108,23 @@ const adhkar = [
     "اللهم اغفر لي وارحمني"
 ];
 const reminderImage = "https://i.pinimg.com/736x/ef/e5/f3/efe5f30586ff8fe7861cdea4bc2f88cf.jpg";
-// كل 60 ثانية (يمكنك تغيير الرقم: 30000 = 30 ثانية، 120000 = دقيقتين)
+
 setInterval(() => {
     const randomDhikr = adhkar[Math.floor(Math.random() * adhkar.length)];
     const reminderMessage = `✨ ${randomDhikr} ✨`;
     io.emit('message', {
         username: 'تذكير',
         msg: reminderMessage,
-        avatar: reminderImage, // الصورة تكون avatar هنا
+        avatar: reminderImage,
         role: 'system'
     });
-    // اختياري: طباعة في console السيرفر للتأكد
-    // console.log(`تذكير أرسل: ${reminderMessage}`);
-}, 60000); // ← غيّر هنا الوقت (بالمللي ثانية)
+}, 60000);
+
 // مفتاح OpenRouter الخاص بك
 const OPENROUTER_API_KEY = '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';
-// نموذج AI مجاني
-const AI_MODEL = 'google/gemini-2.0-flash-lite:free'; // أو google/gemini-2.0-flash
-// صورة جي بي تي الرسمية
+const AI_MODEL = 'google/gemini-2.0-flash-lite:free';
 const GPT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/2048px-ChatGPT_logo.svg.png';
+
 // ────────────────────────────────────────────────
 // دوال مساعدة
 // ────────────────────────────────────────────────
@@ -138,6 +143,7 @@ async function getUser(username) {
     return null;
   }
 }
+
 async function createUser(username, passwordHash) {
   try {
     await pool.query(
@@ -147,11 +153,12 @@ async function createUser(username, passwordHash) {
     );
     return true;
   } catch (err) {
-    if (err.code === '23505') return false; // duplicate
+    if (err.code === '23505') return false;
     console.error('خطأ في إنشاء مستخدم:', err);
     return false;
   }
 }
+
 async function updateUserFields(username, updates) {
   if (!Object.keys(updates).length) return false;
   const setParts = [];
@@ -172,6 +179,7 @@ async function updateUserFields(username, updates) {
     return false;
   }
 }
+
 // ────────────────────────────────────────────────
 // Routes
 // ────────────────────────────────────────────────
@@ -189,6 +197,7 @@ app.post('/register', async (req, res) => {
   }
   res.json({ msg: 'تم التسجيل بنجاح' });
 });
+
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   const user = await getUser(username);
@@ -198,10 +207,11 @@ app.post('/login', async (req, res) => {
   const token = jwt.sign({ username }, secret, { expiresIn: '7d' });
   res.json({ token });
 });
-// السماح لجوجل بالوصول لملف خريطة الموقع (Sitemap)
+
 app.get('/sitemap.xml', (req, res) => {
   res.sendFile(path.join(__dirname, 'sitemap.xml'));
 });
+
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ msg: 'لا يوجد توكن' });
@@ -213,10 +223,10 @@ const verifyToken = (req, res, next) => {
     res.status(401).json({ msg: 'توكن غير صالح' });
   }
 };
+
 app.get('/profile', verifyToken, async (req, res) => {
   const user = await getUser(req.user.username);
   if (!user) return res.status(404).json({ msg: 'المستخدم غير موجود' });
-  // حساب عدد الرسائل غير المقروءة
   const unreadRes = await pool.query(
     `SELECT COUNT(*) FROM private_messages WHERE to_user = $1 AND NOT ($1 = ANY(seen_by))`,
     [req.user.username]
@@ -229,9 +239,12 @@ app.get('/profile', verifyToken, async (req, res) => {
     friends: user.friends,
     friend_requests: user.friend_requests || [],
     rank: user.rank || 'ضيف',
+    points: user.points || 0,
+    level: user.level || 1,
     unread_messages: unreadCount
   });
 });
+
 app.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res) => {
   if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
   try {
@@ -250,6 +263,7 @@ app.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res
     res.status(500).json({ msg: 'فشل الرفع السحابي' });
   }
 });
+
 app.post('/upload-background', verifyToken, upload.single('background'), async (req, res) => {
   if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
   try {
@@ -268,9 +282,11 @@ app.post('/upload-background', verifyToken, upload.single('background'), async (
     res.status(500).json({ msg: 'فشل الرفع السحابي' });
   }
 });
+
 app.get('/room-counts', (req, res) => {
   res.json(roomCounts);
 });
+
 app.post('/change-rank', verifyToken, async (req, res) => {
   const changer = await getUser(req.user.username);
   if (!changer || changer.rank !== 'مالك') {
@@ -287,68 +303,99 @@ app.post('/change-rank', verifyToken, async (req, res) => {
   io.emit('rank update', { username: targetUsername, rank: newRank });
   res.json({ msg: 'تم تغيير الرتبة بنجاح' });
 });
+
 // ────────────────────────────────────────────────
 // Socket.IO
 // ────────────────────────────────────────────────
 io.on('connection', socket => {
   let currentRoom = null;
   let username = null;
-// --- كود أوامر الإدارة (يوضع في السطر 257) ---
+
+  // ─────────────── أوامر الإدارة (للسوبر أدمن فقط) ───────────────
   socket.on('admin command', async (data) => {
     const { action, target, token } = data;
     try {
       const decoded = jwt.verify(token, secret);
-      const user = await getUser(decoded.username);
-    
-      // التأكد من الرتبة (أدمن، صاحب الموقع، أو مالك)
-      if (user && ['أدمن', 'صاحب الموقع', 'مالك'].includes(user.rank)) {
+      const adminUser = await getUser(decoded.username);
       
-   if (action === 'ban') {
-          // تحديث حالة الحظر في قاعدة البيانات
+      // التحقق: فقط سوبر أدمن أو مالك أو أدمن يمكنه تنفيذ الأوامر
+      const allowedRanks = ['سوبر أدمن', 'superadmin', 'أدمن', 'admin', 'صاحب الموقع', 'مالك'];
+      const isAdmin = adminUser && allowedRanks.includes(adminUser.rank);
+      
+      if (!isAdmin) {
+        console.log(`❌ رفض أمر إداري من ${decoded.username} - الرتبة: ${adminUser?.rank}`);
+        return;
+      }
+      
+      console.log(`📢 أمر إداري: ${action} على ${target} من ${decoded.username}`);
+      
+      // تنفيذ الأمر حسب النوع
+      switch(action) {
+        case 'ban':
           await pool.query('UPDATE users SET is_banned = true WHERE username = $1', [target]);
-        
-          // البحث عن اتصال المستخدم وطرده فوراً
+          // طرد المستخدم إذا كان متصلاً
           for (const [id, s] of io.sockets.sockets) {
             if (s.username === target) {
               s.emit('execute-ban', { target: target });
-              s.disconnect(); // هذا السطر هو الذي يخرجه من الشات فعلياً
+              s.emit('system message', '🚫 تم حظرك من الموقع!');
+              setTimeout(() => s.disconnect(), 1000);
             }
           }
-        }
-      
-        if (action === 'kick') {
-          // طرد المستخدم بدون حظر دائم
+          io.emit('system message', `🚫 تم حظر المستخدم ${target} بواسطة الإدارة`);
+          break;
+          
+        case 'unban':
+          await pool.query('UPDATE users SET is_banned = false WHERE username = $1', [target]);
+          io.emit('system message', `✅ تم فك الحظر عن المستخدم ${target}`);
+          break;
+          
+        case 'mute':
+          await pool.query('UPDATE users SET is_muted = true WHERE username = $1', [target]);
+          // إرسال إشعار للمستخدم المكتوم
           for (const [id, s] of io.sockets.sockets) {
             if (s.username === target) {
-              s.emit('execute-kick', { target: target });
-              s.disconnect();
+              s.emit('mute-update', { target: target, status: true });
+              s.emit('system message', '🔇 تم كتمك من قبل الإدارة! لا يمكنك إرسال رسائل.');
             }
           }
-        }
-      
-        if (action === 'unban') {
-          await pool.query('UPDATE users SET is_banned = false WHERE username = $1', [target]);
-          io.emit('system message', `✅ تم فك الحظر عن ${target}`);
-        }
-        if (action === 'mute') {
-          await pool.query('UPDATE users SET is_muted = true WHERE username = $1', [target]);
-        }
-        if (action === 'unmute') {
+          io.emit('system message', `🔇 تم كتم المستخدم ${target} بواسطة الإدارة`);
+          break;
+          
+        case 'unmute':
           await pool.query('UPDATE users SET is_muted = false WHERE username = $1', [target]);
-        }
-        if (action === 'kick') {
-          io.emit('execute-kick', { target: target });
-        }
+          for (const [id, s] of io.sockets.sockets) {
+            if (s.username === target) {
+              s.emit('mute-update', { target: target, status: false });
+              s.emit('system message', '🔊 تم فك الكتم عنك! يمكنك إرسال الرسائل الآن.');
+            }
+          }
+          io.emit('system message', `✅ تم فك الكتم عن المستخدم ${target}`);
+          break;
+          
+        case 'kick':
+          for (const [id, s] of io.sockets.sockets) {
+            if (s.username === target) {
+              s.emit('system message', '👢 تم طردك من الغرفة بواسطة الإدارة');
+              setTimeout(() => s.disconnect(), 500);
+            }
+          }
+          io.emit('system message', `👢 تم طرد المستخدم ${target} من الغرفة`);
+          break;
+          
+        default:
+          console.log('أمر غير معروف:', action);
       }
     } catch (err) {
-      console.error('Admin Error:', err);
+      console.error('خطأ في أمر الإدارة:', err);
     }
   });
+
   socket.on('join', async (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
       username = decoded.username;
       socket.username = username;
+      
       if (currentRoom) {
         socket.leave(currentRoom);
         roomCounts[currentRoom]--;
@@ -356,23 +403,29 @@ io.on('connection', socket => {
         io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
         io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
       }
+      
       currentRoom = room;
       socket.join(room);
       roomCounts[room]++;
+      
       const user = await getUser(username);
-      // --- أضف هذا الفحص هنا (بعد السطر 329) ---
+      
       if (user && user.is_banned) {
         socket.emit('execute-ban', { target: user.username });
-        return socket.disconnect(); // يطرده فوراً إذا كان محظوراً
+        socket.emit('system message', '🚫 أنت محظور من الموقع!');
+        return socket.disconnect();
       }
+      
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
+      
+      if (!roomUsers[room]) roomUsers[room] = [];
       roomUsers[room].push({ username, avatar });
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
-      // ────────────── تحميل الرسائل القديمة ──────────────
+      
+      // تحميل الرسائل القديمة
       const NEW_USER_LIMIT = 100;
       const OLD_USER_LIMIT = 5000;
-      // شرط بسيط نسبياً: إذا كان الحساب أقل من 14 يوم → جديد
       const isNewUser = user.created_at > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
       const limit = isNewUser ? NEW_USER_LIMIT : OLD_USER_LIMIT;
       const { rows: messages } = await pool.query(`
@@ -382,52 +435,75 @@ io.on('connection', socket => {
         ORDER BY created_at DESC
         LIMIT $2
       `, [room, limit]);
-      // عكس الترتيب ليظهر الأقدم أولاً
+      
       const messagesToSend = messages.reverse();
-      socket.emit('load messages', messagesToSend);
+      socket.emit('previous messages', messagesToSend);
+      
     } catch (e) {
       console.log('خطأ في join:', e.message);
     }
-  });socket.on('buy role', async ({ role }) => {
-      if (socket.username && role === 'premium') {
-        try {
-          // تحديث الرتبة في قاعدة البيانات (PostgreSQL)
-          await pool.query('UPDATE users SET rank = $1 WHERE username = $2', ['premium', socket.username]);
-        
-          // إشعار المستخدم بنجاح العملية
-          socket.emit('role purchased', { success: true, role: 'premium' });
-          // تحديث رتبة المستخدم أمام الجميع في الشات فوراً
-          io.emit('rank update', {
-            username: socket.username,
-            rank: 'premium'
-          });
-          console.log(`✅ تم ترقية ${socket.username} إلى بريميوم`);
-        } catch (err) {
-          console.error('خطأ في تحديث الرتبة:', err);
-        }
+  });
+
+  socket.on('buy role', async ({ role }) => {
+    if (socket.username && role === 'premium') {
+      try {
+        await pool.query('UPDATE users SET rank = $1 WHERE username = $2', ['بريميوم', socket.username]);
+        socket.emit('role purchased', { success: true, role: 'بريميوم' });
+        io.emit('rank update', {
+          username: socket.username,
+          rank: 'بريميوم'
+        });
+        console.log(`✅ تم ترقية ${socket.username} إلى بريميوم`);
+      } catch (err) {
+        console.error('خطأ في تحديث الرتبة:', err);
       }
-    });
+    }
+  });
+
   socket.on('message', async (msg, token) => {
     try {
       const decoded = jwt.verify(token, secret);
       const user = await getUser(decoded.username);
       if (!user) return;
-// --- كود منع المكتوم من إرسال الرسائل ---
+      
       if (user && user.is_muted) {
-        return socket.emit('system message', '🚫 عذراً، أنت مكتوم ولا يمكنك إرسال رسائل حالياً.');
+        socket.emit('system message', '🚫 عذراً، أنت مكتوم ولا يمكنك إرسال رسائل حالياً.');
+        return;
       }
-      // -------------------------------------
+      
       const avatar = user.avatar || 'https://via.placeholder.com/40';
       const role = user.rank || 'ضيف';
-      // حفظ الرسالة في قاعدة البيانات
+      
+      // حفظ الرسالة
       await pool.query(
         `INSERT INTO room_messages (room, username, message, avatar, role, created_at)
          VALUES ($1, $2, $3, $4, $5, NOW())`,
         [currentRoom, decoded.username, msg, avatar, role]
       );
-      // ────────────────────────────────────────────────
-      // الجزء الجديد: بوت جي بي تي إذا كتب المستخدم كلمة تحتوي على "gpt"
-      // ────────────────────────────────────────────────
+      
+      // نظام النقاط
+      let userPoints = (user.points || 0) + 1;
+      let userLevel = user.level || 1;
+      const newLevel = Math.floor(userPoints / 100) + 1;
+      let levelUp = false;
+      
+      if (newLevel > userLevel) {
+        levelUp = true;
+        userLevel = newLevel;
+        await pool.query('UPDATE users SET points = $1, level = $2 WHERE username = $3', [userPoints, userLevel, decoded.username]);
+        socket.emit('your points updated', { points: userPoints, level: userLevel });
+        if (levelUp) {
+          io.to(currentRoom).emit('level up broadcast', {
+            username: decoded.username,
+            newLevel: userLevel
+          });
+        }
+      } else {
+        await pool.query('UPDATE users SET points = $1 WHERE username = $2', [userPoints, decoded.username]);
+        socket.emit('your points updated', { points: userPoints, level: userLevel });
+      }
+      
+      // بوت GPT
       const lowerMsg = msg.toLowerCase().trim();
       if (lowerMsg.includes('gpt')) {
         let question = msg.trim();
@@ -443,34 +519,29 @@ io.on('connection', socket => {
         try {
           const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
-           headers: {
-  'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-  'Content-Type': 'application/json',
-  'HTTP-Referer': 'https://your-site.com', // حتى لو حطيت جوجل بيشتغل
-  'X-Title': 'Chat Bot'
-},
+            headers: {
+              'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://your-site.com',
+              'X-Title': 'Chat Bot'
+            },
             body: JSON.stringify({
               model: AI_MODEL,
               messages: [
-                {
-                  role: 'system',
-                  content: 'أنت مساعد ذكي ودود، رد بالعربية (فصحى أو جزائرية حسب السياق)، كن مفيداً ومختصراً.'
-                },
+                { role: 'system', content: 'أنت مساعد ذكي ودود، رد بالعربية، كن مفيداً ومختصراً.' },
                 { role: 'user', content: question }
               ],
               temperature: 0.7,
               max_tokens: 500
             })
           });
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
           const data = await response.json();
           const aiReply = data.choices[0].message.content.trim();
           io.to(currentRoom).emit('message', {
             username: 'جي بي تي',
             msg: `✨ ${aiReply}`,
-            avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/2048px-ChatGPT_logo.svg.png',
+            avatar: GPT_AVATAR,
             role: 'system'
           });
         } catch (err) {
@@ -478,28 +549,27 @@ io.on('connection', socket => {
           io.to(currentRoom).emit('message', {
             username: 'جي بي تي',
             msg: 'عذراً، حدث خطأ في الرد... جرب مرة أخرى بعد شوية!',
-            avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/2048px-ChatGPT_logo.svg.png',
+            avatar: GPT_AVATAR,
             role: 'system'
           });
         }
-        return; // ما نرسل الرسالة العادية مرتين
+        return;
       }
-      // ────────────────────────────────────────────────
-      // إرسال الرسالة العادية (إذا ما كانت لجي بي تي)
-      // ────────────────────────────────────────────────
+      
+      // إرسال الرسالة العادية
       io.to(currentRoom).emit('message', {
         username: decoded.username,
         msg: msg,
         avatar: avatar,
         role: user.rank || 'ضيف'
       });
-      // ────────────── معالجة المنشن (الطاق) ──────────────
+      
+      // معالجة المنشن
       const mentionRegex = /@(\w+)/g;
       let match;
       const mentionedUsers = new Set();
       while ((match = mentionRegex.exec(msg)) !== null) {
-        const mentionedUsername = match[1];
-        mentionedUsers.add(mentionedUsername);
+        mentionedUsers.add(match[1]);
       }
       if (mentionedUsers.size > 0) {
         for (const mentioned of mentionedUsers) {
@@ -517,7 +587,8 @@ io.on('connection', socket => {
       console.log("خطأ في التحقق من التوكن أثناء إرسال الرسالة:", e.message);
     }
   });
-  // باقي الأحداث بدون تغيير
+
+  // باقي الأحداث (الصداقات، المحادثات الخاصة، إلخ) كما هي دون تغيير
   socket.on('send friend request', async (targetUsername) => {
     if (!socket.username || socket.username === targetUsername) return;
     const [sender, target] = await Promise.all([
@@ -546,6 +617,7 @@ io.on('connection', socket => {
     });
     socket.emit('request_sent', targetUsername);
   });
+
   socket.on('accept friend request', async (fromUsername) => {
     const acceptor = socket.username;
     const [acceptorUser, senderUser] = await Promise.all([
@@ -575,6 +647,7 @@ io.on('connection', socket => {
     });
     socket.emit('friend_accepted', fromUsername);
   });
+
   socket.on('reject friend request', async (fromUsername) => {
     const rejector = socket.username;
     await pool.query(
@@ -587,11 +660,10 @@ io.on('connection', socket => {
     );
     socket.emit('request_rejected', fromUsername);
   });
+
   socket.on('remove friend', async (targetUsername) => {
     if (!socket.username) return;
     const user = socket.username;
-  
-    // حذف الصديق من كلا الطرفين
     await pool.query(
       'UPDATE users SET friends = friends - $1::text WHERE username = $2',
       [targetUsername, user]
@@ -600,43 +672,14 @@ io.on('connection', socket => {
       'UPDATE users SET friends = friends - $1::text WHERE username = $2',
       [user, targetUsername]
     );
-  
     socket.emit('friend removed', targetUsername);
-  
-    // إشعار الطرف الآخر إذا كان متصلاً
     for (const s of io.sockets.sockets.values()) {
-        if (s.username === targetUsername) {
-            s.emit('friend removed', user);
-        }
-    }
-  });
-  socket.on('buy role', async ({ role }) => {
-    if (!socket.username) return;
-    try {
-      if (role === 'premium' || role === 'بريميوم') {
-        const newRank = 'بريميوم';
-        const success = await updateUserFields(socket.username, { rank: newRank });
-        if (success) {
-          socket.emit('role purchased', {
-            role: newRank,
-            success: true,
-            message: 'تهانينا! أصبحت الآن عضو بريميوم 💎'
-          });
-          if (currentRoom) {
-            io.to(currentRoom).emit('message', {
-              username: 'النظام',
-              msg: `🎉 مبروك! البطل ${socket.username} حصل على رتبة بريميوم!`,
-              avatar: 'https://via.placeholder.com/40',
-              role: 'system'
-            });
-          }
-        }
+      if (s.username === targetUsername) {
+        s.emit('friend removed', user);
       }
-    } catch (err) {
-      console.error('Error updating rank:', err);
-      socket.emit('role purchased', { success: false, message: 'فشل تحديث الرتبة بالسيرفر' });
     }
   });
+
   socket.on('change-rank-gift', async ({ targetUsername, newRank }) => {
     try {
       const success = await updateUserFields(targetUsername, { rank: newRank });
@@ -653,14 +696,17 @@ io.on('connection', socket => {
       console.error('Error during rank gift:', err);
     }
   });
+
   function getPrivateRoomName(u1, u2) {
     return ['private', ...[u1, u2].sort()].join('_');
   }
+
   socket.on('join private', (targetUsername) => {
     if (!socket.username || !targetUsername || socket.username === targetUsername) return;
     const roomName = getPrivateRoomName(socket.username, targetUsername);
     socket.join(roomName);
   });
+
   socket.on('get private conversations', async () => {
     if (!socket.username) return;
     try {
@@ -685,6 +731,7 @@ io.on('connection', socket => {
       console.error('خطأ في جلب المحادثات:', err);
     }
   });
+
   socket.on('get private messages', async (targetUsername) => {
     if (!socket.username || !targetUsername) return;
     try {
@@ -710,6 +757,7 @@ io.on('connection', socket => {
       console.error('خطأ في جلب الرسائل الخاصة:', err);
     }
   });
+
   socket.on('private message', async ({ to, msg }) => {
     const from = socket.username;
     if (!from || !to || !msg?.trim() || from === to) return;
@@ -731,8 +779,6 @@ io.on('connection', socket => {
       const roomName = getPrivateRoomName(from, to);
       io.to(roomName).emit('private message', messageData);
       const isOnline = Array.from(io.sockets.sockets.values()).some(s => s.username === to);
-    
-      // إشعار المستلم لتحديث عداد الرسائل (سواء كان في الغرفة أم لا)
       for (const s of io.sockets.sockets.values()) {
         if (s.username === to) s.emit('msg_notification', { from });
       }
@@ -748,7 +794,7 @@ io.on('connection', socket => {
       console.error('خطأ في حفظ الرسالة الخاصة:', err);
     }
   });
-  // وضع علامة "مقروء" على الرسائل عند فتح المحادثة
+
   socket.on('mark messages read', async (sender) => {
     if (!socket.username) return;
     const res = await pool.query(
@@ -759,6 +805,7 @@ io.on('connection', socket => {
     );
     socket.emit('messages read confirmed', { count: res.rowCount });
   });
+
   socket.on('disconnect', () => {
     if (currentRoom && username) {
       roomCounts[currentRoom]--;
@@ -769,6 +816,7 @@ io.on('connection', socket => {
     socket.username = null;
   });
 });
+
 async function sendNotification(toUsername, notification) {
   try {
     await pool.query(
@@ -785,6 +833,7 @@ async function sendNotification(toUsername, notification) {
     console.error('خطأ في إرسال الإشعار:', err);
   }
 }
+
 // ────────────────────────────────────────────────
 // تشغيل السيرفر
 // ────────────────────────────────────────────────
