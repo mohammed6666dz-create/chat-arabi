@@ -13,6 +13,7 @@ let myAvatar = 'https://via.placeholder.com/40';
 let currentPrivateChat = null;
 let myPoints = 1;
 let myLevel = 1;
+let myRole = 'guest'; // متغير لتخزين رتبة المستخدم
 const mentionSound = new Audio('./bird-chirp-short.mp3');
 mentionSound.volume = 0.7;
 
@@ -268,6 +269,7 @@ async function loadMyProfile() {
   
         myUsername = user.username;
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
+        myRole = user.rank || 'guest'; // تخزين رتبة المستخدم
         const timestamp = new Date().getTime();
         const avatarImg = document.getElementById('avatar');
         const profileAvatar = document.getElementById('myProfileAvatar');
@@ -279,7 +281,7 @@ async function loadMyProfile() {
         updateMessageBadge(user.unread_messages || 0);
         window.myFriends = user.friends || [];
         window.myRank = user.rank;
-        console.log("تم تحميل اسم المستخدم:", myUsername);
+        console.log("تم تحميل اسم المستخدم:", myUsername, "الرتبة:", myRole);
     } catch (err) {
         console.error('خطأ في تحميل البروفايل:', err);
     }
@@ -327,6 +329,7 @@ document.getElementById('avatarUpload')?.addEventListener('change', async (e) =>
     }
 });
 
+// ─────────────── دالة فتح البروفايل مع أزرار الإدارة (للسوبر أدمن فقط) ───────────────
 function openUserProfile(username, role = 'guest', avatar = '') {
     const displayName = document.getElementById('otherUserDisplayName');
     const largeAvatar = document.getElementById('otherUserAvatarLarge');
@@ -386,19 +389,27 @@ function openUserProfile(username, role = 'guest', avatar = '') {
         }
     }
    
+    // ─────────────── أزرار الإدارة (تظهر فقط للسوبر أدمن) ───────────────
     const adminBox = document.getElementById('adminActionsContainer');
     if (adminBox) {
-        const myStoredName = (myUsername || '').toLowerCase();
-        if (myStoredName === 'mohamed-dz' || myStoredName === 'nour' || ['مالك', 'superadmin', 'admin'].includes(window.myRank)) {
+        // التحقق: هل المستخدم الحالي لديه رتبة "superadmin" في قاعدة البيانات؟
+        const isSuperAdmin = (myRole === 'superadmin');
+        
+        console.log('الرتبة الحالية:', myRole, 'هل هو سوبر أدمن؟', isSuperAdmin);
+        
+        if (isSuperAdmin && !isMe) {
             adminBox.style.display = 'block';
             adminBox.innerHTML = `
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-top: 10px; padding: 5px; background: rgba(0,0,0,0.3); border-radius: 8px;">
-                    <button onclick="adminAction('kick', '${username}')" style="background: #e67e22; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">طرد 🚪</button>
-                    <button onclick="adminAction('mute', '${username}')" style="background: #f1c40f; color: black; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">كتم 🔇</button>
-                    <button onclick="adminAction('ban', '${username}')" style="background: #e74c3c; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">حظر 🚫</button>
-                    <button onclick="adminAction('unmute', '${username}')" style="background: #2ecc71; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">فك كتم ✅</button>
-                    <button onclick="adminAction('unban', '${username}')" style="background: #3498db; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">فك حظر 🔓</button>
-                    <button onclick="closeOtherUserProfile()" style="grid-column: span 3; background: #555; color: white; border: none; padding: 4px; margin-top: 2px; border-radius: 4px; cursor: pointer; font-size: 10px;">إغلاق النافذة ×</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 10px;">
+                    <button onclick="adminAction('kick', '${username}')" style="background: #e67e22; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🚪 طرد</button>
+                    <button onclick="adminAction('mute', '${username}')" style="background: #f1c40f; color: black; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🔇 كتم</button>
+                    <button onclick="adminAction('ban', '${username}')" style="background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🚫 حظر</button>
+                    <button onclick="adminAction('unmute', '${username}')" style="background: #2ecc71; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">✅ فك كتم</button>
+                    <button onclick="adminAction('unban', '${username}')" style="background: #3498db; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🔓 فك حظر</button>
+                    <button onclick="closeOtherUserProfile()" style="grid-column: span 3; background: #555; color: white; border: none; padding: 6px; margin-top: 2px; border-radius: 6px; cursor: pointer; font-size: 11px;">✖ إغلاق</button>
+                </div>
+                <div style="margin-top: 8px; padding: 5px; background: rgba(231, 76, 60, 0.2); border-radius: 6px; text-align: center; font-size: 11px; color: #f1c40f;">
+                    ⚡ أنت سوبر أدمن - يمكنك إدارة المستخدمين
                 </div>
             `;
         } else {
@@ -406,6 +417,47 @@ function openUserProfile(username, role = 'guest', avatar = '') {
         }
     }
     currentPrivateChat = username;
+}
+
+// ─────────────── دالة تنفيذ أوامر الإدارة ───────────────
+function adminAction(actionType, targetName) {
+    const actionsNames = { 
+        kick: 'طرد', 
+        mute: 'كتم', 
+        ban: 'حظر', 
+        unmute: 'فك الكتم', 
+        unban: 'فك الحظر' 
+    };
+    
+    let message = '';
+    switch(actionType) {
+        case 'kick':
+            message = `⚠️ هل أنت متأكد من طرد ${targetName} من الغرفة؟`;
+            break;
+        case 'mute':
+            message = `🔇 هل أنت متأكد من كتم ${targetName}؟ لن يتمكن من إرسال الرسائل`;
+            break;
+        case 'ban':
+            message = `🚫 هل أنت متأكد من حظر ${targetName}؟ لن يتمكن من دخول الموقع مرة أخرى`;
+            break;
+        case 'unmute':
+            message = `✅ هل أنت متأكد من فك الكتم عن ${targetName}؟`;
+            break;
+        case 'unban':
+            message = `🔓 هل أنت متأكد من فك الحظر عن ${targetName}؟`;
+            break;
+    }
+    
+    if (confirm(message)) {
+        console.log(`📢 تنفيذ أمر: ${actionType} على ${targetName}`);
+        socket.emit('admin command', {
+            action: actionType,
+            target: targetName,
+            token: localStorage.getItem('token')
+        });
+        closeOtherUserProfile();
+        alert(`✅ تم تنفيذ أمر ${actionsNames[actionType]} على ${targetName}`);
+    }
 }
 
 function startPrivateChat(targetName) {
@@ -432,6 +484,9 @@ function closeOtherUserProfile() {
 
 socket.on('role updated', ({ username, role }) => {
     console.log(`تم تحديث رتبة ${username} إلى ${role}`);
+    if (username === myUsername) {
+        myRole = role;
+    }
 });
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -511,7 +566,6 @@ socket.on('private message', ({ from, to, msg, avatar }) => {
         );
     } else {
         console.log(`رسالة خاصة جديدة من ${from}`);
-        // تحديث عداد الرسائل الخاصة
         totalUnreadMsgs++;
         updateMessageBadge(totalUnreadMsgs);
     }
@@ -621,17 +675,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function adminAction(actionType, targetName) {
-    const actionsNames = { kick: 'طرد', mute: 'كتم', ban: 'حظر', unmute: 'فك كتم', unban: 'فك حظر' };
-    if (confirm(`هل أنت متأكد من تنفيذ ${actionsNames[actionType]} على ${targetName}؟`)) {
-        socket.emit('admin command', {
-            action: actionType,
-            target: targetName,
-            token: localStorage.getItem('token')
-        });
-    }
-}
-
 function updateFriendRequestBadge(requests) {
     window.myFriendRequests = requests || [];
     const count = window.myFriendRequests.length;
@@ -738,9 +781,7 @@ socket.on('mute-update', (data) => {
     }
 });
 
-// ─────────────── إصلاح قائمة المحادثات الخاصة (الأشخاص الذين تواصلت معهم) ───────────────
-
-// طلب المحادثات من السيرفر عند الضغط على زر الرسائل الخاصة
+// ─────────────── قائمة المحادثات الخاصة ───────────────
 document.getElementById('privateMsgBtn')?.addEventListener('click', () => {
     console.log('🔘 تم فتح قائمة الرسائل الخاصة');
     
@@ -759,7 +800,6 @@ document.getElementById('privateMsgBtn')?.addEventListener('click', () => {
     socket.emit('get private conversations');
 });
 
-// استقبال قائمة المحادثات من السيرفر
 socket.on('private conversations list', (conversations) => {
     console.log('📋 قائمة المحادثات المستلمة:', conversations);
     
@@ -804,106 +844,24 @@ socket.on('private conversations list', (conversations) => {
     });
 });
 
-// حفظ المحادثات محلياً عند استلام رسالة جديدة
-socket.on('private message', ({ from, to, msg, avatar }) => {
-    if (from === myUsername) return;
-    
-    // تحديث القائمة المحلية
-    let saved = localStorage.getItem('private_conversations_list');
-    let conversations = saved ? JSON.parse(saved) : [];
-    
-    const existingIndex = conversations.findIndex(c => c.username === from);
-    if (existingIndex !== -1) {
-        conversations[existingIndex].last_message = msg.substring(0, 40);
-        conversations[existingIndex].avatar = avatar;
-        conversations[existingIndex].timestamp = Date.now();
-    } else {
-        conversations.unshift({
-            username: from,
-            avatar: avatar,
-            last_message: msg.substring(0, 40),
-            timestamp: Date.now()
-        });
-    }
-    
-    conversations = conversations.slice(0, 20);
-    localStorage.setItem('private_conversations_list', JSON.stringify(conversations));
-    
-    if (currentPrivateChat === from || currentPrivateChat === to) {
-        const isMe = from === myUsername;
-        appendPrivateMessage(
-            isMe ? myUsername : from,
-            msg,
-            isMe ? myAvatar : (avatar || 'https://via.placeholder.com/30'),
-            isMe
-        );
-    } else {
-        totalUnreadMsgs++;
-        updateMessageBadge(totalUnreadMsgs);
+// استقبال تحديثات الكتم من السيرفر
+socket.on('mute update', (data) => {
+    if (data.target === myUsername) {
+        window.isMuted = data.status;
+        if (data.status) {
+            alert("🔇 تم كتمك من قبل الإدارة!");
+        } else {
+            alert("🔊 تم فك الكتم عنك!");
+        }
     }
 });
 
-// دالة لتحميل المحادثات من localStorage كحل احتياطي
-function loadConversationsFromLocal() {
-    const saved = localStorage.getItem('private_conversations_list');
-    if (saved) {
-        try {
-            const conversations = JSON.parse(saved);
-            if (conversations && conversations.length > 0) {
-                const container = document.getElementById('conversationsList');
-                if (container && container.innerHTML.includes('جاري تحميل')) {
-                    displayLocalConversations(conversations);
-                }
-            }
-        } catch(e) {}
+// استقبال تحديثات الحظر
+socket.on('ban update', (data) => {
+    if (data.target === myUsername) {
+        alert("🚫 تم حظرك من الموقع!");
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
+        window.location.href = 'index.html';
     }
-}
-
-function displayLocalConversations(conversations) {
-    const container = document.getElementById('conversationsList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    conversations.forEach(conv => {
-        const div = document.createElement('div');
-        div.className = 'conversation-item';
-        div.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;margin-bottom:8px;background:#0f172a;cursor:pointer;';
-        div.innerHTML = `
-            <img src="${conv.avatar || 'https://via.placeholder.com/45'}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;">
-            <div style="flex:1;">
-                <strong style="color:white;">${conv.username}</strong>
-                <div style="font-size:11px;color:#94a3b8;">${conv.last_message || 'انقر للدردشة'}</div>
-            </div>
-            <i class="fas fa-chevron-left"></i>
-        `;
-        div.onclick = () => {
-            startPrivateChat(conv.username);
-            document.getElementById('conversationsPanel').style.display = 'none';
-        };
-        container.appendChild(div);
-    });
-}
-
-// عند بدء محادثة جديدة، احفظها في القائمة
-const originalStartChat = startPrivateChat;
-window.startPrivateChat = function(targetName) {
-    if (!targetName) return;
-    
-    let saved = localStorage.getItem('private_conversations_list');
-    let conversations = saved ? JSON.parse(saved) : [];
-    
-    const existingIndex = conversations.findIndex(c => c.username === targetName);
-    if (existingIndex === -1) {
-        conversations.unshift({
-            username: targetName,
-            avatar: 'https://via.placeholder.com/45',
-            last_message: 'بدأت محادثة جديدة',
-            timestamp: Date.now()
-        });
-        localStorage.setItem('private_conversations_list', JSON.stringify(conversations.slice(0, 20)));
-    }
-    
-    originalStartChat(targetName);
-};
-            
+});
