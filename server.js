@@ -1,4 +1,4 @@
-طيب هاذا هو كود سرفر لا تحذف اي شي او تخرب بس ضيف يلي قتلك عليه ويصير يشتغل const express = require('express');
+ const express = require('express');
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
