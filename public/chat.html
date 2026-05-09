@@ -225,12 +225,11 @@
       margin-bottom: 6px;
     }
     #usersPanel {
-      width: 280px;
+      width: 260px;
       background: #0f172a;
       border-radius: 12px;
       border: 1px solid #334155;
       overflow: hidden;
-      margin-right: 10px;
     }
     .users-header-simple {
       display: flex;
@@ -334,7 +333,7 @@
     .hidden { display: none; }
 
     /* ============================================= */
-    /* === تنسيقات جديدة لجعل الموقع متجاوب (Responsive) === */
+    /* === تنسيقات جديدة مع الحفاظ على خلفيتك الأصلية === */
     /* ============================================= */
     
     * {
@@ -344,7 +343,7 @@
     body {
       margin: 0;
       padding: 0;
-      background: #0f172a;
+      background: #0f172a;  /* خلفيتك الأصلية محفوظة */
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       overflow-x: hidden;
     }
@@ -405,15 +404,16 @@
       cursor: pointer;
     }
     
-    /* منطقة الشات الرئيسية */
+    /* منطقة الشات الرئيسية - في الكمبيوتر */
     .chat-main {
       display: flex;
-      flex-wrap: nowrap;
-      gap: 10px;
-      padding: 10px;
+      flex-direction: row;
+      gap: 15px;
+      padding: 15px;
       height: calc(100vh - 130px);
     }
     
+    /* صندوق الشات يأخذ المساحة المتبقية (أكبر من المتصلين) */
     #chatWindow {
       flex: 1;
       background: #0f172a;
@@ -421,6 +421,17 @@
       border: 1px solid #334155;
       overflow-y: auto;
       padding: 15px;
+    }
+    
+    /* قائمة المتصلين - مستطيل على اليسار بحجم معتدل */
+    #usersPanel {
+      width: 270px;
+      flex-shrink: 0;
+      background: #0f172a;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      overflow: hidden;
+      margin: 0;
     }
     
     /* نموذج إرسال الرسالة */
@@ -456,7 +467,7 @@
     }
     
     /* ============================================= */
-    /* === التجاوب مع شاشات الجوال (Mobile) === */
+    /* === للجوال: تصير القائمة تحت الشات === */
     /* ============================================= */
     @media (max-width: 768px) {
       header {
@@ -479,7 +490,6 @@
       }
       #usersPanel {
         width: 100%;
-        margin-right: 0;
         order: 1;
       }
       #chatWindow {
@@ -516,41 +526,6 @@
       .modern-tabs .m-tab {
         padding: 6px 12px;
         font-size: 0.8rem;
-      }
-      .shop-item {
-        flex-direction: column;
-        text-align: center;
-      }
-      .other-profile-modal .modal-content {
-        width: 95%;
-        margin: 10px auto;
-      }
-    }
-    
-    /* ============================================= */
-    /* === تحسينات للشاشات الصغيرة جداً (أقل من 480px) === */
-    /* ============================================= */
-    @media (max-width: 480px) {
-      .header-left h1 {
-        font-size: 1rem;
-      }
-      .icon-btn span {
-        display: none;
-      }
-      .icon-btn i {
-        margin: 0;
-      }
-      .users-header-simple h3 {
-        font-size: 0.85rem;
-      }
-      .user-name-simple {
-        font-size: 0.85rem;
-      }
-      #messageInput {
-        padding: 10px;
-      }
-      .emoji-btn {
-        width: 40px;
       }
     }
     
@@ -642,7 +617,7 @@
   <div class="chat-main">
     <div id="chatWindow"></div>
     
-    <!-- قائمة المتصلين الجديدة (موحدة بدون أجنحة) -->
+    <!-- قائمة المتصلين -->
     <div id="usersPanel">
       <div class="users-header-simple">
         <h3><i class="fas fa-users"></i> المتصلون <span id="userCount">0</span></h3>
@@ -652,7 +627,7 @@
         </div>
       </div>
       <div id="usersList" class="users-list-simple">
-        <!-- سيتم عرض المستخدمين هنا بشكل عادي -->
+        <!-- سيتم عرض المستخدمين هنا -->
       </div>
     </div>
   </div>
