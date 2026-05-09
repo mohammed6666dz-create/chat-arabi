@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>الشات - شات عربي</title>
   <link rel="icon" href="/favicon.ico.png" type="image/png">
   <link rel="apple-touch-icon" href="/favicon.ico.png">
@@ -22,9 +22,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="/socket.io/socket.io.js"></script>
   <style>
-    /* ============================================= */
-    /* === أنماطك الأصلية (تم الاحتفاظ بها بالكامل) === */
-    /* ============================================= */
+    /* أنماط سريعة للوحات الجديدة (يمكنك نقلها لاحقاً إلى chat.css) */
     .conversations-panel, .friend-requests-panel, .reports-panel {
       position: fixed;
       top: 60px;
@@ -79,6 +77,8 @@
     .accept-btn { background: #10b981; color: white; }
     .reject-btn { background: #ef4444; color: white; }
     .report-item .reporter { font-weight: bold; color: #fbbf24; }
+
+    /* تحسين بسيط للبروفايل الخاص (myProfilePanel) */
     #myProfilePanel {
       width: 460px;
       max-height: 85vh;
@@ -224,12 +224,15 @@
       display: block;
       margin-bottom: 6px;
     }
+
+    /* ============= قائمة المتصلين الجديدة (موحدة بدون أجنحة) ============= */
     #usersPanel {
-      width: 260px;
+      width: 280px;
       background: #0f172a;
       border-radius: 12px;
       border: 1px solid #334155;
       overflow: hidden;
+      margin-right: 10px;
     }
     .users-header-simple {
       display: flex;
@@ -314,6 +317,7 @@
       display: inline-block;
       margin-top: 3px;
     }
+    /* أنماط الرتب */
     .badge {
       display: inline-block;
       padding: 2px 8px;
@@ -327,225 +331,6 @@
     .badge.premium { background: #10b981; color: white; }
     .badge.vip { background: #f59e0b; color: black; }
     .badge.guest { background: #475569; color: #cbd5e1; }
-    
-    /* أنماط إضافية موجودة في الكود الأصلي */
-    .shop-panel, .level-panel, .private-chat-panel, .other-profile-modal { /* تم الاحتفاظ بها */ }
-    .hidden { display: none; }
-
-    /* ============================================= */
-    /* === تنسيقات جديدة مع الحفاظ على خلفيتك الأصلية === */
-    /* ============================================= */
-    
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      background: #0f172a;  /* خلفيتك الأصلية محفوظة */
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      overflow-x: hidden;
-    }
-
-    /* الهدر (header) */
-    header {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      background: #1e293b;
-      padding: 10px 20px;
-      gap: 10px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .header-left {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 12px;
-    }
-    .header-left h1 {
-      font-size: 1.3rem;
-      margin: 0;
-      color: white;
-    }
-    .header-icons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .icon-btn {
-      background: #334155;
-      border: none;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.9rem;
-    }
-    .logout-btn {
-      background: #ef4444;
-      padding: 8px 16px;
-      border-radius: 8px;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    #avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      cursor: pointer;
-    }
-    
-    /* منطقة الشات الرئيسية - في الكمبيوتر */
-    .chat-main {
-      display: flex;
-      flex-direction: row;
-      gap: 15px;
-      padding: 15px;
-      height: calc(100vh - 130px);
-    }
-    
-    /* صندوق الشات يأخذ المساحة المتبقية (أكبر من المتصلين) */
-    #chatWindow {
-      flex: 1;
-      background: #0f172a;
-      border-radius: 12px;
-      border: 1px solid #334155;
-      overflow-y: auto;
-      padding: 15px;
-    }
-    
-    /* قائمة المتصلين - مستطيل على اليسار بحجم معتدل */
-    #usersPanel {
-      width: 270px;
-      flex-shrink: 0;
-      background: #0f172a;
-      border-radius: 12px;
-      border: 1px solid #334155;
-      overflow: hidden;
-      margin: 0;
-    }
-    
-    /* نموذج إرسال الرسالة */
-    #messageForm {
-      display: flex;
-      gap: 8px;
-      padding: 10px;
-      background: #1e293b;
-      position: sticky;
-      bottom: 0;
-    }
-    #messageInput {
-      flex: 1;
-      padding: 12px;
-      border-radius: 30px;
-      border: none;
-      background: #334155;
-      color: white;
-    }
-    #messageForm button {
-      background: #3b82f6;
-      border: none;
-      color: white;
-      padding: 0 20px;
-      border-radius: 30px;
-      cursor: pointer;
-    }
-    .emoji-btn {
-      background: #475569;
-      border-radius: 50%;
-      width: 45px;
-      font-size: 1.3rem;
-    }
-    
-    /* ============================================= */
-    /* === للجوال: تصير القائمة تحت الشات === */
-    /* ============================================= */
-    @media (max-width: 768px) {
-      header {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .header-left {
-        justify-content: space-between;
-      }
-      .header-icons {
-        justify-content: center;
-      }
-      .icon-btn {
-        padding: 6px 10px;
-        font-size: 0.8rem;
-      }
-      .chat-main {
-        flex-direction: column;
-        height: auto;
-      }
-      #usersPanel {
-        width: 100%;
-        order: 1;
-      }
-      #chatWindow {
-        order: 2;
-        min-height: 300px;
-      }
-      #messageForm {
-        order: 3;
-      }
-      .conversations-panel,
-      .friend-requests-panel,
-      .reports-panel {
-        width: 90%;
-        right: 5%;
-        left: 5%;
-        top: 70px;
-      }
-      #myProfilePanel {
-        width: 95%;
-        left: 2.5%;
-        transform: none;
-        top: 60px;
-      }
-      .profile-main-content {
-        padding: 0 15px;
-      }
-      #myProfileAvatar {
-        width: 100px;
-        height: 100px;
-      }
-      .profile-info-grid {
-        grid-template-columns: 1fr;
-      }
-      .modern-tabs .m-tab {
-        padding: 6px 12px;
-        font-size: 0.8rem;
-      }
-    }
-    
-    /* تحسينات عامة */
-    button {
-      transition: all 0.2s ease;
-    }
-    button:active {
-      transform: scale(0.97);
-    }
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #1e293b;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #3b82f6;
-      border-radius: 10px;
-    }
   </style>
 </head>
 <body>
@@ -617,7 +402,7 @@
   <div class="chat-main">
     <div id="chatWindow"></div>
     
-    <!-- قائمة المتصلين -->
+    <!-- قائمة المتصلين الجديدة (موحدة بدون أجنحة) -->
     <div id="usersPanel">
       <div class="users-header-simple">
         <h3><i class="fas fa-users"></i> المتصلون <span id="userCount">0</span></h3>
@@ -627,7 +412,7 @@
         </div>
       </div>
       <div id="usersList" class="users-list-simple">
-        <!-- سيتم عرض المستخدمين هنا -->
+        <!-- سيتم عرض المستخدمين هنا بشكل عادي -->
       </div>
     </div>
   </div>
@@ -942,6 +727,7 @@
         });
       }
 
+      // معاينة الخلفية الجديدة
       const coverUpload = document.getElementById('coverUpload');
       const myCoverPhoto = document.getElementById('myCoverPhoto');
       if (coverUpload && myCoverPhoto) {
@@ -957,6 +743,7 @@
         });
       }
 
+      // فتح وإغلاق المتجر
       document.getElementById('shopBtn')?.addEventListener('click', () => {
         document.getElementById('shopPanel').style.display = 'block';
       });
@@ -964,6 +751,7 @@
         document.getElementById('shopPanel').style.display = 'none';
       });
 
+      // فتح وإغلاق نافذة نقاطي ومستواي
       const levelBtn = document.getElementById('myLevelBtn');
       const levelPanel = document.getElementById('levelPointsPanel');
       const closeLevel = document.querySelector('.close-level-panel');
@@ -980,6 +768,7 @@
         });
       }
 
+      // الإيموجي
       const emojiBtn = document.getElementById('emojiBtn');
       const emojiPicker = document.getElementById('emojiPicker');
       const messageInput = document.getElementById('messageInput');
@@ -1003,6 +792,7 @@
         });
       }
 
+      // فتح اللوحات الجديدة
       document.getElementById('privateMsgBtn')?.addEventListener('click', () => {
         document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel').forEach(p => p.style.display = 'none');
         document.getElementById('conversationsPanel').style.display = 'block';
@@ -1016,6 +806,7 @@
         document.getElementById('reportsPanel').style.display = 'block';
       });
 
+      // فتح بروفايلك
       document.getElementById('profileBtn')?.addEventListener('click', () => {
         document.getElementById('myProfilePanel').style.display = 'block';
       });
@@ -1023,6 +814,7 @@
         document.getElementById('myProfilePanel').style.display = 'none';
       });
 
+      // تبديل تبويبات البروفايل
       document.querySelectorAll('.modern-tabs .m-tab').forEach(tab => {
         tab.addEventListener('click', () => {
           document.querySelectorAll('.m-tab').forEach(t => t.classList.remove('active'));
