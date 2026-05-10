@@ -1,4 +1,4 @@
- const express = require('express');
+const express = require('express');
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -40,6 +40,8 @@ async function initDatabase() {
         is_muted BOOLEAN DEFAULT false,
         avatar TEXT DEFAULT '',
         background TEXT DEFAULT '',
+        name_color TEXT DEFAULT '#ffffff',
+        name_effect TEXT DEFAULT '',
         friends JSONB DEFAULT '[]'::jsonb,
         friend_requests JSONB DEFAULT '[]'::jsonb,
         sent_requests JSONB DEFAULT '[]'::jsonb,
@@ -61,6 +63,8 @@ async function initDatabase() {
         message TEXT NOT NULL,
         avatar TEXT,
         role TEXT,
+        name_color TEXT DEFAULT '#ffffff',
+        name_effect TEXT DEFAULT '',
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
       CREATE INDEX IF NOT EXISTS idx_pm_users
@@ -68,7 +72,7 @@ async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_room_messages_room_created
       ON room_messages (room, created_at DESC);
     `);
-    console.log('✓ الجداول جاهزة (users + private_messages + room_messages)');
+    console.log('✓ الجداول جاهزة (users + private_messages + room_messages + name_color/effect)');
   } catch (err) {
     console.error('خطأ في تهيئة الجداول:', err);
   }
@@ -101,24 +105,20 @@ const adhkar = [
     "اللهم اغفر لي وارحمني"
 ];
 const reminderImage = "https://i.pinimg.com/736x/ef/e5/f3/efe5f30586ff8fe7861cdea4bc2f88cf.jpg";
-// كل 60 ثانية (يمكنك تغيير الرقم: 30000 = 30 ثانية، 120000 = دقيقتين)
+// كل 60 ثانية
 setInterval(() => {
     const randomDhikr = adhkar[Math.floor(Math.random() * adhkar.length)];
     const reminderMessage = `✨ ${randomDhikr} ✨`;
     io.emit('message', {
         username: 'تذكير',
         msg: reminderMessage,
-        avatar: reminderImage, // الصورة تكون avatar هنا
+        avatar: reminderImage,
         role: 'system'
     });
-    // اختياري: طباعة في console السيرفر للتأكد
-    // console.log(`تذكير أرسل: ${reminderMessage}`);
-}, 60000); // ← غيّر هنا الوقت (بالمللي ثانية)
+}, 60000);
 // مفتاح OpenRouter الخاص بك
 const OPENROUTER_API_KEY = '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';
-// نموذج AI مجاني
-const AI_MODEL = 'google/gemini-2.0-flash-lite:free'; // أو google/gemini-2.0-flash
-// صورة جي بي تي الرسمية
+const AI_MODEL = 'google/gemini-2.0-flash-lite:free';
 const GPT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/2048px-ChatGPT_logo.svg.png';
 // ────────────────────────────────────────────────
 // دوال مساعدة
@@ -141,13 +141,13 @@ async function getUser(username) {
 async function createUser(username, passwordHash) {
   try {
     await pool.query(
-      `INSERT INTO users (username, password_hash, rank)
-       VALUES ($1, $2, 'ضيف')`,
+      `INSERT INTO users (username, password_hash, rank, name_color, name_effect)
+       VALUES ($1, $2, 'ضيف', '#ffffff', '')`,
       [username, passwordHash]
     );
     return true;
   } catch (err) {
-    if (err.code === '23505') return false; // duplicate
+    if (err.code === '23505') return false;
     console.error('خطأ في إنشاء مستخدم:', err);
     return false;
   }
@@ -198,7 +198,6 @@ app.post('/login', async (req, res) => {
   const token = jwt.sign({ username }, secret, { expiresIn: '7d' });
   res.json({ token });
 });
-// السماح لجوجل بالوصول لملف خريطة الموقع (Sitemap)
 app.get('/sitemap.xml', (req, res) => {
   res.sendFile(path.join(__dirname, 'sitemap.xml'));
 });
@@ -216,7 +215,6 @@ const verifyToken = (req, res, next) => {
 app.get('/profile', verifyToken, async (req, res) => {
   const user = await getUser(req.user.username);
   if (!user) return res.status(404).json({ msg: 'المستخدم غير موجود' });
-  // حساب عدد الرسائل غير المقروءة
   const unreadRes = await pool.query(
     `SELECT COUNT(*) FROM private_messages WHERE to_user = $1 AND NOT ($1 = ANY(seen_by))`,
     [req.user.username]
@@ -229,6 +227,8 @@ app.get('/profile', verifyToken, async (req, res) => {
     friends: user.friends,
     friend_requests: user.friend_requests || [],
     rank: user.rank || 'ضيف',
+    nameColor: user.name_color || '#ffffff',
+    nameEffect: user.name_effect || '',
     unread_messages: unreadCount
   });
 });
@@ -293,31 +293,53 @@ app.post('/change-rank', verifyToken, async (req, res) => {
 io.on('connection', socket => {
   let currentRoom = null;
   let username = null;
-// --- كود أوامر الإدارة (يوضع في السطر 257) ---
+
+  // ============= تحديث لون وتأثير الاسم =============
+  socket.on('updateNameStyle', async ({ color, effect }) => {
+    if (!socket.username) return;
+    try {
+      const success = await updateUserFields(socket.username, { 
+        name_color: color, 
+        name_effect: effect 
+      });
+      if (success) {
+        socket.emit('name style saved', { color, effect, success: true });
+        // broadcast to all users in same room
+        if (currentRoom) {
+          io.to(currentRoom).emit('user name style update', {
+            username: socket.username,
+            color: color,
+            effect: effect
+          });
+        }
+      } else {
+        socket.emit('name style saved', { success: false });
+      }
+    } catch (err) {
+      console.error('خطأ في حفظ لون الاسم:', err);
+      socket.emit('name style saved', { success: false });
+    }
+  });
+
   socket.on('admin command', async (data) => {
     const { action, target, token } = data;
     try {
       const decoded = jwt.verify(token, secret);
       const user = await getUser(decoded.username);
     
-      // التأكد من الرتبة (أدمن، صاحب الموقع، أو مالك)
       if (user && ['أدمن', 'صاحب الموقع', 'مالك'].includes(user.rank)) {
       
    if (action === 'ban') {
-          // تحديث حالة الحظر في قاعدة البيانات
           await pool.query('UPDATE users SET is_banned = true WHERE username = $1', [target]);
-        
-          // البحث عن اتصال المستخدم وطرده فوراً
           for (const [id, s] of io.sockets.sockets) {
             if (s.username === target) {
               s.emit('execute-ban', { target: target });
-              s.disconnect(); // هذا السطر هو الذي يخرجه من الشات فعلياً
+              s.disconnect();
             }
           }
         }
       
         if (action === 'kick') {
-          // طرد المستخدم بدون حظر دائم
           for (const [id, s] of io.sockets.sockets) {
             if (s.username === target) {
               s.emit('execute-kick', { target: target });
@@ -344,6 +366,7 @@ io.on('connection', socket => {
       console.error('Admin Error:', err);
     }
   });
+  
   socket.on('join', async (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
@@ -360,43 +383,43 @@ io.on('connection', socket => {
       socket.join(room);
       roomCounts[room]++;
       const user = await getUser(username);
-      // --- أضف هذا الفحص هنا (بعد السطر 329) ---
       if (user && user.is_banned) {
         socket.emit('execute-ban', { target: user.username });
-        return socket.disconnect(); // يطرده فوراً إذا كان محظوراً
+        return socket.disconnect();
       }
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
-      roomUsers[room].push({ username, avatar });
+      const nameColor = user?.name_color || '#ffffff';
+      const nameEffect = user?.name_effect || '';
+      roomUsers[room].push({ username, avatar, nameColor, nameEffect });
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
-      // ────────────── تحميل الرسائل القديمة ──────────────
+      
+      // إرسال لون وتأثير الاسم للمستخدم
+      socket.emit('user name style', { color: nameColor, effect: nameEffect });
+      
       const NEW_USER_LIMIT = 100;
       const OLD_USER_LIMIT = 5000;
-      // شرط بسيط نسبياً: إذا كان الحساب أقل من 14 يوم → جديد
       const isNewUser = user.created_at > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
       const limit = isNewUser ? NEW_USER_LIMIT : OLD_USER_LIMIT;
       const { rows: messages } = await pool.query(`
-        SELECT username, message AS msg, avatar, role
+        SELECT username, message AS msg, avatar, role, name_color, name_effect
         FROM room_messages
         WHERE room = $1
         ORDER BY created_at DESC
         LIMIT $2
       `, [room, limit]);
-      // عكس الترتيب ليظهر الأقدم أولاً
       const messagesToSend = messages.reverse();
       socket.emit('load messages', messagesToSend);
     } catch (e) {
       console.log('خطأ في join:', e.message);
     }
-  });socket.on('buy role', async ({ role }) => {
+  });
+
+  socket.on('buy role', async ({ role }) => {
       if (socket.username && role === 'premium') {
         try {
-          // تحديث الرتبة في قاعدة البيانات (PostgreSQL)
           await pool.query('UPDATE users SET rank = $1 WHERE username = $2', ['premium', socket.username]);
-        
-          // إشعار المستخدم بنجاح العملية
           socket.emit('role purchased', { success: true, role: 'premium' });
-          // تحديث رتبة المستخدم أمام الجميع في الشات فوراً
           io.emit('rank update', {
             username: socket.username,
             rank: 'premium'
@@ -407,27 +430,26 @@ io.on('connection', socket => {
         }
       }
     });
+    
   socket.on('message', async (msg, token) => {
     try {
       const decoded = jwt.verify(token, secret);
       const user = await getUser(decoded.username);
       if (!user) return;
-// --- كود منع المكتوم من إرسال الرسائل ---
       if (user && user.is_muted) {
         return socket.emit('system message', '🚫 عذراً، أنت مكتوم ولا يمكنك إرسال رسائل حالياً.');
       }
-      // -------------------------------------
       const avatar = user.avatar || 'https://via.placeholder.com/40';
       const role = user.rank || 'ضيف';
-      // حفظ الرسالة في قاعدة البيانات
+      const nameColor = user.name_color || '#ffffff';
+      const nameEffect = user.name_effect || '';
+      
       await pool.query(
-        `INSERT INTO room_messages (room, username, message, avatar, role, created_at)
-         VALUES ($1, $2, $3, $4, $5, NOW())`,
-        [currentRoom, decoded.username, msg, avatar, role]
+        `INSERT INTO room_messages (room, username, message, avatar, role, name_color, name_effect, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+        [currentRoom, decoded.username, msg, avatar, role, nameColor, nameEffect]
       );
-      // ────────────────────────────────────────────────
-      // الجزء الجديد: بوت جي بي تي إذا كتب المستخدم كلمة تحتوي على "gpt"
-      // ────────────────────────────────────────────────
+      
       const lowerMsg = msg.toLowerCase().trim();
       if (lowerMsg.includes('gpt')) {
         let question = msg.trim();
@@ -446,7 +468,7 @@ io.on('connection', socket => {
            headers: {
   'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
   'Content-Type': 'application/json',
-  'HTTP-Referer': 'https://your-site.com', // حتى لو حطيت جوجل بيشتغل
+  'HTTP-Referer': 'https://your-site.com',
   'X-Title': 'Chat Bot'
 },
             body: JSON.stringify({
@@ -470,7 +492,7 @@ io.on('connection', socket => {
           io.to(currentRoom).emit('message', {
             username: 'جي بي تي',
             msg: `✨ ${aiReply}`,
-            avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/2048px-ChatGPT_logo.svg.png',
+            avatar: GPT_AVATAR,
             role: 'system'
           });
         } catch (err) {
@@ -478,22 +500,22 @@ io.on('connection', socket => {
           io.to(currentRoom).emit('message', {
             username: 'جي بي تي',
             msg: 'عذراً، حدث خطأ في الرد... جرب مرة أخرى بعد شوية!',
-            avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/2048px-ChatGPT_logo.svg.png',
+            avatar: GPT_AVATAR,
             role: 'system'
           });
         }
-        return; // ما نرسل الرسالة العادية مرتين
+        return;
       }
-      // ────────────────────────────────────────────────
-      // إرسال الرسالة العادية (إذا ما كانت لجي بي تي)
-      // ────────────────────────────────────────────────
+      
       io.to(currentRoom).emit('message', {
         username: decoded.username,
         msg: msg,
         avatar: avatar,
-        role: user.rank || 'ضيف'
+        role: user.rank || 'ضيف',
+        nameColor: nameColor,
+        nameEffect: nameEffect
       });
-      // ────────────── معالجة المنشن (الطاق) ──────────────
+      
       const mentionRegex = /@(\w+)/g;
       let match;
       const mentionedUsers = new Set();
@@ -517,7 +539,7 @@ io.on('connection', socket => {
       console.log("خطأ في التحقق من التوكن أثناء إرسال الرسالة:", e.message);
     }
   });
-  // باقي الأحداث بدون تغيير
+  
   socket.on('send friend request', async (targetUsername) => {
     if (!socket.username || socket.username === targetUsername) return;
     const [sender, target] = await Promise.all([
@@ -546,6 +568,7 @@ io.on('connection', socket => {
     });
     socket.emit('request_sent', targetUsername);
   });
+  
   socket.on('accept friend request', async (fromUsername) => {
     const acceptor = socket.username;
     const [acceptorUser, senderUser] = await Promise.all([
@@ -575,6 +598,7 @@ io.on('connection', socket => {
     });
     socket.emit('friend_accepted', fromUsername);
   });
+  
   socket.on('reject friend request', async (fromUsername) => {
     const rejector = socket.username;
     await pool.query(
@@ -587,11 +611,10 @@ io.on('connection', socket => {
     );
     socket.emit('request_rejected', fromUsername);
   });
+  
   socket.on('remove friend', async (targetUsername) => {
     if (!socket.username) return;
     const user = socket.username;
-  
-    // حذف الصديق من كلا الطرفين
     await pool.query(
       'UPDATE users SET friends = friends - $1::text WHERE username = $2',
       [targetUsername, user]
@@ -600,43 +623,14 @@ io.on('connection', socket => {
       'UPDATE users SET friends = friends - $1::text WHERE username = $2',
       [user, targetUsername]
     );
-  
     socket.emit('friend removed', targetUsername);
-  
-    // إشعار الطرف الآخر إذا كان متصلاً
     for (const s of io.sockets.sockets.values()) {
         if (s.username === targetUsername) {
             s.emit('friend removed', user);
         }
     }
   });
-  socket.on('buy role', async ({ role }) => {
-    if (!socket.username) return;
-    try {
-      if (role === 'premium' || role === 'بريميوم') {
-        const newRank = 'بريميوم';
-        const success = await updateUserFields(socket.username, { rank: newRank });
-        if (success) {
-          socket.emit('role purchased', {
-            role: newRank,
-            success: true,
-            message: 'تهانينا! أصبحت الآن عضو بريميوم 💎'
-          });
-          if (currentRoom) {
-            io.to(currentRoom).emit('message', {
-              username: 'النظام',
-              msg: `🎉 مبروك! البطل ${socket.username} حصل على رتبة بريميوم!`,
-              avatar: 'https://via.placeholder.com/40',
-              role: 'system'
-            });
-          }
-        }
-      }
-    } catch (err) {
-      console.error('Error updating rank:', err);
-      socket.emit('role purchased', { success: false, message: 'فشل تحديث الرتبة بالسيرفر' });
-    }
-  });
+  
   socket.on('change-rank-gift', async ({ targetUsername, newRank }) => {
     try {
       const success = await updateUserFields(targetUsername, { rank: newRank });
@@ -653,14 +647,17 @@ io.on('connection', socket => {
       console.error('Error during rank gift:', err);
     }
   });
+  
   function getPrivateRoomName(u1, u2) {
     return ['private', ...[u1, u2].sort()].join('_');
   }
+  
   socket.on('join private', (targetUsername) => {
     if (!socket.username || !targetUsername || socket.username === targetUsername) return;
     const roomName = getPrivateRoomName(socket.username, targetUsername);
     socket.join(roomName);
   });
+  
   socket.on('get private conversations', async () => {
     if (!socket.username) return;
     try {
@@ -685,6 +682,7 @@ io.on('connection', socket => {
       console.error('خطأ في جلب المحادثات:', err);
     }
   });
+  
   socket.on('get private messages', async (targetUsername) => {
     if (!socket.username || !targetUsername) return;
     try {
@@ -710,6 +708,7 @@ io.on('connection', socket => {
       console.error('خطأ في جلب الرسائل الخاصة:', err);
     }
   });
+  
   socket.on('private message', async ({ to, msg }) => {
     const from = socket.username;
     if (!from || !to || !msg?.trim() || from === to) return;
@@ -731,8 +730,6 @@ io.on('connection', socket => {
       const roomName = getPrivateRoomName(from, to);
       io.to(roomName).emit('private message', messageData);
       const isOnline = Array.from(io.sockets.sockets.values()).some(s => s.username === to);
-    
-      // إشعار المستلم لتحديث عداد الرسائل (سواء كان في الغرفة أم لا)
       for (const s of io.sockets.sockets.values()) {
         if (s.username === to) s.emit('msg_notification', { from });
       }
@@ -748,7 +745,7 @@ io.on('connection', socket => {
       console.error('خطأ في حفظ الرسالة الخاصة:', err);
     }
   });
-  // وضع علامة "مقروء" على الرسائل عند فتح المحادثة
+  
   socket.on('mark messages read', async (sender) => {
     if (!socket.username) return;
     const res = await pool.query(
@@ -759,6 +756,7 @@ io.on('connection', socket => {
     );
     socket.emit('messages read confirmed', { count: res.rowCount });
   });
+  
   socket.on('disconnect', () => {
     if (currentRoom && username) {
       roomCounts[currentRoom]--;
@@ -769,6 +767,7 @@ io.on('connection', socket => {
     socket.username = null;
   });
 });
+
 async function sendNotification(toUsername, notification) {
   try {
     await pool.query(
@@ -785,13 +784,14 @@ async function sendNotification(toUsername, notification) {
     console.error('خطأ في إرسال الإشعار:', err);
   }
 }
+
 // ────────────────────────────────────────────────
 // تشغيل السيرفر
 // ────────────────────────────────────────────────
 http.listen(PORT, '0.0.0.0', () => {
   console.log('=====================================');
   console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
-  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت)');
+  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت + ألوان الاسم)');
   console.log('');
   console.log('افتح الشات من:');
   console.log(`http://localhost:${PORT}/index.html`);
