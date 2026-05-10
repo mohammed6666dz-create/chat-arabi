@@ -40,8 +40,6 @@ async function initDatabase() {
         is_muted BOOLEAN DEFAULT false,
         avatar TEXT DEFAULT '',
         background TEXT DEFAULT '',
-        name_color TEXT DEFAULT '#ffffff',
-        name_effect TEXT DEFAULT '',
         friends JSONB DEFAULT '[]'::jsonb,
         friend_requests JSONB DEFAULT '[]'::jsonb,
         sent_requests JSONB DEFAULT '[]'::jsonb,
@@ -63,8 +61,6 @@ async function initDatabase() {
         message TEXT NOT NULL,
         avatar TEXT,
         role TEXT,
-        name_color TEXT DEFAULT '#ffffff',
-        name_effect TEXT DEFAULT '',
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
       CREATE INDEX IF NOT EXISTS idx_pm_users
@@ -72,7 +68,7 @@ async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_room_messages_room_created
       ON room_messages (room, created_at DESC);
     `);
-    console.log('✓ الجداول جاهزة (users + private_messages + room_messages + name_color/effect)');
+    console.log('✓ الجداول جاهزة (users + private_messages + room_messages)');
   } catch (err) {
     console.error('خطأ في تهيئة الجداول:', err);
   }
@@ -141,8 +137,8 @@ async function getUser(username) {
 async function createUser(username, passwordHash) {
   try {
     await pool.query(
-      `INSERT INTO users (username, password_hash, rank, name_color, name_effect)
-       VALUES ($1, $2, 'ضيف', '#ffffff', '')`,
+      `INSERT INTO users (username, password_hash, rank)
+       VALUES ($1, $2, 'ضيف')`,
       [username, passwordHash]
     );
     return true;
@@ -227,8 +223,6 @@ app.get('/profile', verifyToken, async (req, res) => {
     friends: user.friends,
     friend_requests: user.friend_requests || [],
     rank: user.rank || 'ضيف',
-    nameColor: user.name_color || '#ffffff',
-    nameEffect: user.name_effect || '',
     unread_messages: unreadCount
   });
 });
@@ -293,33 +287,6 @@ app.post('/change-rank', verifyToken, async (req, res) => {
 io.on('connection', socket => {
   let currentRoom = null;
   let username = null;
-
-  // ============= تحديث لون وتأثير الاسم =============
-  socket.on('updateNameStyle', async ({ color, effect }) => {
-    if (!socket.username) return;
-    try {
-      const success = await updateUserFields(socket.username, { 
-        name_color: color, 
-        name_effect: effect 
-      });
-      if (success) {
-        socket.emit('name style saved', { color, effect, success: true });
-        // broadcast to all users in same room
-        if (currentRoom) {
-          io.to(currentRoom).emit('user name style update', {
-            username: socket.username,
-            color: color,
-            effect: effect
-          });
-        }
-      } else {
-        socket.emit('name style saved', { success: false });
-      }
-    } catch (err) {
-      console.error('خطأ في حفظ لون الاسم:', err);
-      socket.emit('name style saved', { success: false });
-    }
-  });
 
   socket.on('admin command', async (data) => {
     const { action, target, token } = data;
@@ -388,21 +355,16 @@ io.on('connection', socket => {
         return socket.disconnect();
       }
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
-      const nameColor = user?.name_color || '#ffffff';
-      const nameEffect = user?.name_effect || '';
-      roomUsers[room].push({ username, avatar, nameColor, nameEffect });
+      roomUsers[room].push({ username, avatar });
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
-      
-      // إرسال لون وتأثير الاسم للمستخدم
-      socket.emit('user name style', { color: nameColor, effect: nameEffect });
       
       const NEW_USER_LIMIT = 100;
       const OLD_USER_LIMIT = 5000;
       const isNewUser = user.created_at > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
       const limit = isNewUser ? NEW_USER_LIMIT : OLD_USER_LIMIT;
       const { rows: messages } = await pool.query(`
-        SELECT username, message AS msg, avatar, role, name_color, name_effect
+        SELECT username, message AS msg, avatar, role
         FROM room_messages
         WHERE room = $1
         ORDER BY created_at DESC
@@ -441,13 +403,11 @@ io.on('connection', socket => {
       }
       const avatar = user.avatar || 'https://via.placeholder.com/40';
       const role = user.rank || 'ضيف';
-      const nameColor = user.name_color || '#ffffff';
-      const nameEffect = user.name_effect || '';
       
       await pool.query(
-        `INSERT INTO room_messages (room, username, message, avatar, role, name_color, name_effect, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
-        [currentRoom, decoded.username, msg, avatar, role, nameColor, nameEffect]
+        `INSERT INTO room_messages (room, username, message, avatar, role, created_at)
+         VALUES ($1, $2, $3, $4, $5, NOW())`,
+        [currentRoom, decoded.username, msg, avatar, role]
       );
       
       const lowerMsg = msg.toLowerCase().trim();
@@ -511,9 +471,7 @@ io.on('connection', socket => {
         username: decoded.username,
         msg: msg,
         avatar: avatar,
-        role: user.rank || 'ضيف',
-        nameColor: nameColor,
-        nameEffect: nameEffect
+        role: user.rank || 'ضيف'
       });
       
       const mentionRegex = /@(\w+)/g;
@@ -791,7 +749,7 @@ async function sendNotification(toUsername, notification) {
 http.listen(PORT, '0.0.0.0', () => {
   console.log('=====================================');
   console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
-  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت + ألوان الاسم)');
+  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت)');
   console.log('');
   console.log('افتح الشات من:');
   console.log(`http://localhost:${PORT}/index.html`);
