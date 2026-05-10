@@ -2,6 +2,10 @@
   "name": "arabic-chat",
   "version": "1.0.0",
   "main": "server.js",
+  "engines": {
+    "node": "20.18.0",
+    "npm": "10.8.0"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "express": "^4.17.1",
