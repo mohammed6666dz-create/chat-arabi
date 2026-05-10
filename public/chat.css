@@ -87,11 +87,7 @@ header h1 {
   position: relative;
   min-height: 0;
 }
-
-/* تم إزالة التعتيم تماماً - الخلفية تظهر بشكلها الطبيعي */
-/* الكود القديم كان: background: rgba(11, 20, 26, 0.85); */
-/* الآن تم حذف التعتيم */
-
+/* تم إزالة التعتيم - الخلفية طبيعية 100% */
 #chatWindow {
   flex: 3;
   padding: 20px;
@@ -758,7 +754,7 @@ header h1 {
   display: none !important;
 }
 /* ────────────────────────────────────────────────
-   أشكال الرتب المحسنة (الإضافة الجديدة فقط)
+   أشكال الرتب المحسنة
 ───────────────────────────────────────────────── */
 .username-line {
   display: flex;
@@ -780,7 +776,6 @@ header h1 {
   overflow: hidden;
   transition: all 0.25s ease;
 }
-/* تأثير توهج خفيف عند الـ hover */
 .username-line:hover .badge {
   transform: translateY(-1px);
   box-shadow: 0 0 12px currentColor;
@@ -801,7 +796,6 @@ header h1 {
 .badge:hover::after {
   opacity: 0.7;
 }
-/* المالك - أحمر قوي */
 .badge.owner {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
     color: white !important;
@@ -809,50 +803,43 @@ header h1 {
     box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
     font-weight: 800 !important;
 }
-/* سوبر أدمن - بنفسجي قوي */
 .badge.superadmin {
   background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
   color: white;
   border: 1px solid #7c3aed;
   box-shadow: 0 0 11px rgba(139, 92, 246, 0.6);
 }
-/* أدمن - أزرق إداري */
 .badge.admin {
   background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
   color: white;
   border: 1px solid #3b82f6;
   box-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
 }
-/* بريميوم - أخضر لامع */
 .badge.premium {
   background: linear-gradient(135deg, #34d399 0%, #059669 100%);
   color: white;
   border: 1px solid #10b981;
   box-shadow: 0 0 11px rgba(52, 211, 153, 0.55);
 }
-/* VIP - برتقالي/ذهبي مميز */
 .badge.vip {
   background: linear-gradient(135deg, #fb923c 0%, #c2410c 100%);
   color: white;
   border: 1px solid #f97316;
   box-shadow: 0 0 10px rgba(251, 146, 60, 0.55);
 }
-/* ضيف - رمادي معدني */
 .badge.guest {
   background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
   color: #e5e7eb;
   border: 1px solid #9ca3af;
   box-shadow: 0 0 7px rgba(107, 114, 128, 0.4);
 }
-/* تحسين داخل الرسائل الخاصة بالمستخدم */
 .my-message .badge {
   opacity: 0.94;
   filter: brightness(1.08);
 }
 /* ────────────────────────────────────────────────
-   ستايل لوحة المتجر + نقاطي ومستواي (الإضافة الجديدة فقط)
+   ستايل لوحة المتجر + نقاطي ومستواي
 ───────────────────────────────────────────────── */
-/* لوحة المتجر */
 .shop-panel {
   position: fixed;
   inset: 0;
@@ -917,7 +904,6 @@ header h1 {
   transform: translateY(-2px);
   box-shadow: 0 12px 30px rgba(99, 102, 241, 0.5);
 }
-/* نافذة نقاطي ومستواي */
 .level-panel {
   position: fixed;
   inset: 0;
@@ -984,7 +970,7 @@ header h1 {
 }
 
 /* ────────────────────────────────────────────────
-   إضافة جديدة فقط: شكل عصري وأنيق للوحة الإيموجي
+   لوحة الإيموجي
 ───────────────────────────────────────────────── */
 .emoji-picker {
   position: absolute;
@@ -1008,7 +994,6 @@ header h1 {
   display: none;
 }
 
-/* التبويبات العلوية */
 .emoji-tabs {
   display: flex;
   background: rgba(7, 94, 84, 0.3);
@@ -1038,7 +1023,6 @@ header h1 {
   background: rgba(255,255,255,0.08);
 }
 
-/* محتوى الإيموجي */
 .emoji-content {
   padding: 12px;
   max-height: 280px;
@@ -1074,7 +1058,6 @@ header h1 {
   background: rgba(18, 140, 126, 0.3);
 }
 
-/* تأثير hover للإيموجي العادية */
 .emoji-grid span {
   display: flex;
   align-items: center;
@@ -1091,7 +1074,6 @@ header h1 {
   box-shadow: 0 6px 20px rgba(0,0,0,0.4);
 }
 
-/* شريط التمرير عصري */
 .emoji-content::-webkit-scrollbar {
   width: 6px;
 }
@@ -1107,41 +1089,31 @@ header h1 {
   background: #075e54;
 }
 
-/* --- تعديلات الهاتف الاحترافية --- */
+/* ────────────────────────────────────────────────
+   توافق البيسي والهاتف بدون تغيير أي تصميم
+───────────────────────────────────────────────── */
 @media (max-width: 768px) {
-    /* 1. منع التمرير الأفقي وضبط الارتفاع */
     body {
         height: 100dvh !important;
         overflow: hidden !important;
     }
-
-    /* 2. تحويل الشات لنمط طولي */
     .chat-main {
         flex-direction: column !important;
     }
-
-    /* 3. إخفاء لوحة المستخدمين (لأنها تأخذ مساحة كبيرة) */
     #usersPanel {
         display: none !important;
     }
-
-    /* 4. جعل نافذة الرسائل تأخذ كامل المساحة */
     #chatWindow {
         flex: 1 !important;
         width: 100% !important;
         padding: 10px !important;
     }
-
-    /* 5. إصلاح عرض الرسائل */
     .message {
         max-width: 88% !important;
     }
-    
     .message-content {
         font-size: 14px !important;
     }
-
-    /* 6. إصلاح النوافذ المنبثقة */
     .profile-panel, 
     .user-profile-panel, 
     .private-chat-panel, 
@@ -1158,34 +1130,27 @@ header h1 {
         max-height: 80vh !important;
         overflow-y: auto !important;
     }
-
-    /* 7. تعديل شريط الكتابة في الأسفل */
     #messageForm {
         padding: 8px !important;
         gap: 8px !important;
     }
-
     #messageInput {
         padding: 10px 15px !important;
     }
-
     #messageForm button {
         width: 45px !important;
         height: 45px !important;
         min-width: 45px !important;
     }
-
-    /* 8. تصغير الهيدر العلوي */
     header {
         padding: 8px 15px !important;
     }
-    
     header h1 {
         font-size: 17px !important;
     }
 }
 
-/* الحل النهائي والكامل لمشكلة انقسام المنشن والرمز المقلوب */
+/* حل مشكلة المنشن */
 .mention, [data-mention] {
     display: inline-flex !important;
     flex-direction: row-reverse !important;
