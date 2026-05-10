@@ -80,7 +80,7 @@
 
     /* تحسين بسيط للبروفايل الخاص (myProfilePanel) */
     #myProfilePanel {
-      width: 460px;
+      width: 500px;
       max-height: 85vh;
       overflow-y: auto;
       background: #0f172a;
@@ -225,7 +225,7 @@
       margin-bottom: 6px;
     }
 
-    /* ============= قائمة المتصلين الجديدة (موحدة بدون أجنحة) ============= */
+    /* ============= قائمة المتصلين الجديدة ============= */
     #usersPanel {
       width: 280px;
       background: #0f172a;
@@ -317,6 +317,7 @@
       display: inline-block;
       margin-top: 3px;
     }
+
     /* أنماط الرتب */
     .badge {
       display: inline-block;
@@ -331,6 +332,126 @@
     .badge.premium { background: #10b981; color: white; }
     .badge.vip { background: #f59e0b; color: black; }
     .badge.guest { background: #475569; color: #cbd5e1; }
+
+    /* ============= ألوان الاسم الـ 25 الجديدة ============= */
+    .color-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+      padding: 15px;
+      background: #1e293b;
+      border-radius: 16px;
+    }
+    .color-option {
+      width: 100%;
+      aspect-ratio: 1/1;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: white;
+      text-shadow: 0 0 2px black;
+    }
+    .color-option:hover {
+      transform: scale(1.1);
+      border-color: white;
+      box-shadow: 0 0 15px currentColor;
+    }
+    .color-option.selected {
+      border-color: white;
+      box-shadow: 0 0 20px currentColor;
+      transform: scale(1.05);
+    }
+    
+    /* تأثيرات الاسم - GIF متحركة */
+    .effects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .effect-option {
+      background: #1e293b;
+      padding: 12px;
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+    .effect-option:hover {
+      transform: translateY(-3px);
+      background: #334155;
+      border-color: #8b5cf6;
+    }
+    .effect-option.selected {
+      border-color: #8b5cf6;
+      background: linear-gradient(135deg, #1e293b, #2d1b4e);
+    }
+    .effect-preview {
+      font-size: 24px;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+    .effect-name {
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+    
+    /* رسالة التأكيد الخضراء */
+    .toast-success {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #10b981;
+      color: white;
+      padding: 12px 28px;
+      border-radius: 50px;
+      z-index: 9999;
+      font-weight: bold;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      animation: fadeInOut 2.5s ease forwards;
+    }
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    }
+    
+    /* زر حفظ المميزات */
+    .save-features-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(90deg, #10b981, #059669);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s;
+    }
+    .save-features-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+    }
+    
+    /* تبويب المميزات */
+    .features-section-title {
+      font-size: 18px;
+      margin: 15px 0 10px;
+      color: #cbd5e1;
+      border-right: 3px solid #8b5cf6;
+      padding-right: 12px;
+    }
   </style>
 </head>
 <body>
@@ -402,7 +523,7 @@
   <div class="chat-main">
     <div id="chatWindow"></div>
     
-    <!-- قائمة المتصلين الجديدة (موحدة بدون أجنحة) -->
+    <!-- قائمة المتصلين -->
     <div id="usersPanel">
       <div class="users-header-simple">
         <h3><i class="fas fa-users"></i> المتصلون <span id="userCount">0</span></h3>
@@ -411,9 +532,7 @@
           <button id="showUsersPanelBtn2" class="icon-btn-small" title="إظهار" style="display:none;"><i class="fas fa-chevron-right"></i></button>
         </div>
       </div>
-      <div id="usersList" class="users-list-simple">
-        <!-- سيتم عرض المستخدمين هنا بشكل عادي -->
-      </div>
+      <div id="usersList" class="users-list-simple"></div>
     </div>
   </div>
 
@@ -453,7 +572,7 @@
     </div>
   </div>
 
-  <!-- بروفايل المستخدم -->
+  <!-- بروفايل المستخدم - مع إضافة ألوان الاسم والتأثيرات -->
   <div id="myProfilePanel" class="profile-panel">
     <div class="profile-header">
       <h3>بروفايلك</h3>
@@ -523,21 +642,27 @@
       <div id="tab-options" class="tab-pane hidden">
         <p>الإعدادات والخيارات...</p>
       </div>
+      
+      <!-- ============= تبويب المميزات ============= -->
       <div id="tab-features" class="tab-pane hidden">
-        <h4 style="margin-bottom: 15px; color: #fff; text-align: center;">إطار الصورة الشخصية</h4>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid #333;">
-          <div onclick="updateAvatarBorder('4px solid #ff0000')" style="aspect-ratio: 1/1; background: red; border-radius: 4px; cursor: pointer;"></div>
-          <div onclick="updateAvatarBorder('4px solid #007bff')" style="aspect-ratio: 1/1; background: #007bff; border-radius: 4px; cursor: pointer;"></div>
-          <div onclick="updateAvatarBorder('4px solid #ffd700')" style="aspect-ratio: 1/1; background: #ffd700; border-radius: 4px; cursor: pointer;"></div>
-          <div onclick="updateAvatarBorder('none')" style="aspect-ratio: 1/1; background: #333; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px;">حذف</div>
+        <h3 class="features-section-title">🎨 اختر لون اسمك (25 لون)</h3>
+        <div class="color-picker-grid" id="colorPickerGrid">
+          <!-- الألوان الـ 25 راح تتولد بالجافاسكريبت -->
         </div>
-        <div style="margin-top: 15px; display: flex; gap: 10px;">
-          <button onclick="saveBorderSelection()" style="flex: 1; padding: 10px; background: #00bcd4; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">حفظ الإطار</button>
+        
+        <h3 class="features-section-title">✨ تأثيرات الاسم (GIF متحركة)</h3>
+        <div class="effects-grid" id="effectsGrid">
+          <!-- التأثيرات راح تتولد بالجافاسكريبت -->
         </div>
-        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #333;">
-        <h4>المميزات الخاصة بك</h4>
-        <p>اشتراكك الحالي: <strong>عادي</strong></p>
+        
+        <button class="save-features-btn" id="saveNameFeatures">
+          <i class="fas fa-save"></i> حفظ التغييرات
+        </button>
+        <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 15px;">
+          ⚡ ملاحظة: التغييرات راح تضهر على اسمك في كل الرسائل فوراً
+        </p>
       </div>
+      
       <div id="tab-account" class="tab-pane hidden">
         <h4>إدارة الحساب</h4>
         <button class="danger-btn">حذف الحساب</button>
@@ -684,9 +809,160 @@
     </div>
   </div>
 
-  <script src="chat.js"></script>
   <script>
+    // ============= الألوان الـ 25 =============
+    const colorsList = [
+      { name: "أحمر", code: "#ef4444" },
+      { name: "أزرق", code: "#3b82f6" },
+      { name: "أخضر", code: "#10b981" },
+      { name: "أصفر", code: "#fbbf24" },
+      { name: "بنفسجي", code: "#8b5cf6" },
+      { name: "وردي", code: "#ec4899" },
+      { name: "برتقالي", code: "#f97316" },
+      { name: "سماوي", code: "#06b6d4" },
+      { name: "نيلي", code: "#4f46e5" },
+      { name: "فوشي", code: "#d946ef" },
+      { name: "ذهبي", code: "#eab308" },
+      { name: "فضي", code: "#94a3b8" },
+      { name: "كحلي", code: "#1e3a8a" },
+      { name: "زيتوني", code: "#84cc16" },
+      { name: "مرجاني", code: "#fb7185" },
+      { name: "فيروزي", code: "#2dd4bf" },
+      { name: "خوخي", code: "#fdba74" },
+      { name: "نيون أخضر", code: "#a3e635" },
+      { name: "نيون وردي", code: "#f0abfc" },
+      { name: "أحمر غامق", code: "#b91c1c" },
+      { name: "أزرق غامق", code: "#1d4ed8" },
+      { name: "أخضر غامق", code: "#047857" },
+      { name: "بنفسجي غامق", code: "#6b21a5" },
+      { name: "رمادي", code: "#6b7280" },
+      { name: "أبيض", code: "#ffffff" }
+    ];
+    
+    // ============= التأثيرات (GIF متحركة للاسم) =============
+    const effectsList = [
+      { name: "✨ تألق", class: "glow-effect", preview: "✨" },
+      { name: "💫 اهتزاز", class: "shake-effect", preview: "💫" },
+      { name: "🌈 قوس قزح", class: "rainbow-effect", preview: "🌈" },
+      { name: "🔥 ناري", class: "fire-effect", preview: "🔥" },
+      { name: "🎈 نطاط", class: "bounce-effect", preview: "🎈" },
+      { name: "💧 مائي", class: "water-effect", preview: "💧" },
+      { name: "⭐ نجمي", class: "star-effect", preview: "⭐" },
+      { name: "🌀 دوار", class: "spin-effect", preview: "🌀" },
+      { name: "🎨 لامع", class: "shiny-effect", preview: "🎨" }
+    ];
+    
+    // متغيرات التخزين المؤقت
+    let selectedColor = "#ffffff";
+    let selectedEffect = "";
+    
+    // توليد شبكة الألوان
+    function generateColorGrid() {
+      const grid = document.getElementById('colorPickerGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      colorsList.forEach(color => {
+        const colorDiv = document.createElement('div');
+        colorDiv.className = 'color-option';
+        colorDiv.style.backgroundColor = color.code;
+        colorDiv.style.color = color.code === '#ffffff' ? '#000' : '#fff';
+        colorDiv.style.textShadow = color.code === '#ffffff' ? 'none' : '0 0 2px black';
+        colorDiv.innerHTML = color.name;
+        colorDiv.onclick = () => {
+          document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
+          colorDiv.classList.add('selected');
+          selectedColor = color.code;
+        };
+        grid.appendChild(colorDiv);
+      });
+    }
+    
+    // توليد شبكة التأثيرات
+    function generateEffectsGrid() {
+      const grid = document.getElementById('effectsGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      effectsList.forEach(effect => {
+        const effectDiv = document.createElement('div');
+        effectDiv.className = 'effect-option';
+        effectDiv.innerHTML = `
+          <div class="effect-preview">${effect.preview}</div>
+          <div class="effect-name">${effect.name}</div>
+        `;
+        effectDiv.onclick = () => {
+          document.querySelectorAll('.effect-option').forEach(e => e.classList.remove('selected'));
+          effectDiv.classList.add('selected');
+          selectedEffect = effect.class;
+        };
+        grid.appendChild(effectDiv);
+      });
+      // إضافة خيار إزالة التأثير
+      const removeDiv = document.createElement('div');
+      removeDiv.className = 'effect-option';
+      removeDiv.innerHTML = `
+        <div class="effect-preview">❌</div>
+        <div class="effect-name">إزالة التأثير</div>
+      `;
+      removeDiv.onclick = () => {
+        document.querySelectorAll('.effect-option').forEach(e => e.classList.remove('selected'));
+        removeDiv.classList.add('selected');
+        selectedEffect = "";
+      };
+      grid.appendChild(removeDiv);
+    }
+    
+    // رسالة تأكيد خضراء
+    function showSuccessMessage(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast-success';
+      toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 2500);
+    }
+    
+    // حفظ التغييرات وإرسالها للسيرفر
+    function saveNameFeatures() {
+      // هنا راح ترسل البيانات للسيرفر عبر Socket.io
+      if (typeof socket !== 'undefined' && socket) {
+        socket.emit('updateNameStyle', {
+          color: selectedColor,
+          effect: selectedEffect
+        });
+        showSuccessMessage('تم تغيير لون وتأثير الاسم بنجاح! ✨');
+      } else {
+        // للتجربة المحلية - بدون سيرفر
+        localStorage.setItem('userNameColor', selectedColor);
+        localStorage.setItem('userNameEffect', selectedEffect);
+        showSuccessMessage('تم حفظ التغييرات بنجاح! (سيتم تطبيقها عند الاتصال بالسيرفر)');
+      }
+    }
+    
     document.addEventListener('DOMContentLoaded', () => {
+      // توليد الألوان والتأثيرات
+      generateColorGrid();
+      generateEffectsGrid();
+      
+      // ربط زر الحفظ
+      const saveBtn = document.getElementById('saveNameFeatures');
+      if (saveBtn) {
+        saveBtn.addEventListener('click', saveNameFeatures);
+      }
+      
+      // تجميع الألوان والتأثيرات المخزنة محلياً (للتجربة)
+      const savedColor = localStorage.getItem('userNameColor');
+      const savedEffect = localStorage.getItem('userNameEffect');
+      if (savedColor) {
+        selectedColor = savedColor;
+        document.querySelectorAll('.color-option').forEach(opt => {
+          if (opt.style.backgroundColor === savedColor) opt.classList.add('selected');
+        });
+      }
+      if (savedEffect) {
+        selectedEffect = savedEffect;
+      }
+      
       const usersPanel = document.getElementById('usersPanel');
       const hideBtn = document.getElementById('hideUsersPanelBtn2');
       const showBtn = document.getElementById('showUsersPanelBtn2');
@@ -727,7 +1003,6 @@
         });
       }
 
-      // معاينة الخلفية الجديدة
       const coverUpload = document.getElementById('coverUpload');
       const myCoverPhoto = document.getElementById('myCoverPhoto');
       if (coverUpload && myCoverPhoto) {
@@ -743,7 +1018,6 @@
         });
       }
 
-      // فتح وإغلاق المتجر
       document.getElementById('shopBtn')?.addEventListener('click', () => {
         document.getElementById('shopPanel').style.display = 'block';
       });
@@ -751,7 +1025,6 @@
         document.getElementById('shopPanel').style.display = 'none';
       });
 
-      // فتح وإغلاق نافذة نقاطي ومستواي
       const levelBtn = document.getElementById('myLevelBtn');
       const levelPanel = document.getElementById('levelPointsPanel');
       const closeLevel = document.querySelector('.close-level-panel');
@@ -768,7 +1041,6 @@
         });
       }
 
-      // الإيموجي
       const emojiBtn = document.getElementById('emojiBtn');
       const emojiPicker = document.getElementById('emojiPicker');
       const messageInput = document.getElementById('messageInput');
@@ -792,7 +1064,6 @@
         });
       }
 
-      // فتح اللوحات الجديدة
       document.getElementById('privateMsgBtn')?.addEventListener('click', () => {
         document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel').forEach(p => p.style.display = 'none');
         document.getElementById('conversationsPanel').style.display = 'block';
@@ -806,7 +1077,6 @@
         document.getElementById('reportsPanel').style.display = 'block';
       });
 
-      // فتح بروفايلك
       document.getElementById('profileBtn')?.addEventListener('click', () => {
         document.getElementById('myProfilePanel').style.display = 'block';
       });
@@ -814,7 +1084,6 @@
         document.getElementById('myProfilePanel').style.display = 'none';
       });
 
-      // تبديل تبويبات البروفايل
       document.querySelectorAll('.modern-tabs .m-tab').forEach(tab => {
         tab.addEventListener('click', () => {
           document.querySelectorAll('.m-tab').forEach(t => t.classList.remove('active'));
@@ -825,5 +1094,6 @@
       });
     });
   </script>
+  <script src="chat.js"></script>
 </body>
 </html>
