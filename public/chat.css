@@ -87,16 +87,11 @@ header h1 {
   position: relative;
   min-height: 0;
 }
-.chat-main::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(11, 20, 26, 0.85);
-  z-index: 1;
-}
+
+/* تم إزالة التعتيم تماماً - الخلفية تظهر بشكلها الطبيعي */
+/* الكود القديم كان: background: rgba(11, 20, 26, 0.85); */
+/* الآن تم حذف التعتيم */
+
 #chatWindow {
   flex: 3;
   padding: 20px;
@@ -514,10 +509,10 @@ header h1 {
 }
 .private-message, .my-private-message {
     max-width: 80% !important;
-    width: fit-content !important; /* تجعل الفقاعة على مقاس النص فقط */
+    width: fit-content !important;
     padding: 8px 12px !important;
     border-radius: 18px !important;
-    display: block !important; /* لإصلاح تداخل العناصر */
+    display: block !important;
     margin-bottom: 10px !important;
     position: relative;
     box-shadow: 0 1px 2px rgba(0,0,0,0.2);
@@ -643,7 +638,7 @@ header h1 {
     font-size: 12px !important;
     color: #ffffff !important;
     display: block !important;
-    text-align: center !important; /* لجعل الاسم يتوسط الصورة */
+    text-align: center !important;
     margin-top: 5px !important;
     font-weight: bold;
     opacity: 0.9;
@@ -1110,11 +1105,13 @@ header h1 {
 }
 .emoji-content::-webkit-scrollbar-thumb:hover {
   background: #075e54;
-}/* --- تعديلات الهاتف الاحترافية --- */
+}
+
+/* --- تعديلات الهاتف الاحترافية --- */
 @media (max-width: 768px) {
     /* 1. منع التمرير الأفقي وضبط الارتفاع */
     body {
-        height: 100dvh !important; /* ملء الشاشة بدقة على الجوال */
+        height: 100dvh !important;
         overflow: hidden !important;
     }
 
@@ -1144,8 +1141,7 @@ header h1 {
         font-size: 14px !important;
     }
 
-    /* 6. إصلاح النوافذ المنبثقة (البروفايل، المتجر، الإيموجي) */
-    /* هذا الجزء سيجعل أي نافذة تظهر في وسط الشاشة بشكل مرتب */
+    /* 6. إصلاح النوافذ المنبثقة */
     .profile-panel, 
     .user-profile-panel, 
     .private-chat-panel, 
@@ -1188,14 +1184,15 @@ header h1 {
         font-size: 17px !important;
     }
 }
+
 /* الحل النهائي والكامل لمشكلة انقسام المنشن والرمز المقلوب */
 .mention, [data-mention] {
-    display: inline-flex !important; /* يمنع انقسام الاسم لنصفين */
-    flex-direction: row-reverse !important; /* يضع الرمز على يسار الاسم الإنجليزي في بيئة عربية */
+    display: inline-flex !important;
+    flex-direction: row-reverse !important;
     align-items: center !important;
-    direction: ltr !important; /* إجبار الترتيب من اليسار لليمين */
+    direction: ltr !important;
     unicode-bidi: bidi-override !important;
-    white-space: nowrap !important; /* يمنع نزول جزء من الاسم لسطر جديد */
+    white-space: nowrap !important;
     color: #3b82f6 !important;
     font-weight: bold !important;
     padding: 0 4px !important;
