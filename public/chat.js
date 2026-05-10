@@ -14,39 +14,16 @@ let currentPrivateChat = null;
 let myPoints = 1;
 let myLevel = 1;
 let myRole = 'guest';
-
-// ============= متغيرات ألوان وتأثيرات الاسم =============
-let myNameColor = '#ffffff';      // اللون الافتراضي (أبيض)
-let myNameEffect = '';             // التأثير الافتراضي
-
 const mentionSound = new Audio('./bird-chirp-short.mp3');
 mentionSound.volume = 0.7;
 
 socket.emit('join', room, token);
 
-// ============= استقبال لون وتأثير الاسم من السيرفر =============
-socket.on('user name style', ({ color, effect }) => {
-    if (color) myNameColor = color;
-    if (effect) myNameEffect = effect;
-    console.log('🎨 تم تحميل لوني:', myNameColor, 'تأثيري:', myNameEffect);
-});
-
-// ============= تأكيد حفظ التغييرات =============
-socket.on('name style saved', ({ color, effect, success }) => {
-    if (success) {
-        myNameColor = color;
-        myNameEffect = effect;
-        showSuccessMessage('✅ تم تغيير لون وتأثير اسمك بنجاح!');
-    } else {
-        showSuccessMessage('❌ فشل حفظ التغييرات، حاول مرة أخرى');
-    }
-});
-
 socket.on('previous messages', (messages) => {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.innerHTML = '';
-    messages.forEach(({ username, msg, avatar, role, nameColor, nameEffect }) => {
-        appendMessage(username, msg, avatar, username === myUsername, role || 'guest', nameColor, nameEffect);
+    messages.forEach(({ username, msg, avatar, role }) => {
+        appendMessage(username, msg, avatar, username === myUsername, role || 'guest');
     });
     scrollToBottom();
 });
@@ -66,7 +43,7 @@ socket.on('update users', (users) => {
         div.innerHTML = `
             <img src="${user.avatar || 'https://via.placeholder.com/40'}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
             <div style="flex:1;">
-                <div style="font-weight:bold;color:${user.nameColor || '#ffffff'};">${user.username}</div>
+                <div style="font-weight:bold;color:white;">${user.username}</div>
                 <div style="font-size:11px;">${getUserBadge(user.username, user.role || 'guest')}</div>
             </div>
         `;
@@ -79,8 +56,8 @@ socket.on('update users', (users) => {
     });
 });
 
-socket.on('message', ({ username, msg, avatar, role, border, nameColor, nameEffect }) => {
-    appendMessage(username, msg, avatar, username === myUsername, role || 'guest', border || 'none', nameColor, nameEffect);
+socket.on('message', ({ username, msg, avatar, role, border }) => {
+    appendMessage(username, msg, avatar, username === myUsername, role || 'guest', border || 'none');
 });
 
 socket.on('system message', (msg) => {
@@ -256,24 +233,19 @@ document.addEventListener('paste', function(e) {
     }
 });
 
-// ============= دالة عرض الرسائل مع دعم الألوان والتأثيرات =============
-function appendMessage(username, msg, avatar, isMe = false, role = 'guest', border = 'none', nameColor = null, nameEffect = null) {
+function appendMessage(username, msg, avatar, isMe = false, role = 'guest', border = 'none') {
     const chatWindow = document.getElementById('chatWindow');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
     const badge = getUserBadge(username, role);
-    
-    // تحديد لون الاسم (إذا كان المرسل هو أنا استخدم لوني، وإلا استخدم لونه)
-    let finalColor = isMe ? myNameColor : (nameColor || '#3b82f6');
-    let finalEffect = isMe ? myNameEffect : (nameEffect || '');
-    
+   
     let formattedMsg = msg.replace(/@(\w+)/g, '<span style="color:#3b82f6; font-weight:bold;">@$1</span>');
     messageDiv.innerHTML = `
         <img src="${avatar || 'https://via.placeholder.com/40'}" alt="${username}" onclick="openUserProfile('${username}', '${role}', '${avatar}')" style="cursor:pointer; border: ${border}; border-radius: 50%; width: 42px; height: 42px; object-fit: cover; padding: 2px;">
         <div class="message-content">
             <div class="username-line">
                 ${badge}
-                <strong onclick="mentionUser('${username}'); event.stopPropagation();" style="cursor:pointer; color: ${finalColor}; ${finalEffect}"> ${username} </strong>
+                <strong onclick="mentionUser('${username}'); event.stopPropagation();" style="cursor:pointer; color: #3b82f6;"> ${username} </strong>
             </div>
             <p>${formattedMsg}</p>
         </div>
@@ -287,65 +259,6 @@ function scrollToBottom() {
     if (chatWindow) chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-// ============= دالة حفظ تغييرات الألوان والتأثيرات =============
-function saveNameFeaturesToServer(color, effect) {
-    socket.emit('updateNameStyle', { 
-        color: color, 
-        effect: effect 
-    });
-}
-
-// ============= دالة رسالة التأكيد الخضراء =============
-function showSuccessMessage(message) {
-    const toast = document.createElement('div');
-    toast.className = 'toast-success';
-    toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #10b981;
-        color: white;
-        padding: 12px 28px;
-        border-radius: 50px;
-        z-index: 9999;
-        font-weight: bold;
-        font-size: 14px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        animation: fadeInOut 2.5s ease forwards;
-    `;
-    document.body.appendChild(toast);
-    setTimeout(() => {
-        toast.remove();
-    }, 2500);
-}
-
-// ============= الألوان الـ 25 والتأثيرات (الربط مع أزرار HTML) =============
-document.addEventListener('DOMContentLoaded', () => {
-    // ربط زر الحفظ في تبويب المميزات
-    const saveBtn = document.getElementById('saveNameFeatures');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-            const selectedColorDiv = document.querySelector('.color-option.selected');
-            const selectedEffectDiv = document.querySelector('.effect-option.selected');
-            
-            let color = '#ffffff';
-            let effect = '';
-            
-            if (selectedColorDiv) {
-                color = selectedColorDiv.style.backgroundColor;
-            }
-            if (selectedEffectDiv && selectedEffectDiv.querySelector('.effect-name')?.innerText !== 'إزالة التأثير') {
-                const effectClass = selectedEffectDiv.getAttribute('data-effect');
-                if (effectClass) effect = effectClass;
-            }
-            
-            saveNameFeaturesToServer(color, effect);
-        });
-    }
-});
-
 async function loadMyProfile() {
     try {
         const res = await fetch('/profile', {
@@ -357,11 +270,6 @@ async function loadMyProfile() {
         myUsername = user.username;
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
         myRole = user.rank || 'guest';
-        
-        // تحميل لون وتأثير الاسم من السيرفر
-        if (user.nameColor) myNameColor = user.nameColor;
-        if (user.nameEffect) myNameEffect = user.nameEffect;
-        
         const timestamp = new Date().getTime();
         const avatarImg = document.getElementById('avatar');
         const profileAvatar = document.getElementById('myProfileAvatar');
