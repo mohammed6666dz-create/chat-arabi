@@ -1100,8 +1100,39 @@ header h1 {
     .chat-main {
         flex-direction: column !important;
     }
+    /* تعديل: لوحة المستخدمين تظهر أفقي بدل ما تختفي */
     #usersPanel {
-        display: none !important;
+        display: block !important;
+        width: 100% !important;
+        max-height: 130px !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        white-space: nowrap !important;
+        padding: 10px !important;
+        border-left: none !important;
+        border-bottom: 1px solid rgba(200, 100, 255, 0.3) !important;
+    }
+    #usersPanel h3 {
+        font-size: 13px !important;
+        margin-bottom: 8px !important;
+    }
+    .user-item {
+        display: inline-flex !important;
+        flex-direction: column !important;
+        width: 70px !important;
+        padding: 6px !important;
+        margin: 0 5px !important;
+        text-align: center !important;
+        white-space: normal !important;
+    }
+    .user-item img {
+        width: 40px !important;
+        height: 40px !important;
+        margin: 0 auto !important;
+    }
+    .user-item span {
+        font-size: 11px !important;
+        word-break: break-word !important;
     }
     #chatWindow {
         flex: 1 !important;
@@ -1109,10 +1140,11 @@ header h1 {
         padding: 10px !important;
     }
     .message {
-        max-width: 88% !important;
+        max-width: 85% !important;
     }
     .message-content {
         font-size: 14px !important;
+        padding: 8px 12px !important;
     }
     .profile-panel, 
     .user-profile-panel, 
@@ -1120,9 +1152,10 @@ header h1 {
     .friend-requests-panel,
     .shop-panel .shop-body,
     .level-panel-content {
-        width: 92% !important;
-        left: 4% !important;
-        right: 4% !important;
+        width: 95% !important;
+        max-width: 380px !important;
+        left: 2.5% !important;
+        right: 2.5% !important;
         top: 50% !important;
         transform: translateY(-50%) !important;
         position: fixed !important;
@@ -1131,22 +1164,33 @@ header h1 {
         overflow-y: auto !important;
     }
     #messageForm {
-        padding: 8px !important;
+        padding: 8px 12px !important;
         gap: 8px !important;
     }
     #messageInput {
-        padding: 10px 15px !important;
+        padding: 10px 14px !important;
+        font-size: 14px !important;
     }
     #messageForm button {
-        width: 45px !important;
-        height: 45px !important;
-        min-width: 45px !important;
+        width: 42px !important;
+        height: 42px !important;
+        min-width: 42px !important;
+        font-size: 18px !important;
     }
     header {
-        padding: 8px 15px !important;
+        padding: 8px 12px !important;
     }
     header h1 {
-        font-size: 17px !important;
+        font-size: 16px !important;
+    }
+    .icon-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1rem !important;
+    }
+    #profileBtn img {
+        width: 36px !important;
+        height: 36px !important;
     }
 }
 
