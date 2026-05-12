@@ -1089,110 +1089,99 @@ header h1 {
   background: #075e54;
 }
 
-/* ────────────────────────────────────────────────
-   توافق البيسي والهاتف بدون تغيير أي تصميم
-───────────────────────────────────────────────── */
+/* تنسيق الجوال: كل شيء مثل البيسي بالضبط، بس بمقاييس أصغر */
 @media (max-width: 768px) {
     body {
-        height: 100dvh !important;
-        overflow: hidden !important;
+        height: 100dvh;
+        overflow: hidden;
+    }
+    header {
+        padding: 8px 12px;
+    }
+    header h1 {
+        font-size: 18px;
+    }
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+    #profileBtn img {
+        width: 36px;
+        height: 36px;
     }
     .chat-main {
-        flex-direction: column !important;
+        flex-direction: row; /* باقي صف مثل البيسي */
+        gap: 5px;
     }
-    /* تعديل: لوحة المستخدمين تظهر أفقي بدل ما تختفي */
+    /* لوحة المستخدمين تظهر عاليمين مع تصغير */
     #usersPanel {
-        display: block !important;
-        width: 100% !important;
-        max-height: 130px !important;
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-        white-space: nowrap !important;
-        padding: 10px !important;
-        border-left: none !important;
-        border-bottom: 1px solid rgba(200, 100, 255, 0.3) !important;
+        flex: 1;
+        min-width: 100px;
+        max-width: 140px;
+        padding: 8px 5px;
     }
     #usersPanel h3 {
-        font-size: 13px !important;
-        margin-bottom: 8px !important;
+        font-size: 13px;
+        margin-bottom: 10px;
     }
     .user-item {
-        display: inline-flex !important;
-        flex-direction: column !important;
-        width: 70px !important;
-        padding: 6px !important;
-        margin: 0 5px !important;
-        text-align: center !important;
-        white-space: normal !important;
+        padding: 6px 8px;
+        gap: 6px;
     }
     .user-item img {
-        width: 40px !important;
-        height: 40px !important;
-        margin: 0 auto !important;
+        width: 32px;
+        height: 32px;
     }
     .user-item span {
-        font-size: 11px !important;
-        word-break: break-word !important;
+        font-size: 11px;
     }
+    /* نافذة الشات */
     #chatWindow {
-        flex: 1 !important;
-        width: 100% !important;
-        padding: 10px !important;
+        flex: 3;
+        padding: 8px;
+        gap: 8px;
     }
     .message {
-        max-width: 85% !important;
+        max-width: 85%;
+        gap: 6px;
+    }
+    .message img {
+        width: 32px;
+        height: 32px;
     }
     .message-content {
-        font-size: 14px !important;
-        padding: 8px 12px !important;
+        font-size: 13px;
+        padding: 6px 12px;
     }
+    /* الفورم */
+    #messageForm {
+        padding: 6px 12px;
+        gap: 8px;
+    }
+    #messageInput {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+    #messageForm button {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+    }
+    /* اللوحات المنبثقة */
     .profile-panel, 
     .user-profile-panel, 
     .private-chat-panel, 
-    .friend-requests-panel,
-    .shop-panel .shop-body,
-    .level-panel-content {
-        width: 95% !important;
-        max-width: 380px !important;
-        left: 2.5% !important;
-        right: 2.5% !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
-        position: fixed !important;
-        margin: 0 !important;
-        max-height: 80vh !important;
-        overflow-y: auto !important;
-    }
-    #messageForm {
-        padding: 8px 12px !important;
-        gap: 8px !important;
-    }
-    #messageInput {
-        padding: 10px 14px !important;
-        font-size: 14px !important;
-    }
-    #messageForm button {
-        width: 42px !important;
-        height: 42px !important;
-        min-width: 42px !important;
-        font-size: 18px !important;
-    }
-    header {
-        padding: 8px 12px !important;
-    }
-    header h1 {
-        font-size: 16px !important;
-    }
-    .icon-btn {
-        width: 36px !important;
-        height: 36px !important;
-        font-size: 1rem !important;
-    }
-    #profileBtn img {
-        width: 36px !important;
-        height: 36px !important;
+    .friend-requests-panel {
+        width: 90%;
+        max-width: 320px;
+        top: 50%;
+        transform: translateY(-50%);
+        left: 5%;
+        right: 5%;
     }
 }
+
 
 /* حل مشكلة المنشن */
 .mention, [data-mention] {
