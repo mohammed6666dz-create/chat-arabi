@@ -1089,100 +1089,172 @@ header h1 {
   background: #075e54;
 }
 
-/* تنسيق الجوال: كل شيء مثل البيسي بالضبط، بس بمقاييس أصغر */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   تحسين التوافق مع البيسي والهاتف معًا 
+   (بدون تغيير أي ألوان أو صور أو أشكال)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* للهواتف (عرض الشاشة 768px أو أقل) */
 @media (max-width: 768px) {
-    body {
-        height: 100dvh;
-        overflow: hidden;
+    /* منع التمرير الأفقي وجعل كل شيء داخل الشاشة */
+    html, body {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
     }
-    header {
-        padding: 8px 12px;
-    }
-    header h1 {
-        font-size: 18px;
-    }
-    .icon-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 1rem;
-    }
-    #profileBtn img {
-        width: 36px;
-        height: 36px;
-    }
+    
+    /* تعديل الاتجاه لعرض العناصر بشكل عمودي */
     .chat-main {
-        flex-direction: row; /* باقي صف مثل البيسي */
-        gap: 5px;
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 8px !important;
     }
-    /* لوحة المستخدمين تظهر عاليمين مع تصغير */
+    
+    /* ---------- لوحة المستخدمين (تبقى ظاهرة كشريط أفقي) ---------- */
     #usersPanel {
-        flex: 1;
-        min-width: 100px;
-        max-width: 140px;
-        padding: 8px 5px;
+        display: block !important;           /* تبقى ظاهرة، ما تختفي */
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 12px !important;
+        margin: 0 !important;
+        padding: 8px !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        white-space: nowrap !important;
+        background: #0f172a !important;
+        border-bottom: 1px solid #334155 !important;
     }
-    #usersPanel h3 {
-        font-size: 13px;
-        margin-bottom: 10px;
+    
+    /* تنسيق العنوان داخل اللوحة */
+    #usersPanel .users-header-simple {
+        padding: 5px 10px !important;
+        background: #1e293b !important;
+        border-radius: 10px !important;
+        margin-bottom: 8px !important;
     }
-    .user-item {
-        padding: 6px 8px;
-        gap: 6px;
+    
+    /* عرض المستخدمين في صف أفقي */
+    .users-list-simple {
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        padding: 5px !important;
+        gap: 8px !important;
+        white-space: nowrap !important;
     }
-    .user-item img {
-        width: 32px;
-        height: 32px;
+    
+    /* تنسيق كل مستخدم على حدة */
+    .user-item-simple {
+        display: inline-flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        min-width: 70px !important;
+        width: auto !important;
+        padding: 6px !important;
+        margin: 0 !important;
+        background: #1e293b !important;
+        border-radius: 12px !important;
+        text-align: center !important;
     }
-    .user-item span {
-        font-size: 11px;
+    
+    .user-item-simple img {
+        width: 40px !important;
+        height: 40px !important;
+        margin: 0 auto 5px !important;
     }
-    /* نافذة الشات */
+    
+    .user-name-simple {
+        font-size: 11px !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        text-align: center !important;
+        width: 100% !important;
+    }
+    
+    /* ---------- نافذة الشات ---------- */
     #chatWindow {
-        flex: 3;
-        padding: 8px;
-        gap: 8px;
+        width: 100% !important;
+        padding: 8px !important;
+        overflow-y: auto !important;
     }
+    
+    /* الرسائل */
     .message {
-        max-width: 85%;
-        gap: 6px;
+        max-width: 90% !important;
     }
-    .message img {
-        width: 32px;
-        height: 32px;
-    }
+    
     .message-content {
-        font-size: 13px;
-        padding: 6px 12px;
+        font-size: 13px !important;
+        padding: 7px 12px !important;
     }
-    /* الفورم */
+    
+    /* ---------- الهيدر (الخط الأخضر) ---------- */
+    header {
+        padding: 8px 10px !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+    
+    header h1 {
+        font-size: 18px !important;
+    }
+    
+    .icon-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 0.9rem !important;
+    }
+    
+    #profileBtn img {
+        width: 36px !important;
+        height: 36px !important;
+    }
+    
+    /* ---------- فورم الإرسال ---------- */
     #messageForm {
-        padding: 6px 12px;
-        gap: 8px;
+        padding: 8px !important;
+        gap: 6px !important;
     }
+    
     #messageInput {
-        padding: 10px 14px;
-        font-size: 14px;
+        padding: 10px 12px !important;
+        font-size: 14px !important;
     }
+    
     #messageForm button {
-        width: 44px;
-        height: 44px;
-        font-size: 18px;
+        width: 42px !important;
+        height: 42px !important;
+        min-width: 42px !important;
+        font-size: 18px !important;
     }
-    /* اللوحات المنبثقة */
-    .profile-panel, 
-    .user-profile-panel, 
-    .private-chat-panel, 
-    .friend-requests-panel {
-        width: 90%;
-        max-width: 320px;
-        top: 50%;
-        transform: translateY(-50%);
-        left: 5%;
-        right: 5%;
+    
+    /* ---------- اللوحات المنبثقة (بروفايل، متجر، الخ) ---------- */
+    .profile-panel,
+    .user-profile-panel,
+    .private-chat-panel,
+    .friend-requests-panel,
+    .reports-panel,
+    .conversations-panel,
+    .shop-panel .shop-body,
+    .level-panel-content,
+    #myProfilePanel {
+        width: 95% !important;
+        max-width: 400px !important;
+        left: 2.5% !important;
+        right: 2.5% !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        position: fixed !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+        margin: 0 auto !important;
+    }
+    
+    /* إخفاء الأزرار المكررة إن وجدت */
+    #hideUsersPanelBtn2, #showUsersPanelBtn2 {
+        display: none !important;
     }
 }
-
-
 /* حل مشكلة المنشن */
 .mention, [data-mention] {
     display: inline-flex !important;
