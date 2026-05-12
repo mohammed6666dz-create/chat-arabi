@@ -1094,167 +1094,57 @@ header h1 {
    (بدون تغيير أي ألوان أو صور أو أشكال)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-/* للهواتف (عرض الشاشة 768px أو أقل) */
+/* تنسيق الجوال النهائي */
 @media (max-width: 768px) {
-    /* منع التمرير الأفقي وجعل كل شيء داخل الشاشة */
     html, body {
-        max-width: 100% !important;
         overflow-x: hidden !important;
+        width: 100% !important;
     }
     
-    /* تعديل الاتجاه لعرض العناصر بشكل عمودي */
     .chat-main {
         flex-direction: column !important;
         width: 100% !important;
-        gap: 8px !important;
     }
     
-    /* ---------- لوحة المستخدمين (تبقى ظاهرة كشريط أفقي) ---------- */
-    #usersPanel {
-        display: block !important;           /* تبقى ظاهرة، ما تختفي */
-        width: 100% !important;
-        max-width: 100% !important;
-        border-radius: 12px !important;
-        margin: 0 !important;
-        padding: 8px !important;
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-        white-space: nowrap !important;
-        background: #0f172a !important;
-        border-bottom: 1px solid #334155 !important;
-    }
-    
-    /* تنسيق العنوان داخل اللوحة */
-    #usersPanel .users-header-simple {
-        padding: 5px 10px !important;
-        background: #1e293b !important;
-        border-radius: 10px !important;
-        margin-bottom: 8px !important;
-    }
-    
-    /* عرض المستخدمين في صف أفقي */
-    .users-list-simple {
+    /* إخفاء اللوحة القديمة وإظهار الجديدة */
+    #usersPanel .users-list-simple {
         display: flex !important;
         flex-direction: row !important;
         overflow-x: auto !important;
-        overflow-y: hidden !important;
-        padding: 5px !important;
         gap: 8px !important;
-        white-space: nowrap !important;
+        padding: 8px !important;
     }
     
-    /* تنسيق كل مستخدم على حدة */
-    .user-item-simple {
-        display: inline-flex !important;
+    #usersPanel .user-item-simple {
+        min-width: 65px !important;
         flex-direction: column !important;
-        align-items: center !important;
-        min-width: 70px !important;
-        width: auto !important;
-        padding: 6px !important;
-        margin: 0 !important;
-        background: #1e293b !important;
-        border-radius: 12px !important;
         text-align: center !important;
     }
     
-    .user-item-simple img {
-        width: 40px !important;
-        height: 40px !important;
-        margin: 0 auto 5px !important;
-    }
-    
-    .user-name-simple {
-        font-size: 11px !important;
-        white-space: normal !important;
-        word-break: break-word !important;
-        text-align: center !important;
-        width: 100% !important;
-    }
-    
-    /* ---------- نافذة الشات ---------- */
     #chatWindow {
         width: 100% !important;
         padding: 8px !important;
-        overflow-y: auto !important;
     }
     
-    /* الرسائل */
     .message {
         max-width: 90% !important;
     }
     
-    .message-content {
-        font-size: 13px !important;
-        padding: 7px 12px !important;
-    }
-    
-    /* ---------- الهيدر (الخط الأخضر) ---------- */
-    header {
-        padding: 8px 10px !important;
-        flex-wrap: wrap !important;
-        gap: 8px !important;
-    }
-    
     header h1 {
-        font-size: 18px !important;
+        font-size: 16px !important;
     }
     
     .icon-btn {
-        width: 36px !important;
-        height: 36px !important;
-        font-size: 0.9rem !important;
-    }
-    
-    #profileBtn img {
-        width: 36px !important;
-        height: 36px !important;
-    }
-    
-    /* ---------- فورم الإرسال ---------- */
-    #messageForm {
-        padding: 8px !important;
-        gap: 6px !important;
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.8rem !important;
     }
     
     #messageInput {
-        padding: 10px 12px !important;
-        font-size: 14px !important;
-    }
-    
-    #messageForm button {
-        width: 42px !important;
-        height: 42px !important;
-        min-width: 42px !important;
-        font-size: 18px !important;
-    }
-    
-    /* ---------- اللوحات المنبثقة (بروفايل، متجر، الخ) ---------- */
-    .profile-panel,
-    .user-profile-panel,
-    .private-chat-panel,
-    .friend-requests-panel,
-    .reports-panel,
-    .conversations-panel,
-    .shop-panel .shop-body,
-    .level-panel-content,
-    #myProfilePanel {
-        width: 95% !important;
-        max-width: 400px !important;
-        left: 2.5% !important;
-        right: 2.5% !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
-        position: fixed !important;
-        max-height: 85vh !important;
-        overflow-y: auto !important;
-        margin: 0 auto !important;
-    }
-    
-    /* إخفاء الأزرار المكررة إن وجدت */
-    #hideUsersPanelBtn2, #showUsersPanelBtn2 {
-        display: none !important;
+        font-size: 13px !important;
     }
 }
+
 /* حل مشكلة المنشن */
 .mention, [data-mention] {
     display: inline-flex !important;
