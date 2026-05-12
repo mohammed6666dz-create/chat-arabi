@@ -1184,48 +1184,53 @@ header h1 {
     }
 }
 
-/* تثبيت لوحة المتصلين كشريط على اليمين */
+/* تثبيت لوحة المتصلين على اليمين في البيسي فقط */
 @media (min-width: 769px) {
     .chat-main {
         display: flex !important;
         flex-direction: row !important;
-        align-items: stretch !important;
-    }
-    
-    #usersPanel {
-        position: relative !important;
-        width: 260px !important;
-        min-width: 260px !important;
-        max-width: 260px !important;
-        height: auto !important;
-        margin: 0 !important;
-        margin-right: 10px !important;
-        order: 2 !important;
-        display: block !important;
     }
     
     #chatWindow {
-        flex: 1 !important;
         order: 1 !important;
-        min-width: 0 !important;
+        flex: 3 !important;
+    }
+    
+    #usersPanel {
+        order: 2 !important;
+        flex: 1 !important;
+        display: block !important;
     }
 }
 
-/* للجوال - تبقى تحت */
+/* تعديل بسيط للجوال: تخلي لوحة المتصلين تحت */
 @media (max-width: 768px) {
     .chat-main {
         flex-direction: column !important;
     }
     
-    #usersPanel {
-        width: 100% !important;
-        min-width: auto !important;
-        margin: 10px 0 0 0 !important;
-        order: 2 !important;
-    }
-    
     #chatWindow {
         order: 1 !important;
-        width: 100% !important;
+    }
+    
+    #usersPanel {
+        order: 2 !important;
+        margin-top: 10px !important;
+    }
+}
+/* تثبيت لوحة المتصلين على اليمين في البيسي */
+@media (min-width: 769px) {
+    .chat-main {
+        display: flex !important;
+        flex-direction: row !important;
+    }
+    #chatWindow {
+        order: 1 !important;
+        flex: 3 !important;
+    }
+    #usersPanel {
+        order: 2 !important;
+        flex: 1 !important;
+        display: block !important;
     }
 }
