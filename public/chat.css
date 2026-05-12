@@ -1184,7 +1184,34 @@ header h1 {
     }
 }
 
-/* تحت 768px الجوال - تروح تحت */
+/* تثبيت لوحة المتصلين كشريط على اليمين */
+@media (min-width: 769px) {
+    .chat-main {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: stretch !important;
+    }
+    
+    #usersPanel {
+        position: relative !important;
+        width: 260px !important;
+        min-width: 260px !important;
+        max-width: 260px !important;
+        height: auto !important;
+        margin: 0 !important;
+        margin-right: 10px !important;
+        order: 2 !important;
+        display: block !important;
+    }
+    
+    #chatWindow {
+        flex: 1 !important;
+        order: 1 !important;
+        min-width: 0 !important;
+    }
+}
+
+/* للجوال - تبقى تحت */
 @media (max-width: 768px) {
     .chat-main {
         flex-direction: column !important;
@@ -1192,6 +1219,8 @@ header h1 {
     
     #usersPanel {
         width: 100% !important;
+        min-width: auto !important;
+        margin: 10px 0 0 0 !important;
         order: 2 !important;
     }
     
