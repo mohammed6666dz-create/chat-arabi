@@ -1157,3 +1157,19 @@ header h1 {
     font-weight: bold !important;
     padding: 0 4px !important;
 }
+/* تثبيت لوحة المتصلين على اليمين في البيسي */
+@media (min-width: 769px) {
+    .chat-main {
+        display: flex !important;
+        flex-direction: row !important;
+    }
+    #chatWindow {
+        order: 1 !important;
+        flex: 3 !important;
+    }
+    #usersPanel {
+        order: 2 !important;
+        flex: 1 !important;
+        display: block !important;
+    }
+}
