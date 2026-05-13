@@ -57,6 +57,31 @@ socket.on('update users', (users) => {
     });
 });
 
+// استقبال قائمة غير المتصلين
+socket.on('offline users update', (offlineUsers) => {
+    const offlineList = document.getElementById('offlineUsersList');
+    const offlineCount = document.getElementById('offlineCount');
+    if (!offlineList) return;
+    
+    offlineList.innerHTML = '';
+    offlineUsers.forEach(user => {
+        const div = document.createElement('div');
+        div.className = 'user-item-simple offline-user';
+        div.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px;margin-bottom:8px;background:#1e293b;border-radius:10px;cursor:pointer;transition:all0.2s;opacity:0.7;';
+        div.innerHTML = `
+            <img src="${user.avatar || 'https://via.placeholder.com/40'}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;filter:grayscale(0.5);">
+            <div style="flex:1;">
+                <div style="font-weight:bold;color:#94a3b8;">${user.username}</div>
+                <div style="font-size:10px;color:#64748b;">آخر ظهور: ${user.last_room_name || 'غرفة غير معروفة'}</div>
+                <div style="font-size:10px;color:#64748b;">${getUserBadge(user.username, user.role || 'guest')}</div>
+            </div>
+        `;
+        div.onclick = () => openUserProfile(user.username, user.role || 'guest', user.avatar);
+        offlineList.appendChild(div);
+    });
+    if (offlineCount) offlineCount.innerText = offlineUsers.length;
+});
+
 socket.on('message', ({ username, msg, avatar, role, border }) => {
     appendMessage(username, msg, avatar, username === myUsername, role || 'guest', border || 'none');
 });
