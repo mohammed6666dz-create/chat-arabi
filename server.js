@@ -19,14 +19,14 @@ const io = require('socket.io')(http);
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-// ────────────────────────────────────────────────
+
 // إعداد الاتصال بقاعدة البيانات
-// ────────────────────────────────────────────────
 const connectionString = process.env.DATABASE_URL || 'postgresql://postgres.wgzikxgbhrcgfewnosiq:mohamedennaiha55@aws-1-eu-west-1.pooler.supabase.com:5432/postgres';
 const pool = new Pool({
   connectionString: connectionString,
   ssl: { rejectUnauthorized: false }
 });
+
 // إنشاء الجداول إذا ما كانت موجودة
 async function initDatabase() {
   try {
@@ -66,29 +66,24 @@ async function initDatabase() {
         role TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
-      CREATE INDEX IF NOT EXISTS idx_pm_users
-      ON private_messages (from_user, to_user);
-      CREATE INDEX IF NOT EXISTS idx_room_messages_room_created
-      ON room_messages (room, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_pm_users ON private_messages (from_user, to_user);
+      CREATE INDEX IF NOT EXISTS idx_room_messages_room_created ON room_messages (room, created_at DESC);
     `);
-    console.log('✓ الجداول جاهزة (users + private_messages + room_messages)');
+    console.log('✓ الجداول جاهزة');
   } catch (err) {
     console.error('خطأ في تهيئة الجداول:', err);
   }
 }
 initDatabase();
-// ────────────────────────────────────────────────
+
 // المتغيرات المؤقتة
-// ────────────────────────────────────────────────
 let roomUsers = { general: [], algeria: [], all_countries: [] };
 let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
-// الرتب المتاحة
 const RANKS = ['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'];
 const secret = 'secretkey';
 const PORT = process.env.PORT || 3000;
-// ────────────────────────────────────────────────
-// تذكير تلقائي بالأذكار (كل ~60 ثانية)
-// ────────────────────────────────────────────────
+
+// تذكير تلقائي بالأذكار
 const adhkar = [
     "سبحان الله وبحمده",
     "سبحان الله العظيم",
@@ -104,7 +99,7 @@ const adhkar = [
     "اللهم اغفر لي وارحمني"
 ];
 const reminderImage = "https://i.pinimg.com/736x/ef/e5/f3/efe5f30586ff8fe7861cdea4bc2f88cf.jpg";
-// كل 60 ثانية
+
 setInterval(() => {
     const randomDhikr = adhkar[Math.floor(Math.random() * adhkar.length)];
     const reminderMessage = `✨ ${randomDhikr} ✨`;
@@ -115,13 +110,13 @@ setInterval(() => {
         role: 'system'
     });
 }, 60000);
-// مفتاح OpenRouter الخاص بك
+
+// مفتاح OpenRouter
 const OPENROUTER_API_KEY = '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';
 const AI_MODEL = 'google/gemini-2.0-flash-lite:free';
 const GPT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/2048px-ChatGPT_logo.svg.png';
-// ────────────────────────────────────────────────
+
 // دوال مساعدة
-// ────────────────────────────────────────────────
 async function getUser(username) {
   try {
     const { rows } = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
@@ -137,13 +132,10 @@ async function getUser(username) {
     return null;
   }
 }
+
 async function createUser(username, passwordHash) {
   try {
-    await pool.query(
-      `INSERT INTO users (username, password_hash, rank)
-       VALUES ($1, $2, 'ضيف')`,
-      [username, passwordHash]
-    );
+    await pool.query(`INSERT INTO users (username, password_hash, rank) VALUES ($1, $2, 'ضيف')`, [username, passwordHash]);
     return true;
   } catch (err) {
     if (err.code === '23505') return false;
@@ -151,6 +143,7 @@ async function createUser(username, passwordHash) {
     return false;
   }
 }
+
 async function updateUserFields(username, updates) {
   if (!Object.keys(updates).length) return false;
   const setParts = [];
@@ -171,9 +164,8 @@ async function updateUserFields(username, updates) {
     return false;
   }
 }
-// ────────────────────────────────────────────────
+
 // Routes
-// ────────────────────────────────────────────────
 app.post('/register', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
@@ -188,6 +180,7 @@ app.post('/register', async (req, res) => {
   }
   res.json({ msg: 'تم التسجيل بنجاح' });
 });
+
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   const user = await getUser(username);
@@ -201,9 +194,11 @@ app.post('/login', async (req, res) => {
     last_room_name: user.last_room_name || 'الغرفة العامة'
   });
 });
+
 app.get('/sitemap.xml', (req, res) => {
   res.sendFile(path.join(__dirname, 'sitemap.xml'));
 });
+
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ msg: 'لا يوجد توكن' });
@@ -215,13 +210,11 @@ const verifyToken = (req, res, next) => {
     res.status(401).json({ msg: 'توكن غير صالح' });
   }
 };
+
 app.get('/profile', verifyToken, async (req, res) => {
   const user = await getUser(req.user.username);
   if (!user) return res.status(404).json({ msg: 'المستخدم غير موجود' });
-  const unreadRes = await pool.query(
-    `SELECT COUNT(*) FROM private_messages WHERE to_user = $1 AND NOT ($1 = ANY(seen_by))`,
-    [req.user.username]
-  );
+  const unreadRes = await pool.query(`SELECT COUNT(*) FROM private_messages WHERE to_user = $1 AND NOT ($1 = ANY(seen_by))`, [req.user.username]);
   const unreadCount = parseInt(unreadRes.rows[0].count, 10) || 0;
   res.json({
     username: user.username,
@@ -233,6 +226,7 @@ app.get('/profile', verifyToken, async (req, res) => {
     unread_messages: unreadCount
   });
 });
+
 app.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res) => {
   if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
   try {
@@ -251,6 +245,7 @@ app.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res
     res.status(500).json({ msg: 'فشل الرفع السحابي' });
   }
 });
+
 app.post('/upload-background', verifyToken, upload.single('background'), async (req, res) => {
   if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
   try {
@@ -269,9 +264,11 @@ app.post('/upload-background', verifyToken, upload.single('background'), async (
     res.status(500).json({ msg: 'فشل الرفع السحابي' });
   }
 });
+
 app.get('/room-counts', (req, res) => {
   res.json(roomCounts);
 });
+
 app.post('/change-rank', verifyToken, async (req, res) => {
   const changer = await getUser(req.user.username);
   if (!changer || changer.rank !== 'مالك') {
@@ -288,22 +285,19 @@ app.post('/change-rank', verifyToken, async (req, res) => {
   io.emit('rank update', { username: targetUsername, rank: newRank });
   res.json({ msg: 'تم تغيير الرتبة بنجاح' });
 });
+
 // حفظ آخر روم
 app.post('/api/save-last-room', verifyToken, async (req, res) => {
   const { roomId, roomName } = req.body;
   try {
-    await pool.query(
-      'UPDATE users SET last_room = $1, last_room_name = $2, last_seen = NOW() WHERE username = $3',
-      [roomId, roomName, req.user.username]
-    );
+    await pool.query('UPDATE users SET last_room = $1, last_room_name = $2, last_seen = NOW() WHERE username = $3', [roomId, roomName, req.user.username]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false });
   }
 });
-// ────────────────────────────────────────────────
+
 // Socket.IO
-// ────────────────────────────────────────────────
 io.on('connection', socket => {
   let currentRoom = null;
   let username = null;
@@ -313,10 +307,8 @@ io.on('connection', socket => {
     try {
       const decoded = jwt.verify(token, secret);
       const user = await getUser(decoded.username);
-    
       if (user && ['أدمن', 'صاحب الموقع', 'مالك'].includes(user.rank)) {
-      
-   if (action === 'ban') {
+        if (action === 'ban') {
           await pool.query('UPDATE users SET is_banned = true WHERE username = $1', [target]);
           for (const [id, s] of io.sockets.sockets) {
             if (s.username === target) {
@@ -325,7 +317,6 @@ io.on('connection', socket => {
             }
           }
         }
-      
         if (action === 'kick') {
           for (const [id, s] of io.sockets.sockets) {
             if (s.username === target) {
@@ -334,7 +325,6 @@ io.on('connection', socket => {
             }
           }
         }
-      
         if (action === 'unban') {
           await pool.query('UPDATE users SET is_banned = false WHERE username = $1', [target]);
           io.emit('system message', `✅ تم فك الحظر عن ${target}`);
@@ -344,9 +334,6 @@ io.on('connection', socket => {
         }
         if (action === 'unmute') {
           await pool.query('UPDATE users SET is_muted = false WHERE username = $1', [target]);
-        }
-        if (action === 'kick') {
-          io.emit('execute-kick', { target: target });
         }
       }
     } catch (err) {
@@ -380,15 +367,11 @@ io.on('connection', socket => {
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
       
-      // حفظ آخر روم
       let roomName = room;
       if (room === 'general') roomName = 'الغرفة العامة';
       else if (room === 'algeria') roomName = 'الجزائر';
       else if (room === 'all_countries') roomName = 'جميع الدول';
-      await pool.query(
-        'UPDATE users SET last_room = $1, last_room_name = $2, last_seen = NOW() WHERE username = $3',
-        [room, roomName, username]
-      );
+      await pool.query('UPDATE users SET last_room = $1, last_room_name = $2, last_seen = NOW() WHERE username = $3', [room, roomName, username]);
       
       const NEW_USER_LIMIT = 100;
       const OLD_USER_LIMIT = 5000;
@@ -409,28 +392,24 @@ io.on('connection', socket => {
   });
 
   socket.on('buy role', async ({ role }) => {
-      if (socket.username && role === 'premium') {
-        try {
-          await pool.query('UPDATE users SET rank = $1 WHERE username = $2', ['بريميوم', socket.username]);
-          socket.emit('role purchased', { success: true, role: 'بريميوم' });
-          io.emit('rank update', {
-            username: socket.username,
-            rank: 'بريميوم'
-          });
-          // تحديث الرتبة في القائمة
-          if (currentRoom) {
-            const userIndex = roomUsers[currentRoom].findIndex(u => u.username === socket.username);
-            if (userIndex !== -1) {
-              roomUsers[currentRoom][userIndex].rank = 'بريميوم';
-              io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
-            }
+    if (socket.username && role === 'premium') {
+      try {
+        await pool.query('UPDATE users SET rank = $1 WHERE username = $2', ['بريميوم', socket.username]);
+        socket.emit('role purchased', { success: true, role: 'بريميوم' });
+        io.emit('rank update', { username: socket.username, rank: 'بريميوم' });
+        if (currentRoom) {
+          const userIndex = roomUsers[currentRoom].findIndex(u => u.username === socket.username);
+          if (userIndex !== -1) {
+            roomUsers[currentRoom][userIndex].rank = 'بريميوم';
+            io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
           }
-          console.log(`✅ تم ترقية ${socket.username} إلى بريميوم`);
-        } catch (err) {
-          console.error('خطأ في تحديث الرتبة:', err);
         }
+        console.log(`✅ تم ترقية ${socket.username} إلى بريميوم`);
+      } catch (err) {
+        console.error('خطأ في تحديث الرتبة:', err);
       }
-    });
+    }
+  });
     
   socket.on('message', async (msg, token) => {
     try {
@@ -443,11 +422,7 @@ io.on('connection', socket => {
       const avatar = user.avatar || 'https://via.placeholder.com/40';
       const role = user.rank || 'ضيف';
       
-      await pool.query(
-        `INSERT INTO room_messages (room, username, message, avatar, role, created_at)
-         VALUES ($1, $2, $3, $4, $5, NOW())`,
-        [currentRoom, decoded.username, msg, avatar, role]
-      );
+      await pool.query(`INSERT INTO room_messages (room, username, message, avatar, role, created_at) VALUES ($1, $2, $3, $4, $5, NOW())`, [currentRoom, decoded.username, msg, avatar, role]);
       
       const lowerMsg = msg.toLowerCase().trim();
       if (lowerMsg.includes('gpt')) {
@@ -464,28 +439,23 @@ io.on('connection', socket => {
         try {
           const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
-           headers: {
-  'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-  'Content-Type': 'application/json',
-  'HTTP-Referer': 'https://your-site.com',
-  'X-Title': 'Chat Bot'
-},
+            headers: {
+              'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://your-site.com',
+              'X-Title': 'Chat Bot'
+            },
             body: JSON.stringify({
               model: AI_MODEL,
               messages: [
-                {
-                  role: 'system',
-                  content: 'أنت مساعد ذكي ودود، رد بالعربية (فصحى أو جزائرية حسب السياق)، كن مفيداً ومختصراً.'
-                },
+                { role: 'system', content: 'أنت مساعد ذكي ودود، رد بالعربية، كن مفيداً ومختصراً.' },
                 { role: 'user', content: question }
               ],
               temperature: 0.7,
               max_tokens: 500
             })
           });
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
           const data = await response.json();
           const aiReply = data.choices[0].message.content.trim();
           io.to(currentRoom).emit('message', {
@@ -517,8 +487,7 @@ io.on('connection', socket => {
       let match;
       const mentionedUsers = new Set();
       while ((match = mentionRegex.exec(msg)) !== null) {
-        const mentionedUsername = match[1];
-        mentionedUsers.add(mentionedUsername);
+        mentionedUsers.add(match[1]);
       }
       if (mentionedUsers.size > 0) {
         for (const mentioned of mentionedUsers) {
@@ -539,24 +508,11 @@ io.on('connection', socket => {
   
   socket.on('send friend request', async (targetUsername) => {
     if (!socket.username || socket.username === targetUsername) return;
-    const [sender, target] = await Promise.all([
-      getUser(socket.username),
-      getUser(targetUsername)
-    ]);
+    const [sender, target] = await Promise.all([getUser(socket.username), getUser(targetUsername)]);
     if (!sender || !target) return;
-    if (
-      sender.sent_requests.includes(targetUsername) ||
-      target.friend_requests.includes(socket.username) ||
-      sender.friends.includes(targetUsername)
-    ) return;
-    await pool.query(
-      'UPDATE users SET friend_requests = COALESCE(friend_requests, \'[]\'::jsonb) || jsonb_build_array($1::text) WHERE username = $2',
-      [socket.username, targetUsername]
-    );
-    await pool.query(
-      'UPDATE users SET sent_requests = COALESCE(sent_requests, \'[]\'::jsonb) || jsonb_build_array($1::text) WHERE username = $2',
-      [targetUsername, socket.username]
-    );
+    if (sender.sent_requests.includes(targetUsername) || target.friend_requests.includes(socket.username) || sender.friends.includes(targetUsername)) return;
+    await pool.query('UPDATE users SET friend_requests = COALESCE(friend_requests, \'[]\'::jsonb) || jsonb_build_array($1::text) WHERE username = $2', [socket.username, targetUsername]);
+    await pool.query('UPDATE users SET sent_requests = COALESCE(sent_requests, \'[]\'::jsonb) || jsonb_build_array($1::text) WHERE username = $2', [targetUsername, socket.username]);
     sendNotification(targetUsername, {
       type: 'friend_request',
       from: socket.username,
@@ -568,25 +524,10 @@ io.on('connection', socket => {
   
   socket.on('accept friend request', async (fromUsername) => {
     const acceptor = socket.username;
-    const [acceptorUser, senderUser] = await Promise.all([
-      getUser(acceptor),
-      getUser(fromUsername)
-    ]);
+    const [acceptorUser, senderUser] = await Promise.all([getUser(acceptor), getUser(fromUsername)]);
     if (!acceptorUser || !senderUser) return;
-    await pool.query(
-      `UPDATE users
-       SET friend_requests = friend_requests - $1::text,
-           friends = COALESCE(friends, '[]'::jsonb) || jsonb_build_array($1::text)
-       WHERE username = $2`,
-      [fromUsername, acceptor]
-    );
-    await pool.query(
-      `UPDATE users
-       SET sent_requests = sent_requests - $1::text,
-           friends = COALESCE(friends, '[]'::jsonb) || jsonb_build_array($1::text)
-       WHERE username = $2`,
-      [acceptor, fromUsername]
-    );
+    await pool.query(`UPDATE users SET friend_requests = friend_requests - $1::text, friends = COALESCE(friends, '[]'::jsonb) || jsonb_build_array($1::text) WHERE username = $2`, [fromUsername, acceptor]);
+    await pool.query(`UPDATE users SET sent_requests = sent_requests - $1::text, friends = COALESCE(friends, '[]'::jsonb) || jsonb_build_array($1::text) WHERE username = $2`, [acceptor, fromUsername]);
     sendNotification(fromUsername, {
       type: 'friend_accepted',
       from: acceptor,
@@ -598,33 +539,21 @@ io.on('connection', socket => {
   
   socket.on('reject friend request', async (fromUsername) => {
     const rejector = socket.username;
-    await pool.query(
-      'UPDATE users SET friend_requests = friend_requests - $1::text WHERE username = $2',
-      [fromUsername, rejector]
-    );
-    await pool.query(
-      'UPDATE users SET sent_requests = sent_requests - $1::text WHERE username = $2',
-      [rejector, fromUsername]
-    );
+    await pool.query('UPDATE users SET friend_requests = friend_requests - $1::text WHERE username = $2', [fromUsername, rejector]);
+    await pool.query('UPDATE users SET sent_requests = sent_requests - $1::text WHERE username = $2', [rejector, fromUsername]);
     socket.emit('request_rejected', fromUsername);
   });
   
   socket.on('remove friend', async (targetUsername) => {
     if (!socket.username) return;
     const user = socket.username;
-    await pool.query(
-      'UPDATE users SET friends = friends - $1::text WHERE username = $2',
-      [targetUsername, user]
-    );
-    await pool.query(
-      'UPDATE users SET friends = friends - $1::text WHERE username = $2',
-      [user, targetUsername]
-    );
+    await pool.query('UPDATE users SET friends = friends - $1::text WHERE username = $2', [targetUsername, user]);
+    await pool.query('UPDATE users SET friends = friends - $1::text WHERE username = $2', [user, targetUsername]);
     socket.emit('friend removed', targetUsername);
     for (const s of io.sockets.sockets.values()) {
-        if (s.username === targetUsername) {
-            s.emit('friend removed', user);
-        }
+      if (s.username === targetUsername) {
+        s.emit('friend removed', user);
+      }
     }
   });
   
@@ -639,7 +568,6 @@ io.on('connection', socket => {
           role: 'system'
         });
         io.emit('rank updated', { username: targetUsername, rank: newRank });
-        // تحديث الرتبة في كل الرومات
         for (const room in roomUsers) {
           const userIndex = roomUsers[room].findIndex(u => u.username === targetUsername);
           if (userIndex !== -1) {
@@ -670,266 +598,120 @@ io.on('connection', socket => {
         SELECT DISTINCT
           CASE
             WHEN from_user = $1 THEN to_user
-            ELSE WHEN from_user = $1 THEN to_user
-            ELSE from_user from_user
-         
-          END AS END AS other_user other_user
-       
-        FROM private_messages FROM private_messages
-       
-        WHERE from WHERE from_user =_user = $1 OR to $1_user = OR to_user = $1 $1
-      `,
-      [socket `,.username]);
- [socket.username]);
-      const      const conversations conversations = await Promise = await Promise.all(.all(rows.maprows.map(async ((async (r) => {
-r) => {
-        const        const u = u = await getUser(r. await getUser(r.other_userother_user);
-       );
+            ELSE from_user
+          END AS other_user
+        FROM private_messages
+        WHERE from_user = $1 OR to_user = $1
+      `, [socket.username]);
+      const conversations = await Promise.all(rows.map(async (r) => {
+        const u = await getUser(r.other_user);
         return {
-          username return {
-: r.other          username: r.other_user,
-_user,
-          avatar: u          avatar: u ? u ? u.avatar.avatar : ' : 'https://via.placeholder.comhttps://via.placeholder.com/40/40'
+          username: r.other_user,
+          avatar: u ? u.avatar : 'https://via.placeholder.com/40'
         };
-     '
-        }));
-      socket. };
       }));
-      socket.emit('emit('private conversations list',private conversations list', conversations);
- conversations);
+      socket.emit('private conversations list', conversations);
     } catch (err) {
-      console.error    } catch (err) {
-      console.error('خطأ في جلب('خطأ في جلب المحاد المحادثات:', err);
-   ثات:', err);
+      console.error('خطأ في جلب المحادثات:', err);
     }
-  }
   });
   
- });
-  
-  socket.on('get private messages',  socket.on('get private messages', async (target async (targetUsername) => {
-   Username) => {
-    if (! if (!socket.username || !socket.username || !targetUsernametargetUsername) return) return;
-   ;
+  socket.on('get private messages', async (targetUsername) => {
+    if (!socket.username || !targetUsername) return;
     try {
-      const try {
-      const { rows { rows } = await pool } =.query( await pool.query(`
-        SELECT from_user,`
-        SELECT from to_user_user, to_user, message, message, created_at
-, created_at
-        FROM private_m        FROM private_messages
-essages
-        WHERE        WHERE (from_user = (from_user = $1 $1 AND to AND to_user = $2)
-          _user = $2)
-           OR ( OR (from_user = $2 ANDfrom_user = $2 AND to_user to_user = $1)
- = $1)
-        ORDER        ORDER BY created_at ASC
- BY created_at ASC
+      const { rows } = await pool.query(`
+        SELECT from_user, to_user, message, created_at
+        FROM private_messages
+        WHERE (from_user = $1 AND to_user = $2)
+           OR (from_user = $2 AND to_user = $1)
+        ORDER BY created_at ASC
         LIMIT 50
-      `, [socket        LIMIT 50
       `, [socket.username, targetUsername]);
-     .username, targetUsername]);
-      const messages const messages = await = await Promise.all Promise.all(rows.map(async (msg(rows.map(async (msg) => {
-       ) => const user = await {
-        const user = await getUser(msg getUser(msg.from_user.from_user);
+      const messages = await Promise.all(rows.map(async (msg) => {
+        const user = await getUser(msg.from_user);
         return {
-);
-        return {
-          from          from: msg.from_user,
-         : msg.from_user msg:,
+          from: msg.from_user,
           msg: msg.message,
-          msg.message,
-          avatar: user ? avatar: user. user ? user.avatar :avatar : 'https 'https://via.placeholder://via.placeholder.com/30',
-.com/30',
-          createdAt          createdAt: msg.created_at: msg.created_at
-       
+          avatar: user ? user.avatar : 'https://via.placeholder.com/30',
+          createdAt: msg.created_at
         };
-      };
       }));
-      }));
-      socket.emit(' socket.emit('previous privateprevious private messages', { withUser: messages', { with targetUsernameUser: targetUsername, messages });
-   , messages });
-    } catch (err } catch) {
- (err) {
-      console      console.error('.error('خطأ في جخطألب الرسائل الخاصة في جلب الرسائل الخاصة:', err:', err);
+      socket.emit('previous private messages', { withUser: targetUsername, messages });
+    } catch (err) {
+      console.error('خطأ في جلب الرسائل الخاصة:', err);
     }
   });
   
-);
-    }
-  });
-  
-  socket  socket.on('.on('private message', asyncprivate message ({ to, msg', async ({ to }) =>, msg }) => {
-    const from {
-    const from = socket = socket.username;
-.username;
-    if    if (!from || ! (!from || !to || !msg?.trim() ||to || !msg?.trim() || from === to) return;
- from === to) return;
-    const    const trimmedMsg trimmedMsg = msg.trim();
- = msg.trim();
+  socket.on('private message', async ({ to, msg }) => {
+    const from = socket.username;
+    if (!from || !to || !msg?.trim() || from === to) return;
+    const trimmedMsg = msg.trim();
     try {
-         try {
-      const { const { rows } = await rows } = await pool.query pool.query(`
-        INSERT INTO private(`
-_messages        INSERT INTO private_messages
-       
-        (from_user, to_user (from_user, to_user, message, message, created_at)
-, created_at)
-        VALUES ($1        VALUES ($1, $2,, $ $32, $3, NOW, NOW())
-       ())
-        RETURNING RETURNING id, created_at
-      id, created_at
-      `, `, [from [from, to, trimmed, toMsg]);
-, trimmedMsg]);
+      const { rows } = await pool.query(`INSERT INTO private_messages (from_user, to_user, message, created_at) VALUES ($1, $2, $3, NOW()) RETURNING id, created_at`, [from, to, trimmedMsg]);
       const messageData = {
-        from      const messageData = {
-,
-               from,
+        from,
         to,
         msg: trimmedMsg,
- to,
-        msg: trimmed        avatar: (Msg,
-        avatar: (await getUser(from))await getUser?.avatar(from))?.avatar || ' || 'https://https://via.placeholder.comvia.placeholder.com/30',
-       /30',
-        createdAt: createdAt: rows[0].created_at.toISOString()
- rows[0].created_at.toISO      };
-      constString()
+        avatar: (await getUser(from))?.avatar || 'https://via.placeholder.com/30',
+        createdAt: rows[0].created_at.toISOString()
       };
- roomName = get      const roomName = getPrivateRoomName(fromPrivateRoomName(from, to, to);
-     );
-      io.to(roomName). io.to(roomName).emit('private message', messageemit('private message', messageData);
-Data);
-      const isOnline = Array      const isOnline.from(io.s = Array.from(io.sockets.sockets.valuesockets.sockets.values()).some()).some(s =>(s => s.username s.username === to);
-      === to);
-      for ( for (const sconst s of io.sockets of io.sockets.sockets.values()) {
-       .sockets.values()) if ( {
-        if (s.usernames.username === to) s.emit === to) s.emit('msg('msg_notification', {_notification', { from });
- from });
+      const roomName = getPrivateRoomName(from, to);
+      io.to(roomName).emit('private message', messageData);
+      const isOnline = Array.from(io.sockets.sockets.values()).some(s => s.username === to);
+      for (const s of io.sockets.sockets.values()) {
+        if (s.username === to) s.emit('msg_notification', { from });
       }
-      if      }
- (!is      if (!isOnline) {
-        sendNotificationOnline) {
-       (to, sendNotification(to, {
-          type: {
-          type: 'private 'private_message',
-          from_message',
+      if (!isOnline) {
+        sendNotification(to, {
+          type: 'private_message',
           from,
-          message: `رسالة خاصة,
-          message: `رسالة خاصة جديدة من ${from جديدة من ${from}`,
-          time: new}`,
-          time: new Date(). Date().toISOString()
-        });
-toISOString()
+          message: `رسالة خاصة جديدة من ${from}`,
+          time: new Date().toISOString()
         });
       }
-    } catch (      }
-    } catch (err)err) {
-      console.error('خط {
-      console.errorأ في('خطأ في حفظ الرسالة الخاصة حفظ الرسالة الخاصة:', err:', err);
+    } catch (err) {
+      console.error('خطأ في حفظ الرسالة الخاصة:', err);
     }
- );
-    });
-  
- }
   });
   
-  socket  socket.on('mark messages.on(' read',mark messages read', async (sender) async (sender) => {
- => {
-    if    if (!socket.username) return;
-    const (!socket.username) return;
- res = await pool    const res = await pool.query(
-.query(
-      `UPDATE private_messages      `UPDATE private_messages
-       SET seen
-       SET seen_by =_by = array_ array_append(append(seen_by, $seen_by, $1)
-1)
-       WHERE from_user = $       WHERE from_user = $2 AND2 AND to_user to_user = $ = $1 AND NOT ($1 = ANY(1 AND NOT ($1 = ANY(seen_byseen_by))`,
-     ))`,
-      [socket.username, sender [socket.username, sender]
-    );
-    socket.]
-    );
-    socket.emit('messages read confirmed', { countemit('messages read confirmed', { count: res.rowCount });
- : res.rowCount });
+  socket.on('mark messages read', async (sender) => {
+    if (!socket.username) return;
+    const res = await pool.query(`UPDATE private_messages SET seen_by = array_append(seen_by, $1) WHERE from_user = $2 AND to_user = $1 AND NOT ($1 = ANY(seen_by))`, [socket.username, sender]);
+    socket.emit('messages read confirmed', { count: res.rowCount });
   });
   
-  socket });
-  
-  socket.on('disconnect.on('disconnect', () => {
-    if', () => {
-    if (currentRoom && (currentRoom && username) {
-      username) {
-      roomCounts[current roomCounts[currentRoom]--;
-     Room]--;
-      roomUsers[currentRoom roomUsers[currentRoom] =] = roomUsers roomUsers[currentRoom].filter(u =>[currentRoom].filter(u => u.username u.username !== username !== username);
-      io.to);
-      io.to(currentRoom).emit(currentRoom).emit('update users', roomUsers[currentRoom('update users', roomUsers[currentRoom]);
-     ]);
-      io.to(currentRoom).emit('system message', io.to(currentRoom).emit('system message', `${username} غادر الغ `${username} غادر الغرفة`);
+  socket.on('disconnect', () => {
+    if (currentRoom && username) {
+      roomCounts[currentRoom]--;
+      roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
+      io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
+      io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
     }
-رفة`);
-    }
-    socket.username = null;
     socket.username = null;
   });
 });
 
-async  });
-});
-
-async function sendNotification(toUsername, function sendNotification(toUsername, notification) notification) {
+async function sendNotification(toUsername, notification) {
   try {
- {
-  try {
-    await pool.query(
-         await pool.query(
-      'UPDATE users SET notifications = notifications || $1::jsonb WHERE username = $2',
-      [JSON.stringify(notification), toUsername]
-    );
-    for (const socket of io.sockets.sockets.values()) 'UPDATE users SET notifications = notifications || $1::jsonb WHERE username = $2',
-      [JSON.stringify(notification), toUsername]
-    );
+    await pool.query('UPDATE users SET notifications = notifications || $1::jsonb WHERE username = $2', [JSON.stringify(notification), toUsername]);
     for (const socket of io.sockets.sockets.values()) {
-      if ( {
-      if (socket.usernamesocket.username === toUsername) {
-        socket. === toUsername) {
-        socket.emit('new notificationemit('new notification', notification);
+      if (socket.username === toUsername) {
+        socket.emit('new notification', notification);
         break;
-', notification);
-        break;
-      }
       }
     }
-  }    }
- catch (  } catch (err) {
-   err) {
-    console.error console.error('خط('خطأ في إرسأ في إرسال الإال الإشعارشعار:', err);
+  } catch (err) {
+    console.error('خطأ في إرسال الإشعار:', err);
   }
 }
 
-:', err);
- // }
-}
-
-// ───────────────── ────────────────────────────────────────────────────────────────────────
-───────
-// تشغيل// تشغيل السير السيرفر
-//فر
- ─────────────────// ────────────────────────────────────────────────────────────────────────
-http.listen───────
-http.listen(PORT, '(PORT, '0.0.0.0.0.0.0',0', () => {
-  console.log () => {
-  console.log('================================('=====================================');
- =====' console.log('✅);
-  console.log('✅ السيرفر يع السيرفر يعمل بنجاحمل بنجاح على port على port ' + PORT);
-  console ' + PORT);
-  console.log(' (مع.log(' (مع قاعدة بيانات قاعدة بيانات PostgreSQL + GPT ب PostgreSQL + GPT بوت)وت)');
+// تشغيل السيرفر
+http.listen(PORT, '0.0.0.0', () => {
+  console.log('=====================================');
+  console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
+  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت + حفظ الجلسة)');
   console.log('');
-  console.log');
-  console.log('');
-  console.log('افتح الش('افتح الشات منات من:');
-  console:');
-  console.log(`.log(`http://http://localhost:${PORT}/indexlocalhost:${PORT}/index.html`);
-.html`);
-  console  console.log('=====================================');
+  console.log('افتح الشات من:');
+  console.log(`http://localhost:${PORT}/index.html`);
+  console.log('=====================================');
 });
