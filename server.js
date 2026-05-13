@@ -36,7 +36,7 @@ const storage = multer.diskStorage({
 });
 const uploadSong = multer({ 
   storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/mpeg3', 'audio/ogg', 'audio/wav'];
     if (allowedTypes.includes(file.mimetype)) {
@@ -107,9 +107,20 @@ initDatabase();
 // المتغيرات المؤقتة
 let roomUsers = { general: [], algeria: [], all_countries: [] };
 let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
+let offlineUsers = []; // قائمة غير المتصلين
 const RANKS = ['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'];
 const secret = 'secretkey';
 const PORT = process.env.PORT || 3000;
+
+// دالة للحصول على اسم الغرفة
+function getRoomName(roomId) {
+  const rooms = {
+    'general': 'الغرفة العامة',
+    'algeria': 'الجزائر',
+    'all_countries': 'جميع الدول'
+  };
+  return rooms[roomId] || roomId;
+}
 
 // تذكير تلقائي بالأذكار
 const adhkar = [
@@ -294,7 +305,7 @@ app.post('/upload-background', verifyToken, upload.single('background'), async (
   }
 });
 
-// رفع أغنية البروفايل (تخزين محلي مع دعم MP3)
+// رفع أغنية البروفايل
 app.post('/upload-profile-song', verifyToken, uploadSong.single('song'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
@@ -334,6 +345,24 @@ app.get('/profile-data', verifyToken, async (req, res) => {
   });
 });
 
+// جلب قائمة غير المتصلين
+app.get('/offline-users', verifyToken, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT username, avatar, last_room_name, last_seen
+      FROM users
+      WHERE last_seen < NOW() - INTERVAL '1 minute'
+      AND username NOT IN (SELECT DISTINCT username FROM room_messages WHERE created_at > NOW() - INTERVAL '1 minute')
+      ORDER BY last_seen DESC
+      LIMIT 50
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('خطأ في جلب غير المتصلين:', err);
+    res.status(500).json([]);
+  }
+});
+
 app.get('/room-counts', (req, res) => {
   res.json(roomCounts);
 });
@@ -365,6 +394,28 @@ app.post('/api/save-last-room', verifyToken, async (req, res) => {
     res.status(500).json({ success: false });
   }
 });
+
+// تحديث قائمة غير المتصلين وإرسالها للجميع
+async function updateAndSendOfflineUsers() {
+  try {
+    const { rows } = await pool.query(`
+      SELECT username, avatar, last_room_name, last_seen
+      FROM users
+      WHERE last_seen < NOW() - INTERVAL '1 minute'
+      AND username NOT IN (SELECT DISTINCT username FROM room_messages WHERE created_at > NOW() - INTERVAL '1 minute')
+      ORDER BY last_seen DESC
+      LIMIT 50
+    `);
+    io.emit('offline users update', rows);
+  } catch (err) {
+    console.error('خطأ في تحديث قائمة غير المتصلين:', err);
+  }
+}
+
+// تحديث كل دقيقة
+setInterval(() => {
+  updateAndSendOfflineUsers();
+}, 60000);
 
 // Socket.IO
 io.on('connection', socket => {
@@ -415,6 +466,10 @@ io.on('connection', socket => {
       const decoded = jwt.verify(token, secret);
       username = decoded.username;
       socket.username = username;
+      
+      // إزالة من قائمة غير المتصلين
+      offlineUsers = offlineUsers.filter(u => u.username !== username);
+      
       if (currentRoom) {
         socket.leave(currentRoom);
         roomCounts[currentRoom]--;
@@ -441,6 +496,9 @@ io.on('connection', socket => {
       else if (room === 'algeria') roomName = 'الجزائر';
       else if (room === 'all_countries') roomName = 'جميع الدول';
       await pool.query('UPDATE users SET last_room = $1, last_room_name = $2, last_seen = NOW() WHERE username = $3', [room, roomName, username]);
+      
+      // تحديث قائمة غير المتصلين
+      updateAndSendOfflineUsers();
       
       const NEW_USER_LIMIT = 100;
       const OLD_USER_LIMIT = 5000;
@@ -755,6 +813,9 @@ io.on('connection', socket => {
       roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
       io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
       io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
+      
+      // تحديث قائمة غير المتصلين
+      updateAndSendOfflineUsers();
     }
     socket.username = null;
   });
