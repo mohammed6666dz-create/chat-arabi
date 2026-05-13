@@ -356,6 +356,27 @@
       margin-top: 5px;
       text-align: center;
     }
+
+    /* أنماط غير المتصلين */
+    .offline-section {
+      margin-top: 15px;
+      border-top: 1px solid #334155;
+      padding-top: 10px;
+    }
+    .offline-section .users-header-simple h3 i {
+      color: #64748b;
+    }
+    .offline-user {
+      opacity: 0.7;
+    }
+    .offline-user .user-name-simple {
+      color: #94a3b8;
+    }
+    .offline-user .last-room {
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 2px;
+    }
   </style>
 </head>
 <body>
@@ -434,6 +455,14 @@
         </div>
       </div>
       <div id="usersList" class="users-list-simple"></div>
+      
+      <!-- قسم غير المتصلين -->
+      <div class="offline-section">
+        <div class="users-header-simple">
+          <h3><i class="fas fa-user-slash"></i> غير متصلين <span id="offlineCount">0</span></h3>
+        </div>
+        <div id="offlineUsersList" class="users-list-simple"></div>
+      </div>
     </div>
   </div>
 
