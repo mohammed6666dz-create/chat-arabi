@@ -44,7 +44,10 @@ async function initDatabase() {
         friend_requests JSONB DEFAULT '[]'::jsonb,
         sent_requests JSONB DEFAULT '[]'::jsonb,
         notifications JSONB DEFAULT '[]'::jsonb,
-        created_at TIMESTAMPTZ DEFAULT NOW()
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        last_room TEXT DEFAULT 'general',
+        last_room_name TEXT DEFAULT 'الغرفة العامة',
+        last_seen TIMESTAMPTZ DEFAULT NOW()
       );
       CREATE TABLE IF NOT EXISTS private_messages (
         id SERIAL PRIMARY KEY,
@@ -192,7 +195,11 @@ app.post('/login', async (req, res) => {
     return res.status(400).json({ msg: 'بيانات خاطئة' });
   }
   const token = jwt.sign({ username }, secret, { expiresIn: '7d' });
-  res.json({ token });
+  res.json({ 
+    token,
+    last_room: user.last_room || 'general',
+    last_room_name: user.last_room_name || 'الغرفة العامة'
+  });
 });
 app.get('/sitemap.xml', (req, res) => {
   res.sendFile(path.join(__dirname, 'sitemap.xml'));
@@ -281,6 +288,19 @@ app.post('/change-rank', verifyToken, async (req, res) => {
   io.emit('rank update', { username: targetUsername, rank: newRank });
   res.json({ msg: 'تم تغيير الرتبة بنجاح' });
 });
+// حفظ آخر روم
+app.post('/api/save-last-room', verifyToken, async (req, res) => {
+  const { roomId, roomName } = req.body;
+  try {
+    await pool.query(
+      'UPDATE users SET last_room = $1, last_room_name = $2, last_seen = NOW() WHERE username = $3',
+      [roomId, roomName, req.user.username]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
 // ────────────────────────────────────────────────
 // Socket.IO
 // ────────────────────────────────────────────────
@@ -355,9 +375,20 @@ io.on('connection', socket => {
         return socket.disconnect();
       }
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
-      roomUsers[room].push({ username, avatar });
+      const userRank = user?.rank || 'ضيف';
+      roomUsers[room].push({ username, avatar, rank: userRank });
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
+      
+      // حفظ آخر روم
+      let roomName = room;
+      if (room === 'general') roomName = 'الغرفة العامة';
+      else if (room === 'algeria') roomName = 'الجزائر';
+      else if (room === 'all_countries') roomName = 'جميع الدول';
+      await pool.query(
+        'UPDATE users SET last_room = $1, last_room_name = $2, last_seen = NOW() WHERE username = $3',
+        [room, roomName, username]
+      );
       
       const NEW_USER_LIMIT = 100;
       const OLD_USER_LIMIT = 5000;
@@ -380,12 +411,20 @@ io.on('connection', socket => {
   socket.on('buy role', async ({ role }) => {
       if (socket.username && role === 'premium') {
         try {
-          await pool.query('UPDATE users SET rank = $1 WHERE username = $2', ['premium', socket.username]);
-          socket.emit('role purchased', { success: true, role: 'premium' });
+          await pool.query('UPDATE users SET rank = $1 WHERE username = $2', ['بريميوم', socket.username]);
+          socket.emit('role purchased', { success: true, role: 'بريميوم' });
           io.emit('rank update', {
             username: socket.username,
-            rank: 'premium'
+            rank: 'بريميوم'
           });
+          // تحديث الرتبة في القائمة
+          if (currentRoom) {
+            const userIndex = roomUsers[currentRoom].findIndex(u => u.username === socket.username);
+            if (userIndex !== -1) {
+              roomUsers[currentRoom][userIndex].rank = 'بريميوم';
+              io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
+            }
+          }
           console.log(`✅ تم ترقية ${socket.username} إلى بريميوم`);
         } catch (err) {
           console.error('خطأ في تحديث الرتبة:', err);
@@ -600,6 +639,14 @@ io.on('connection', socket => {
           role: 'system'
         });
         io.emit('rank updated', { username: targetUsername, rank: newRank });
+        // تحديث الرتبة في كل الرومات
+        for (const room in roomUsers) {
+          const userIndex = roomUsers[room].findIndex(u => u.username === targetUsername);
+          if (userIndex !== -1) {
+            roomUsers[room][userIndex].rank = newRank;
+            io.to(room).emit('update users', roomUsers[room]);
+          }
+        }
       }
     } catch (err) {
       console.error('Error during rank gift:', err);
@@ -623,135 +670,266 @@ io.on('connection', socket => {
         SELECT DISTINCT
           CASE
             WHEN from_user = $1 THEN to_user
-            ELSE from_user
-          END AS other_user
-        FROM private_messages
-        WHERE from_user = $1 OR to_user = $1
-      `, [socket.username]);
-      const conversations = await Promise.all(rows.map(async (r) => {
-        const u = await getUser(r.other_user);
+            ELSE WHEN from_user = $1 THEN to_user
+            ELSE from_user from_user
+         
+          END AS END AS other_user other_user
+       
+        FROM private_messages FROM private_messages
+       
+        WHERE from WHERE from_user =_user = $1 OR to $1_user = OR to_user = $1 $1
+      `,
+      [socket `,.username]);
+ [socket.username]);
+      const      const conversations conversations = await Promise = await Promise.all(.all(rows.maprows.map(async ((async (r) => {
+r) => {
+        const        const u = u = await getUser(r. await getUser(r.other_userother_user);
+       );
         return {
-          username: r.other_user,
-          avatar: u ? u.avatar : 'https://via.placeholder.com/40'
+          username return {
+: r.other          username: r.other_user,
+_user,
+          avatar: u          avatar: u ? u ? u.avatar.avatar : ' : 'https://via.placeholder.comhttps://via.placeholder.com/40/40'
         };
+     '
+        }));
+      socket. };
       }));
-      socket.emit('private conversations list', conversations);
+      socket.emit('emit('private conversations list',private conversations list', conversations);
+ conversations);
     } catch (err) {
-      console.error('خطأ في جلب المحادثات:', err);
+      console.error    } catch (err) {
+      console.error('خطأ في جلب('خطأ في جلب المحاد المحادثات:', err);
+   ثات:', err);
     }
+  }
   });
   
-  socket.on('get private messages', async (targetUsername) => {
-    if (!socket.username || !targetUsername) return;
+ });
+  
+  socket.on('get private messages',  socket.on('get private messages', async (target async (targetUsername) => {
+   Username) => {
+    if (! if (!socket.username || !socket.username || !targetUsernametargetUsername) return) return;
+   ;
     try {
-      const { rows } = await pool.query(`
-        SELECT from_user, to_user, message, created_at
-        FROM private_messages
-        WHERE (from_user = $1 AND to_user = $2)
-           OR (from_user = $2 AND to_user = $1)
-        ORDER BY created_at ASC
+      const try {
+      const { rows { rows } = await pool } =.query( await pool.query(`
+        SELECT from_user,`
+        SELECT from to_user_user, to_user, message, message, created_at
+, created_at
+        FROM private_m        FROM private_messages
+essages
+        WHERE        WHERE (from_user = (from_user = $1 $1 AND to AND to_user = $2)
+          _user = $2)
+           OR ( OR (from_user = $2 ANDfrom_user = $2 AND to_user to_user = $1)
+ = $1)
+        ORDER        ORDER BY created_at ASC
+ BY created_at ASC
         LIMIT 50
+      `, [socket        LIMIT 50
       `, [socket.username, targetUsername]);
-      const messages = await Promise.all(rows.map(async (msg) => {
-        const user = await getUser(msg.from_user);
+     .username, targetUsername]);
+      const messages const messages = await = await Promise.all Promise.all(rows.map(async (msg(rows.map(async (msg) => {
+       ) => const user = await {
+        const user = await getUser(msg getUser(msg.from_user.from_user);
         return {
-          from: msg.from_user,
+);
+        return {
+          from          from: msg.from_user,
+         : msg.from_user msg:,
           msg: msg.message,
-          avatar: user ? user.avatar : 'https://via.placeholder.com/30',
-          createdAt: msg.created_at
+          msg.message,
+          avatar: user ? avatar: user. user ? user.avatar :avatar : 'https 'https://via.placeholder://via.placeholder.com/30',
+.com/30',
+          createdAt          createdAt: msg.created_at: msg.created_at
+       
         };
+      };
       }));
-      socket.emit('previous private messages', { withUser: targetUsername, messages });
-    } catch (err) {
-      console.error('خطأ في جلب الرسائل الخاصة:', err);
+      }));
+      socket.emit(' socket.emit('previous privateprevious private messages', { withUser: messages', { with targetUsernameUser: targetUsername, messages });
+   , messages });
+    } catch (err } catch) {
+ (err) {
+      console      console.error('.error('خطأ في جخطألب الرسائل الخاصة في جلب الرسائل الخاصة:', err:', err);
     }
   });
   
-  socket.on('private message', async ({ to, msg }) => {
-    const from = socket.username;
-    if (!from || !to || !msg?.trim() || from === to) return;
-    const trimmedMsg = msg.trim();
+);
+    }
+  });
+  
+  socket  socket.on('.on('private message', asyncprivate message ({ to, msg', async ({ to }) =>, msg }) => {
+    const from {
+    const from = socket = socket.username;
+.username;
+    if    if (!from || ! (!from || !to || !msg?.trim() ||to || !msg?.trim() || from === to) return;
+ from === to) return;
+    const    const trimmedMsg trimmedMsg = msg.trim();
+ = msg.trim();
     try {
-      const { rows } = await pool.query(`
-        INSERT INTO private_messages
-        (from_user, to_user, message, created_at)
-        VALUES ($1, $2, $3, NOW())
-        RETURNING id, created_at
-      `, [from, to, trimmedMsg]);
+         try {
+      const { const { rows } = await rows } = await pool.query pool.query(`
+        INSERT INTO private(`
+_messages        INSERT INTO private_messages
+       
+        (from_user, to_user (from_user, to_user, message, message, created_at)
+, created_at)
+        VALUES ($1        VALUES ($1, $2,, $ $32, $3, NOW, NOW())
+       ())
+        RETURNING RETURNING id, created_at
+      id, created_at
+      `, `, [from [from, to, trimmed, toMsg]);
+, trimmedMsg]);
       const messageData = {
-        from,
+        from      const messageData = {
+,
+               from,
         to,
         msg: trimmedMsg,
-        avatar: (await getUser(from))?.avatar || 'https://via.placeholder.com/30',
-        createdAt: rows[0].created_at.toISOString()
+ to,
+        msg: trimmed        avatar: (Msg,
+        avatar: (await getUser(from))await getUser?.avatar(from))?.avatar || ' || 'https://https://via.placeholder.comvia.placeholder.com/30',
+       /30',
+        createdAt: createdAt: rows[0].created_at.toISOString()
+ rows[0].created_at.toISO      };
+      constString()
       };
-      const roomName = getPrivateRoomName(from, to);
-      io.to(roomName).emit('private message', messageData);
-      const isOnline = Array.from(io.sockets.sockets.values()).some(s => s.username === to);
-      for (const s of io.sockets.sockets.values()) {
-        if (s.username === to) s.emit('msg_notification', { from });
+ roomName = get      const roomName = getPrivateRoomName(fromPrivateRoomName(from, to, to);
+     );
+      io.to(roomName). io.to(roomName).emit('private message', messageemit('private message', messageData);
+Data);
+      const isOnline = Array      const isOnline.from(io.s = Array.from(io.sockets.sockets.valuesockets.sockets.values()).some()).some(s =>(s => s.username s.username === to);
+      === to);
+      for ( for (const sconst s of io.sockets of io.sockets.sockets.values()) {
+       .sockets.values()) if ( {
+        if (s.usernames.username === to) s.emit === to) s.emit('msg('msg_notification', {_notification', { from });
+ from });
       }
-      if (!isOnline) {
-        sendNotification(to, {
-          type: 'private_message',
+      if      }
+ (!is      if (!isOnline) {
+        sendNotificationOnline) {
+       (to, sendNotification(to, {
+          type: {
+          type: 'private 'private_message',
+          from_message',
           from,
-          message: `رسالة خاصة جديدة من ${from}`,
-          time: new Date().toISOString()
+          message: `رسالة خاصة,
+          message: `رسالة خاصة جديدة من ${from جديدة من ${from}`,
+          time: new}`,
+          time: new Date(). Date().toISOString()
+        });
+toISOString()
         });
       }
-    } catch (err) {
-      console.error('خطأ في حفظ الرسالة الخاصة:', err);
+    } catch (      }
+    } catch (err)err) {
+      console.error('خط {
+      console.errorأ في('خطأ في حفظ الرسالة الخاصة حفظ الرسالة الخاصة:', err:', err);
     }
+ );
+    });
+  
+ }
   });
   
-  socket.on('mark messages read', async (sender) => {
-    if (!socket.username) return;
-    const res = await pool.query(
-      `UPDATE private_messages
-       SET seen_by = array_append(seen_by, $1)
-       WHERE from_user = $2 AND to_user = $1 AND NOT ($1 = ANY(seen_by))`,
-      [socket.username, sender]
+  socket  socket.on('mark messages.on(' read',mark messages read', async (sender) async (sender) => {
+ => {
+    if    if (!socket.username) return;
+    const (!socket.username) return;
+ res = await pool    const res = await pool.query(
+.query(
+      `UPDATE private_messages      `UPDATE private_messages
+       SET seen
+       SET seen_by =_by = array_ array_append(append(seen_by, $seen_by, $1)
+1)
+       WHERE from_user = $       WHERE from_user = $2 AND2 AND to_user to_user = $ = $1 AND NOT ($1 = ANY(1 AND NOT ($1 = ANY(seen_byseen_by))`,
+     ))`,
+      [socket.username, sender [socket.username, sender]
     );
-    socket.emit('messages read confirmed', { count: res.rowCount });
+    socket.]
+    );
+    socket.emit('messages read confirmed', { countemit('messages read confirmed', { count: res.rowCount });
+ : res.rowCount });
   });
   
-  socket.on('disconnect', () => {
-    if (currentRoom && username) {
-      roomCounts[currentRoom]--;
-      roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
-      io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
-      io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
+  socket });
+  
+  socket.on('disconnect.on('disconnect', () => {
+    if', () => {
+    if (currentRoom && (currentRoom && username) {
+      username) {
+      roomCounts[current roomCounts[currentRoom]--;
+     Room]--;
+      roomUsers[currentRoom roomUsers[currentRoom] =] = roomUsers roomUsers[currentRoom].filter(u =>[currentRoom].filter(u => u.username u.username !== username !== username);
+      io.to);
+      io.to(currentRoom).emit(currentRoom).emit('update users', roomUsers[currentRoom('update users', roomUsers[currentRoom]);
+     ]);
+      io.to(currentRoom).emit('system message', io.to(currentRoom).emit('system message', `${username} غادر الغ `${username} غادر الغرفة`);
     }
+رفة`);
+    }
+    socket.username = null;
     socket.username = null;
   });
 });
 
-async function sendNotification(toUsername, notification) {
+async  });
+});
+
+async function sendNotification(toUsername, function sendNotification(toUsername, notification) notification) {
+  try {
+ {
   try {
     await pool.query(
+         await pool.query(
       'UPDATE users SET notifications = notifications || $1::jsonb WHERE username = $2',
       [JSON.stringify(notification), toUsername]
     );
+    for (const socket of io.sockets.sockets.values()) 'UPDATE users SET notifications = notifications || $1::jsonb WHERE username = $2',
+      [JSON.stringify(notification), toUsername]
+    );
     for (const socket of io.sockets.sockets.values()) {
-      if (socket.username === toUsername) {
-        socket.emit('new notification', notification);
+      if ( {
+      if (socket.usernamesocket.username === toUsername) {
+        socket. === toUsername) {
+        socket.emit('new notificationemit('new notification', notification);
+        break;
+', notification);
         break;
       }
+      }
     }
-  } catch (err) {
-    console.error('خطأ في إرسال الإشعار:', err);
+  }    }
+ catch (  } catch (err) {
+   err) {
+    console.error console.error('خط('خطأ في إرسأ في إرسال الإال الإشعارشعار:', err);
   }
 }
 
-// ────────────────────────────────────────────────
-// تشغيل السيرفر
-// ────────────────────────────────────────────────
-http.listen(PORT, '0.0.0.0', () => {
-  console.log('=====================================');
-  console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
-  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت)');
+:', err);
+ // }
+}
+
+// ───────────────── ────────────────────────────────────────────────────────────────────────
+───────
+// تشغيل// تشغيل السير السيرفر
+//فر
+ ─────────────────// ────────────────────────────────────────────────────────────────────────
+http.listen───────
+http.listen(PORT, '(PORT, '0.0.0.0.0.0.0',0', () => {
+  console.log () => {
+  console.log('================================('=====================================');
+ =====' console.log('✅);
+  console.log('✅ السيرفر يع السيرفر يعمل بنجاحمل بنجاح على port على port ' + PORT);
+  console ' + PORT);
+  console.log(' (مع.log(' (مع قاعدة بيانات قاعدة بيانات PostgreSQL + GPT ب PostgreSQL + GPT بوت)وت)');
   console.log('');
-  console.log('افتح الشات من:');
-  console.log(`http://localhost:${PORT}/index.html`);
-  console.log('=====================================');
+  console.log');
+  console.log('');
+  console.log('افتح الش('افتح الشات منات من:');
+  console:');
+  console.log(`.log(`http://http://localhost:${PORT}/indexlocalhost:${PORT}/index.html`);
+.html`);
+  console  console.log('=====================================');
 });
