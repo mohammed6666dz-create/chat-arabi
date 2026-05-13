@@ -40,6 +40,7 @@ async function initDatabase() {
         is_muted BOOLEAN DEFAULT false,
         avatar TEXT DEFAULT '',
         background TEXT DEFAULT '',
+        profile_song TEXT DEFAULT '',
         friends JSONB DEFAULT '[]'::jsonb,
         friend_requests JSONB DEFAULT '[]'::jsonb,
         sent_requests JSONB DEFAULT '[]'::jsonb,
@@ -220,6 +221,7 @@ app.get('/profile', verifyToken, async (req, res) => {
     username: user.username,
     avatar: user.avatar,
     background: user.background,
+    profile_song: user.profile_song || '',
     friends: user.friends,
     friend_requests: user.friend_requests || [],
     rank: user.rank || 'ضيف',
@@ -263,6 +265,40 @@ app.post('/upload-background', verifyToken, upload.single('background'), async (
     console.error("خطأ الرفع:", err);
     res.status(500).json({ msg: 'فشل الرفع السحابي' });
   }
+});
+
+// رفع أغنية البروفايل
+app.post('/upload-profile-song', verifyToken, upload.single('song'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
+  try {
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: "profile_songs",
+      resource_type: "video",
+      unsigned: true,
+      upload_preset: "ywfrua3f"
+    });
+    const success = await updateUserFields(req.user.username, { profile_song: result.secure_url });
+    if (!success) return res.status(500).json({ msg: 'خطأ في حفظ رابط الأغنية' });
+    res.json({ songUrl: result.secure_url });
+  } catch (err) {
+    console.error("خطأ رفع الأغنية:", err);
+    res.status(500).json({ msg: 'فشل رفع الأغنية' });
+  }
+});
+
+// جلب بيانات أي مستخدم (للبروفايل)
+app.get('/profile-data', verifyToken, async (req, res) => {
+  const { username } = req.query;
+  if (!username) return res.status(400).json({ msg: 'اسم المستخدم مطلوب' });
+  const user = await getUser(username);
+  if (!user) return res.status(404).json({ msg: 'المستخدم غير موجود' });
+  res.json({
+    username: user.username,
+    avatar: user.avatar,
+    profile_song: user.profile_song || ''
+  });
 });
 
 app.get('/room-counts', (req, res) => {
