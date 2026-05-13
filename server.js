@@ -107,7 +107,6 @@ initDatabase();
 // المتغيرات المؤقتة
 let roomUsers = { general: [], algeria: [], all_countries: [] };
 let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
-let offlineUsers = []; // قائمة غير المتصلين
 const RANKS = ['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'];
 const secret = 'secretkey';
 const PORT = process.env.PORT || 3000;
@@ -201,6 +200,40 @@ async function updateUserFields(username, updates) {
   } catch (err) {
     console.error('خطأ في تحديث المستخدم:', err);
     return false;
+  }
+}
+
+// جلب المتصلين حالياً
+function getOnlineUsernames() {
+  const online = [];
+  for (const room in roomUsers) {
+    roomUsers[room].forEach(user => {
+      if (!online.includes(user.username)) {
+        online.push(user.username);
+      }
+    });
+  }
+  return online;
+}
+
+// بث قائمة غير المتصلين للجميع
+async function broadcastOfflineUsers() {
+  try {
+    const onlineUsernames = getOnlineUsernames();
+    
+    const { rows: allUsers } = await pool.query(`
+      SELECT username, avatar, last_room_name, last_seen, rank
+      FROM users
+      ORDER BY last_seen DESC
+    `);
+    
+    const offlineUsersList = allUsers.filter(user => 
+      !onlineUsernames.includes(user.username)
+    );
+    
+    io.emit('offline users update', offlineUsersList);
+  } catch (err) {
+    console.error('خطأ في بث غير المتصلين:', err);
   }
 }
 
@@ -348,15 +381,19 @@ app.get('/profile-data', verifyToken, async (req, res) => {
 // جلب قائمة غير المتصلين
 app.get('/offline-users', verifyToken, async (req, res) => {
   try {
-    const { rows } = await pool.query(`
-      SELECT username, avatar, last_room_name, last_seen
+    const onlineUsernames = getOnlineUsernames();
+    
+    const { rows: allUsers } = await pool.query(`
+      SELECT username, avatar, last_room_name, last_seen, rank
       FROM users
-      WHERE last_seen < NOW() - INTERVAL '1 minute'
-      AND username NOT IN (SELECT DISTINCT username FROM room_messages WHERE created_at > NOW() - INTERVAL '1 minute')
       ORDER BY last_seen DESC
-      LIMIT 50
     `);
-    res.json(rows);
+    
+    const offlineUsersList = allUsers.filter(user => 
+      !onlineUsernames.includes(user.username)
+    );
+    
+    res.json(offlineUsersList);
   } catch (err) {
     console.error('خطأ في جلب غير المتصلين:', err);
     res.status(500).json([]);
@@ -395,27 +432,10 @@ app.post('/api/save-last-room', verifyToken, async (req, res) => {
   }
 });
 
-// تحديث قائمة غير المتصلين وإرسالها للجميع
-async function updateAndSendOfflineUsers() {
-  try {
-    const { rows } = await pool.query(`
-      SELECT username, avatar, last_room_name, last_seen
-      FROM users
-      WHERE last_seen < NOW() - INTERVAL '1 minute'
-      AND username NOT IN (SELECT DISTINCT username FROM room_messages WHERE created_at > NOW() - INTERVAL '1 minute')
-      ORDER BY last_seen DESC
-      LIMIT 50
-    `);
-    io.emit('offline users update', rows);
-  } catch (err) {
-    console.error('خطأ في تحديث قائمة غير المتصلين:', err);
-  }
-}
-
-// تحديث كل دقيقة
+// تحديث غير المتصلين كل 30 ثانية
 setInterval(() => {
-  updateAndSendOfflineUsers();
-}, 60000);
+  broadcastOfflineUsers();
+}, 30000);
 
 // Socket.IO
 io.on('connection', socket => {
@@ -467,9 +487,6 @@ io.on('connection', socket => {
       username = decoded.username;
       socket.username = username;
       
-      // إزالة من قائمة غير المتصلين
-      offlineUsers = offlineUsers.filter(u => u.username !== username);
-      
       if (currentRoom) {
         socket.leave(currentRoom);
         roomCounts[currentRoom]--;
@@ -498,7 +515,7 @@ io.on('connection', socket => {
       await pool.query('UPDATE users SET last_room = $1, last_room_name = $2, last_seen = NOW() WHERE username = $3', [room, roomName, username]);
       
       // تحديث قائمة غير المتصلين
-      updateAndSendOfflineUsers();
+      broadcastOfflineUsers();
       
       const NEW_USER_LIMIT = 100;
       const OLD_USER_LIMIT = 5000;
@@ -807,15 +824,18 @@ io.on('connection', socket => {
     socket.emit('messages read confirmed', { count: res.rowCount });
   });
   
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     if (currentRoom && username) {
       roomCounts[currentRoom]--;
       roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
       io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
       io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
       
+      // تحديث آخر ظهور في قاعدة البيانات
+      await pool.query('UPDATE users SET last_seen = NOW() WHERE username = $1', [username]);
+      
       // تحديث قائمة غير المتصلين
-      updateAndSendOfflineUsers();
+      broadcastOfflineUsers();
     }
     socket.username = null;
   });
