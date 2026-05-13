@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
@@ -22,7 +22,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="/socket.io/socket.io.js"></script>
   <style>
-    /* أنماط سريعة للوحات الجديدة */
     .conversations-panel, .friend-requests-panel, .reports-panel {
       position: fixed;
       top: 60px;
@@ -329,6 +328,34 @@
     .badge.premium { background: #10b981; color: white; }
     .badge.vip { background: #f59e0b; color: black; }
     .badge.guest { background: #475569; color: #cbd5e1; }
+
+    /* زر رفع الأغنية */
+    .upload-song-btn {
+      background: linear-gradient(135deg, #8b5cf6, #d946ef);
+      border: none;
+      padding: 12px 20px;
+      border-radius: 40px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      margin: 10px 0;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .upload-song-btn:hover {
+      transform: scale(1.02);
+      opacity: 0.9;
+    }
+    .song-status {
+      font-size: 12px;
+      color: #10b981;
+      margin-top: 5px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -472,6 +499,16 @@
         <p class="user-status">ضع حالتك هنا...</p>
       </div>
     </div>
+
+    <!-- زر رفع الأغنية تحت البروفايل مباشرة -->
+    <div style="padding: 0 25px 15px 25px;">
+      <button id="uploadProfileSongBtn" class="upload-song-btn">
+        <i class="fas fa-music"></i> 🎵 أغنية البروفايل 🎵
+      </button>
+      <input type="file" id="profileSongUpload" accept="audio/*" style="display: none;">
+      <div id="songStatus" class="song-status"></div>
+    </div>
+
     <div class="modern-tabs">
       <button class="m-tab active" data-tab="info">معلوماتي</button>
       <button class="m-tab" data-tab="friends">الأصدقاء</button>
@@ -806,4 +843,4 @@
   </script>
   <script src="chat.js"></script>
 </body>
-</html> 
+</html>
