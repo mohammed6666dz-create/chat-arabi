@@ -34,7 +34,18 @@ const storage = multer.diskStorage({
     cb(null, 'song-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
-const uploadSong = multer({ storage: storage });
+const uploadSong = multer({ 
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/mpeg3', 'audio/ogg', 'audio/wav'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('نوع الملف غير مدعوم. يرجى رفع ملف MP3, OGG أو WAV'), false);
+    }
+  }
+});
 
 // إعداد الاتصال بقاعدة البيانات
 const connectionString = process.env.DATABASE_URL || 'postgresql://postgres.wgzikxgbhrcgfewnosiq:mohamedennaiha55@aws-1-eu-west-1.pooler.supabase.com:5432/postgres';
@@ -283,17 +294,30 @@ app.post('/upload-background', verifyToken, upload.single('background'), async (
   }
 });
 
-// رفع أغنية البروفايل (تخزين محلي - بدون Cloudinary)
+// رفع أغنية البروفايل (تخزين محلي مع دعم MP3)
 app.post('/upload-profile-song', verifyToken, uploadSong.single('song'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
+  if (!req.file) {
+    return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
+  }
+  
   try {
     const songUrl = `/uploads/${req.file.filename}`;
     const success = await updateUserFields(req.user.username, { profile_song: songUrl });
-    if (!success) return res.status(500).json({ msg: 'خطأ في حفظ رابط الأغنية' });
-    res.json({ songUrl: songUrl });
+    
+    if (!success) {
+      return res.status(500).json({ msg: 'خطأ في حفظ رابط الأغنية في قاعدة البيانات' });
+    }
+    
+    res.json({ 
+      success: true,
+      songUrl: songUrl,
+      msg: 'تم رفع الأغنية بنجاح'
+    });
   } catch (err) {
     console.error("خطأ رفع الأغنية:", err);
-    res.status(500).json({ msg: 'فشل رفع الأغنية: ' + err.message });
+    res.status(500).json({ 
+      msg: 'فشل رفع الأغنية: ' + err.message 
+    });
   }
 });
 
