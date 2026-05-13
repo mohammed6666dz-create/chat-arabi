@@ -3,7 +3,6 @@ const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
-const upload = multer({ storage: multer.memoryStorage() });
 const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
@@ -19,6 +18,20 @@ const io = require('socket.io')(http);
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// إعداد التخزين المحلي للأغاني
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'song-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const uploadSong = multer({ storage: storage });
 
 // إعداد الاتصال بقاعدة البيانات
 const connectionString = process.env.DATABASE_URL || 'postgresql://postgres.wgzikxgbhrcgfewnosiq:mohamedennaiha55@aws-1-eu-west-1.pooler.supabase.com:5432/postgres';
@@ -267,24 +280,17 @@ app.post('/upload-background', verifyToken, upload.single('background'), async (
   }
 });
 
-// رفع أغنية البروفايل
-app.post('/upload-profile-song', verifyToken, upload.single('song'), async (req, res) => {
+// رفع أغنية البروفايل (تخزين محلي - بدون Cloudinary)
+app.post('/upload-profile-song', verifyToken, uploadSong.single('song'), async (req, res) => {
   if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
   try {
-    const b64 = Buffer.from(req.file.buffer).toString("base64");
-    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
-    const result = await cloudinary.uploader.upload(dataURI, {
-      folder: "profile_songs",
-      resource_type: "video",
-      unsigned: true,
-      upload_preset: "ywfrua3f"
-    });
-    const success = await updateUserFields(req.user.username, { profile_song: result.secure_url });
+    const songUrl = `/uploads/${req.file.filename}`;
+    const success = await updateUserFields(req.user.username, { profile_song: songUrl });
     if (!success) return res.status(500).json({ msg: 'خطأ في حفظ رابط الأغنية' });
-    res.json({ songUrl: result.secure_url });
+    res.json({ songUrl: songUrl });
   } catch (err) {
     console.error("خطأ رفع الأغنية:", err);
-    res.status(500).json({ msg: 'فشل رفع الأغنية' });
+    res.status(500).json({ msg: 'فشل رفع الأغنية: ' + err.message });
   }
 });
 
