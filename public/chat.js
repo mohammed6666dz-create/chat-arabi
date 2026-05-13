@@ -14,6 +14,7 @@ let currentPrivateChat = null;
 let myPoints = 1;
 let myLevel = 1;
 let myRole = 'guest';
+let myProfileSong = '';
 const mentionSound = new Audio('./bird-chirp-short.mp3');
 mentionSound.volume = 0.7;
 
@@ -270,6 +271,7 @@ async function loadMyProfile() {
         myUsername = user.username;
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
         myRole = user.rank || 'guest';
+        myProfileSong = user.profile_song || '';
         const timestamp = new Date().getTime();
         const avatarImg = document.getElementById('avatar');
         const profileAvatar = document.getElementById('myProfileAvatar');
@@ -281,6 +283,15 @@ async function loadMyProfile() {
         updateMessageBadge(user.unread_messages || 0);
         window.myFriends = user.friends || [];
         window.myRank = user.rank;
+        
+        if (myProfileSong) {
+            const songStatus = document.getElementById('songStatus');
+            if (songStatus) {
+                songStatus.innerHTML = '🎵 الأغنية مرفوعة ✅';
+                songStatus.style.color = '#10b981';
+            }
+        }
+        
         console.log("تم تحميل اسم المستخدم:", myUsername, "الرتبة:", myRole);
     } catch (err) {
         console.error('خطأ في تحميل البروفايل:', err);
@@ -329,7 +340,77 @@ document.getElementById('avatarUpload')?.addEventListener('change', async (e) =>
     }
 });
 
-function openUserProfile(username, role = 'guest', avatar = '') {
+// ========== رفع أغنية البروفايل ==========
+const uploadSongBtn = document.getElementById('uploadProfileSongBtn');
+const songInput = document.getElementById('profileSongUpload');
+const songStatus = document.getElementById('songStatus');
+
+if (uploadSongBtn && songInput) {
+    uploadSongBtn.addEventListener('click', () => {
+        songInput.click();
+    });
+
+    songInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        if (songStatus) {
+            songStatus.innerHTML = 'جاري رفع الأغنية... ⏳';
+            songStatus.style.color = '#fbbf24';
+        }
+        
+        const formData = new FormData();
+        formData.append('song', file);
+        
+        try {
+            const res = await fetch('/upload-profile-song', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token },
+                body: formData
+            });
+            const data = await res.json();
+            if (data.songUrl) {
+                myProfileSong = data.songUrl;
+                if (songStatus) {
+                    songStatus.innerHTML = '✅ تم رفع الأغنية بنجاح! 🎵';
+                    songStatus.style.color = '#10b981';
+                    setTimeout(() => {
+                        if (songStatus) songStatus.innerHTML = '🎵 الأغنية مرفوعة ✅';
+                    }, 3000);
+                }
+                alert('تم رفع الأغنية بنجاح!');
+            } else {
+                if (songStatus) {
+                    songStatus.innerHTML = '❌ فشل رفع الأغنية';
+                    songStatus.style.color = '#ef4444';
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            if (songStatus) {
+                songStatus.innerHTML = '❌ حدث خطأ في الرفع';
+                songStatus.style.color = '#ef4444';
+            }
+        }
+    });
+}
+
+// ========== جلب بيانات أي مستخدم (لأغنية البروفايل) ==========
+async function getUserProfileData(username) {
+    try {
+        const res = await fetch(`/profile-data?username=${encodeURIComponent(username)}`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!res.ok) return null;
+        return await res.json();
+    } catch (err) {
+        console.error('خطأ في جلب بيانات المستخدم:', err);
+        return null;
+    }
+}
+
+// ========== فتح بروفايل المستخدم (معدل لتشغيل الأغنية) ==========
+async function openUserProfile(username, role = 'guest', avatar = '') {
     const displayName = document.getElementById('otherUserDisplayName');
     const largeAvatar = document.getElementById('otherUserAvatarLarge');
     if (displayName) displayName.textContent = username;
@@ -341,6 +422,36 @@ function openUserProfile(username, role = 'guest', avatar = '') {
     modal.style.display = 'flex';
     modal.style.overflowY = 'auto';
     modal.style.maxHeight = '90vh';
+    
+    // إزالة أي مشغل أغنية قديم
+    const oldPlayer = document.getElementById('dynamicSongPlayer');
+    if (oldPlayer) oldPlayer.remove();
+    
+    // جلب بيانات المستخدم (بما فيها الأغنية)
+    const userData = await getUserProfileData(username);
+    
+    // تشغيل الأغنية إذا وجدت
+    if (userData && userData.profile_song && userData.profile_song !== '') {
+        const songPlayer = document.createElement('div');
+        songPlayer.id = 'dynamicSongPlayer';
+        songPlayer.style.margin = '15px 20px';
+        songPlayer.style.textAlign = 'center';
+        songPlayer.style.background = 'rgba(0,0,0,0.3)';
+        songPlayer.style.padding = '10px';
+        songPlayer.style.borderRadius = '30px';
+        songPlayer.innerHTML = `
+            <audio controls autoplay style="width: 100%; border-radius: 30px;">
+                <source src="${userData.profile_song}" type="audio/mpeg">
+                متصفحك لا يدعم تشغيل الصوت
+            </audio>
+        `;
+        const actionsDiv = modal.querySelector('.profile-actions');
+        if (actionsDiv) {
+            actionsDiv.insertAdjacentElement('afterend', songPlayer);
+        } else {
+            modal.querySelector('.modal-content')?.appendChild(songPlayer);
+        }
+    }
    
     const isMe = (username === myUsername);
     const msgBtn = document.getElementById('sendPrivateMsgBtn');
@@ -390,7 +501,7 @@ function openUserProfile(username, role = 'guest', avatar = '') {
    
     const adminBox = document.getElementById('adminActionsContainer');
     if (adminBox) {
-        const superAdminRanks = ['superadmin', 'سوبر أدمن', 'Super Admin', 'سوبرادمن'];
+        const superAdminRanks = ['superadmin', 'سوبر أدمن', 'Super Admin', 'سوبرادمن', 'صاحب الموقع', 'مالك'];
         const isSuperAdmin = superAdminRanks.includes(myRole?.toLowerCase());
         
         console.log('رتبتي الحالية:', myRole, 'هل أنا سوبر أدمن؟', isSuperAdmin);
@@ -477,6 +588,8 @@ function closeOtherUserProfile() {
         modal.classList.add('hidden');
         modal.style.display = 'none';
     }
+    const player = document.getElementById('dynamicSongPlayer');
+    if (player) player.remove();
 }
 
 socket.on('role updated', ({ username, role }) => {
