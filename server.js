@@ -19,7 +19,10 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// إعداد التخزين المحلي للأغاني
+// إعداد multer للصور (Cloudinary)
+const upload = multer({ storage: multer.memoryStorage() });
+
+// إعداد multer للتخزين المحلي (للأغاني)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = path.join(__dirname, 'uploads');
