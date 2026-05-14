@@ -1381,3 +1381,89 @@ document.addEventListener('click', function(e) {
         }
     }
 });
+// ========== تغيير خلفية الدردشة الخاصة ==========
+
+// فتح وإغلاق لوحة اختيار الخلفية
+const changeBgBtn = document.getElementById('changePrivateBgBtn');
+const bgPicker = document.getElementById('privateBgPicker');
+const bgInput = document.getElementById('privateBgInput');
+const uploadBgBtn = document.getElementById('uploadPrivateBgBtn');
+const resetBgBtn = document.getElementById('resetPrivateBgBtn');
+
+if (changeBgBtn && bgPicker) {
+    // فتح/إغلاق لوحة الخلفية
+    changeBgBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        bgPicker.classList.toggle('show');
+    });
+    
+    // إغلاق اللوحة عند الضغط خارجها
+    document.addEventListener('click', (e) => {
+        if (!bgPicker.contains(e.target) && e.target !== changeBgBtn) {
+            bgPicker.classList.remove('show');
+        }
+    });
+}
+
+// رفع صورة خلفية من الجهاز
+if (uploadBgBtn && bgInput) {
+    uploadBgBtn.addEventListener('click', () => {
+        bgInput.click();
+    });
+    
+    bgInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const bgUrl = event.target.result;
+                const messagesContainer = document.querySelector('#privateChatMessages');
+                if (messagesContainer) {
+                    messagesContainer.style.backgroundImage = `url(${bgUrl})`;
+                    messagesContainer.style.backgroundSize = 'cover';
+                    messagesContainer.style.backgroundPosition = 'center';
+                    messagesContainer.style.backgroundRepeat = 'no-repeat';
+                    // حفظ في localStorage
+                    localStorage.setItem(`privateBg_${myUsername}`, bgUrl);
+                }
+                bgPicker.classList.remove('show');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+// إعادة الخلفية الافتراضية
+if (resetBgBtn) {
+    resetBgBtn.addEventListener('click', () => {
+        const messagesContainer = document.querySelector('#privateChatMessages');
+        if (messagesContainer) {
+            messagesContainer.style.backgroundImage = '';
+            messagesContainer.style.backgroundColor = '#1a2a3a';
+            // حذف من localStorage
+            localStorage.removeItem(`privateBg_${myUsername}`);
+        }
+        bgPicker.classList.remove('show');
+    });
+}
+
+// استرجاع الخلفية المحفوظة عند تحميل الصفحة
+function loadSavedPrivateBg() {
+    const savedBg = localStorage.getItem(`privateBg_${myUsername}`);
+    if (savedBg) {
+        const messagesContainer = document.querySelector('#privateChatMessages');
+        if (messagesContainer) {
+            messagesContainer.style.backgroundImage = `url(${savedBg})`;
+            messagesContainer.style.backgroundSize = 'cover';
+            messagesContainer.style.backgroundPosition = 'center';
+            messagesContainer.style.backgroundRepeat = 'no-repeat';
+        }
+    }
+}
+
+// استدعاء الدالة بعد تحميل myUsername
+const originalLoadMyProfile = loadMyProfile;
+window.loadMyProfile = async function() {
+    await originalLoadMyProfile();
+    loadSavedPrivateBg();
+};
