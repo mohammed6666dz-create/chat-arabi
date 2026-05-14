@@ -522,13 +522,6 @@
     .like-btn:hover {
       color: #3b82f6;
     }
-    .dino-frame {
-      width: 100%;
-      height: 250px;
-      border: none;
-      border-radius: 10px;
-      background: white;
-    }
     .news-list {
       max-height: 300px;
       overflow-y: auto;
@@ -662,6 +655,92 @@
       transition: background-image 0.3s ease;
       background-color: #1a2a3a;
     }
+
+    /* ========== لعبة الديناصور - ستايلات جديدة ========== */
+    .dino-game-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 900px;
+      background: #1e1e1e;
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      z-index: 3000;
+      display: none;
+      border: 2px solid #3b82f6;
+      direction: ltr;
+    }
+    .dino-game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: #0f172a;
+      border-radius: 20px 20px 0 0;
+      border-bottom: 1px solid #334155;
+    }
+    .dino-game-header h3 {
+      margin: 0;
+      color: white;
+      font-size: 1.3rem;
+    }
+    .dino-game-header h3 i {
+      color: #fbbf24;
+      margin-left: 8px;
+    }
+    .dino-game-controls {
+      display: flex;
+      gap: 10px;
+    }
+    .dino-start-btn {
+      background: #10b981;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 30px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .dino-start-btn:hover {
+      background: #059669;
+    }
+    .dino-exit-btn {
+      background: #ef4444;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 30px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .dino-exit-btn:hover {
+      background: #dc2626;
+    }
+    .dino-game-container {
+      background: #f7f7f7;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      border-radius: 0 0 20px 20px;
+    }
+    canvas {
+      border: 2px solid #333;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .dino-score {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 18px;
+      color: #333;
+      font-weight: bold;
+    }
+    .dino-score span {
+      color: #3b82f6;
+      font-size: 24px;
+    }
   </style>
 </head>
 <body>
@@ -767,7 +846,9 @@
 
     <!-- لعبة الديناصور -->
     <div id="app-dino" class="app-content">
-      <iframe class="dino-frame" src="https://chromedino.com/" title="Dino Game"></iframe>
+      <button class="app-btn" id="openDinoGameBtn" style="background: linear-gradient(135deg, #f59e0b, #ef4444); text-align: center; justify-content: center;">
+        <i class="fas fa-gamepad"></i> تشغيل لعبة الديناصور
+      </button>
     </div>
 
     <!-- الأخبار -->
@@ -782,6 +863,23 @@
       <div id="roomsListApp" class="rooms-list-app">
         <div class="no-data">جاري تحميل الغرف...</div>
       </div>
+    </div>
+  </div>
+
+  <!-- نافذة لعبة الديناصور المنبثقة -->
+  <div id="dinoGameModal" class="dino-game-modal">
+    <div class="dino-game-header">
+      <h3><i class="fas fa-dragon"></i> لعبة الديناصور</h3>
+      <div class="dino-game-controls">
+        <button id="dinoStartBtn" class="dino-start-btn"><i class="fas fa-play"></i> بدء اللعبة</button>
+        <button id="dinoExitBtn" class="dino-exit-btn"><i class="fas fa-times"></i> خروج</button>
+      </div>
+    </div>
+    <div class="dino-game-container">
+      <canvas id="dinoCanvas" width="800" height="250"></canvas>
+    </div>
+    <div class="dino-score">
+      النقاط: <span id="dinoScore">0</span> / <span id="maxScore">99,999,999</span>
     </div>
   </div>
 
@@ -996,6 +1094,248 @@
   </div>
 
   <script>
+    // ========== لعبة الديناصور كاملة ==========
+    (function() {
+      const canvas = document.getElementById('dinoCanvas');
+      const ctx = canvas.getContext('2d');
+      const scoreSpan = document.getElementById('dinoScore');
+      const maxScoreSpan = document.getElementById('maxScore');
+      const startBtn = document.getElementById('dinoStartBtn');
+      const exitBtn = document.getElementById('dinoExitBtn');
+      const modal = document.getElementById('dinoGameModal');
+      const openBtn = document.getElementById('openDinoGameBtn');
+
+      let gameRunning = false;
+      let score = 0;
+      let animationId = null;
+      let frame = 0;
+      
+      // الديناصور
+      let dino = {
+        x: 50,
+        y: 180,
+        width: 25,
+        height: 30,
+        groundY: 180,
+        isJumping: false,
+        velocity: 0,
+        gravity: 0.8,
+        jumpPower: -12
+      };
+      
+      // العوائق (الصبار)
+      let obstacles = [];
+      
+      // متغيرات التحكم
+      let canJump = true;
+      
+      // رسم الديناصور
+      function drawDino() {
+        ctx.fillStyle = '#2d2d2d';
+        ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
+        // عين
+        ctx.fillStyle = 'white';
+        ctx.fillRect(dino.x + 18, dino.y + 5, 5, 5);
+        ctx.fillStyle = 'black';
+        ctx.fillRect(dino.x + 19, dino.y + 6, 3, 3);
+        // أرجل
+        ctx.fillStyle = '#2d2d2d';
+        ctx.fillRect(dino.x + 5, dino.y + dino.height - 5, 5, 8);
+        ctx.fillRect(dino.x + 15, dino.y + dino.height - 5, 5, 8);
+        // ذيل
+        ctx.fillRect(dino.x - 8, dino.y + 20, 8, 8);
+      }
+      
+      // رسم الصبار
+      function drawObstacle(obs) {
+        ctx.fillStyle = '#2d6a2d';
+        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+        ctx.fillStyle = '#1a4d1a';
+        ctx.fillRect(obs.x + 3, obs.y - 8, 6, 8);
+        ctx.fillRect(obs.x + 12, obs.y - 5, 5, 5);
+      }
+      
+      // رسم الأرض
+      function drawGround() {
+        ctx.fillStyle = '#8B7355';
+        ctx.fillRect(0, dino.groundY + dino.height, canvas.width, 5);
+        ctx.fillStyle = '#6B5340';
+        ctx.fillRect(0, dino.groundY + dino.height + 5, canvas.width, 3);
+      }
+      
+      // تحديث الفيزياء
+      function updatePhysics() {
+        if (dino.isJumping) {
+          dino.velocity += dino.gravity;
+          dino.y += dino.velocity;
+          
+          if (dino.y >= dino.groundY) {
+            dino.y = dino.groundY;
+            dino.isJumping = false;
+            dino.velocity = 0;
+            canJump = true;
+          }
+        }
+      }
+      
+      // تحديث العوائق
+      function updateObstacles() {
+        // إضافة عائق جديد عشوائياً
+        if (frame % 90 === 0 && gameRunning && obstacles.length < 3) {
+          obstacles.push({
+            x: canvas.width,
+            y: dino.groundY + 5,
+            width: 15,
+            height: 30
+          });
+        }
+        
+        // تحريك العوائق
+        for (let i = 0; i < obstacles.length; i++) {
+          obstacles[i].x -= 5;
+          
+          // التحقق من الاصطدام
+          if (obstacles[i].x < dino.x + dino.width &&
+              obstacles[i].x + obstacles[i].width > dino.x &&
+              obstacles[i].y < dino.y + dino.height &&
+              obstacles[i].y + obstacles[i].height > dino.y) {
+            gameOver();
+            return;
+          }
+          
+          // إزالة العوائق التي خرجت من الشاشة وزيادة النقاط
+          if (obstacles[i].x + obstacles[i].width < 0) {
+            obstacles.splice(i, 1);
+            if (gameRunning && score < 99999999) {
+              score++;
+              scoreSpan.textContent = score;
+            }
+            i--;
+          }
+        }
+      }
+      
+      // إنهاء اللعبة
+      function gameOver() {
+        gameRunning = false;
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+        }
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'white';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('انتهت اللعبة! اضغط "بدء اللعبة" للعب مجدداً', canvas.width/2, canvas.height/2);
+        ctx.textAlign = 'left';
+      }
+      
+      // إعادة تعيين اللعبة
+      function resetGame() {
+        score = 0;
+        scoreSpan.textContent = '0';
+        obstacles = [];
+        dino.y = dino.groundY;
+        dino.isJumping = false;
+        dino.velocity = 0;
+        frame = 0;
+        canJump = true;
+      }
+      
+      // حلقة اللعبة الرئيسية
+      function gameLoop() {
+        if (!gameRunning) return;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        drawGround();
+        updatePhysics();
+        updateObstacles();
+        
+        drawDino();
+        for (let obs of obstacles) {
+          drawObstacle(obs);
+        }
+        
+        // عرض النقاط على الكانفس
+        ctx.fillStyle = '#333';
+        ctx.font = '16px Arial';
+        ctx.fillText(`Score: ${score}`, canvas.width - 80, 30);
+        
+        frame++;
+        animationId = requestAnimationFrame(gameLoop);
+      }
+      
+      // بدء اللعبة
+      function startGame() {
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+        resetGame();
+        gameRunning = true;
+        gameLoop();
+      }
+      
+      // القفز
+      function jump() {
+        if (gameRunning && !dino.isJumping && canJump) {
+          dino.isJumping = true;
+          dino.velocity = dino.jumpPower;
+          canJump = false;
+        }
+      }
+      
+      // الأحداث
+      function handleKeydown(e) {
+        if (e.code === 'Space' || e.code === 'ArrowUp') {
+          e.preventDefault();
+          jump();
+        }
+      }
+      
+      function handleCanvasClick() {
+        jump();
+      }
+      
+      // فتح النافذة المنبثقة
+      function openModal() {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+      }
+      
+      // إغلاق النافذة
+      function closeModal() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+        }
+        gameRunning = false;
+      }
+      
+      // ربط الأحداث
+      if (startBtn) startBtn.addEventListener('click', startGame);
+      if (exitBtn) exitBtn.addEventListener('click', closeModal);
+      if (openBtn) openBtn.addEventListener('click', openModal);
+      if (canvas) {
+        canvas.addEventListener('click', handleCanvasClick);
+      }
+      document.addEventListener('keydown', handleKeydown);
+      
+      // إغلاق النافذة إذا نقر خارج المحتوى (اختياري)
+      window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+      
+      // تعيين الحد الأقصى
+      if (maxScoreSpan) maxScoreSpan.textContent = '99,999,999';
+    })();
+
+    // ========== باقي الكود الأصلي ==========
     document.addEventListener('DOMContentLoaded', () => {
       const usersPanel = document.getElementById('usersPanel');
       const hideBtn = document.getElementById('hideUsersPanelBtn2');
@@ -1197,9 +1537,7 @@
 
     // دالة الانتقال لغرفة جديدة
     function switchToRoom(roomId) {
-      // حفظ آخر غرفة
       localStorage.setItem('lastRoom', roomId);
-      // حفظ في السيرفر
       const token = localStorage.getItem('token');
       fetch('/api/save-last-room', {
         method: 'POST',
@@ -1213,7 +1551,6 @@
         })
       }).catch(err => console.log('خطأ في حفظ آخر غرفة:', err));
       
-      // الانتقال للغرفة الجديدة
       window.location.href = `chat.html?room=${roomId}`;
     }
   </script>
