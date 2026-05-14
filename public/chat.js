@@ -17,6 +17,8 @@ let myRole = 'guest';
 let myProfileSong = '';
 const mentionSound = new Audio('./bird-chirp-short.mp3');
 mentionSound.volume = 0.7;
+// لمنع تكرار الرسائل الخاصة
+let receivedMessagesIds = new Set();
 
 socket.emit('join', room, token);
 
@@ -297,6 +299,8 @@ async function loadMyProfile() {
         myAvatar = user.avatar || 'https://via.placeholder.com/40';
         myRole = user.rank || 'guest';
         myProfileSong = user.profile_song || '';
+        myPoints = user.points || 0;
+        myLevel = user.level || 1;
         const timestamp = new Date().getTime();
         const avatarImg = document.getElementById('avatar');
         const profileAvatar = document.getElementById('myProfileAvatar');
@@ -308,6 +312,7 @@ async function loadMyProfile() {
         updateMessageBadge(user.unread_messages || 0);
         window.myFriends = user.friends || [];
         window.myRank = user.rank;
+        updatePointsLevelDisplay();
         
         if (myProfileSong) {
             const songStatus = document.getElementById('songStatus');
@@ -633,7 +638,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ========== فتح بروفايل المستخدم (معدل لتشغيل الأغنية) ==========
+// ========== فتح بروفايل المستخدم ==========
 async function openUserProfile(username, role = 'guest', avatar = '') {
     const displayName = document.getElementById('otherUserDisplayName');
     const largeAvatar = document.getElementById('otherUserAvatarLarge');
@@ -820,75 +825,47 @@ socket.on('role updated', ({ username, role }) => {
     }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-    const usersPanel = document.getElementById('usersPanel');
-    const hideBtns = document.querySelectorAll('#hideUsersPanelBtn, #hideUsersPanelBtn2');
-    const showBtns = document.querySelectorAll('#showUsersPanelBtn, #showUsersPanelBtn2');
+// ========== الرسائل الخاصة (معدلة لمنع التكرار وحفظ 5000 رسالة) ==========
+
+socket.on('private message', ({ id, from, to, msg, avatar, createdAt }) => {
+    // منع تكرار الرسائل باستخدام ID
+    if (id && receivedMessagesIds.has(id)) return;
+    if (id) receivedMessagesIds.add(id);
     
-    hideBtns.forEach(btn => {
-        if (btn) {
-            btn.addEventListener('click', () => {
-                if (usersPanel) usersPanel.style.display = 'none';
-                hideBtns.forEach(b => b.style.display = 'none');
-                showBtns.forEach(b => b.style.display = 'inline-flex');
-            });
-        }
-    });
+    if (from === myUsername) return;
     
-    showBtns.forEach(btn => {
-        if (btn) {
-            btn.addEventListener('click', () => {
-                if (usersPanel) usersPanel.style.display = 'block';
-                showBtns.forEach(b => b.style.display = 'none');
-                hideBtns.forEach(b => b.style.display = 'inline-flex');
-            });
-        }
-    });
-    
-    // زر التطبيقات
-    const appsBtn = document.getElementById('appsBtn');
-    const appsPanel = document.getElementById('appsPanel');
-    if (appsBtn && appsPanel) {
-        appsBtn.addEventListener('click', () => {
-            appsPanel.style.display = 'block';
-            loadPosts();
-        });
-    }
-    
-    // أزرار التطبيقات الداخلية
-    const appBtns = document.querySelectorAll('.app-btn');
-    appBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const appName = btn.getAttribute('data-app');
-            document.querySelectorAll('.app-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            const targetContent = document.getElementById(`app-${appName}`);
-            if (targetContent) {
-                targetContent.classList.add('active');
-            }
-            if (appName === 'wall') {
-                loadPosts();
-            } else if (appName === 'news') {
-                loadNews();
-            }
-        });
-    });
-    
-    // زر نشر منشور
-    const publishBtn = document.getElementById('publishPostBtn');
-    if (publishBtn) {
-        publishBtn.addEventListener('click', publishPost);
+    if (currentPrivateChat === from || currentPrivateChat === to) {
+        const isMe = from === myUsername;
+        appendPrivateMessage(
+            isMe ? myUsername : from,
+            msg,
+            isMe ? myAvatar : (avatar || 'https://via.placeholder.com/30'),
+            isMe
+        );
+    } else {
+        totalUnreadMsgs++;
+        updateMessageBadge(totalUnreadMsgs);
     }
 });
 
-document.getElementById('sendPrivateMsgBtn')?.addEventListener('click', () => {
-    startPrivateChat();
-});
-
-document.getElementById('closePrivateChat')?.addEventListener('click', () => {
-    const panel = document.getElementById('privateChatPanel');
-    if (panel) panel.style.display = 'none';
+socket.on('previous private messages', ({ withUser, messages }) => {
+    if (currentPrivateChat !== withUser) return;
+    const chat = document.getElementById('privateChatMessages');
+    if (chat) {
+        chat.innerHTML = '';
+        messages.forEach(m => {
+            // تخزين IDs الرسائل المستلمة لتجنب التكرار مستقبلاً
+            if (m.id) receivedMessagesIds.add(m.id);
+            const isMe = m.from === myUsername;
+            appendPrivateMessage(
+                isMe ? myUsername : m.from,
+                m.msg,
+                isMe ? myAvatar : (m.avatar || 'https://via.placeholder.com/30'),
+                isMe
+            );
+        });
+        chat.scrollTop = chat.scrollHeight;
+    }
 });
 
 document.getElementById('privateChatForm')?.addEventListener('submit', (e) => {
@@ -911,47 +888,15 @@ function appendPrivateMessage(username, msg, avatar, isMe) {
     const div = document.createElement('div');
     div.className = isMe ? 'my-private-message' : 'private-message';
     div.innerHTML = `
-        <img src="${avatar || 'https://via.placeholder.com/30'}" alt="${username}" style="width:30px;height:30px;border-radius:50%;">
+        <img src="${avatar || 'https://via.placeholder.com/30'}" alt="${username}">
         <div class="private-content">
-            <strong>${username}</strong>
-            <p>${msg}</p>
+            <strong>${escapeHtml(username)}</strong>
+            <p>${escapeHtml(msg)}</p>
         </div>
     `;
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
 }
-
-socket.on('private message', ({ from, to, msg, avatar }) => {
-    if (from === myUsername) return;
-    if (currentPrivateChat === from || currentPrivateChat === to) {
-        const isMe = from === myUsername;
-        appendPrivateMessage(
-            isMe ? myUsername : from,
-            msg,
-            isMe ? myAvatar : (avatar || 'https://via.placeholder.com/30'),
-            isMe
-        );
-    } else {
-        console.log(`رسالة خاصة جديدة من ${from}`);
-        totalUnreadMsgs++;
-        updateMessageBadge(totalUnreadMsgs);
-    }
-});
-
-socket.on('previous private messages', ({ withUser, messages }) => {
-    if (currentPrivateChat !== withUser) return;
-    const chat = document.getElementById('privateChatMessages');
-    if (chat) chat.innerHTML = '';
-    messages.forEach(m => {
-        const isMe = m.from === myUsername;
-        appendPrivateMessage(
-            isMe ? myUsername : m.from,
-            m.msg,
-            isMe ? myAvatar : (m.avatar || 'https://via.placeholder.com/30'),
-            isMe
-        );
-    });
-});
 
 document.getElementById('logoutBtn')?.addEventListener('click', () => {
     if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
@@ -1040,6 +985,42 @@ document.addEventListener('DOMContentLoaded', () => {
             input.focus();
         }
     });
+    
+    // زر التطبيقات
+    const appsBtn = document.getElementById('appsBtn');
+    const appsPanel = document.getElementById('appsPanel');
+    if (appsBtn && appsPanel) {
+        appsBtn.addEventListener('click', () => {
+            appsPanel.style.display = 'block';
+            loadPosts();
+        });
+    }
+    
+    // أزرار التطبيقات الداخلية
+    const appBtns = document.querySelectorAll('.app-btn');
+    appBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const appName = btn.getAttribute('data-app');
+            document.querySelectorAll('.app-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            const targetContent = document.getElementById(`app-${appName}`);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+            if (appName === 'wall') {
+                loadPosts();
+            } else if (appName === 'news') {
+                loadNews();
+            }
+        });
+    });
+    
+    // زر نشر منشور
+    const publishBtn = document.getElementById('publishPostBtn');
+    if (publishBtn) {
+        publishBtn.addEventListener('click', publishPost);
+    }
 });
 
 function updateFriendRequestBadge(requests) {
