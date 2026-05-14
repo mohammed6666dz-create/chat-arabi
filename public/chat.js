@@ -1338,3 +1338,29 @@ if (typeof closeOtherUserProfile !== 'function') {
         if (player) player.remove();
     }
 }
+// ========== إغلاق نافذة الدردشة الخاصة ==========
+
+// إغلاق عند الضغط على زر الإغلاق (X)
+const closePrivateChatBtn = document.getElementById('closePrivateChat');
+if (closePrivateChatBtn) {
+    const newCloseBtn = closePrivateChatBtn.cloneNode(true);
+    closePrivateChatBtn.parentNode.replaceChild(newCloseBtn, closePrivateChatBtn);
+    
+    newCloseBtn.onclick = function(e) {
+        e.preventDefault();
+        const panel = document.getElementById('privateChatPanel');
+        if (panel) {
+            panel.style.display = 'none';
+        }
+    };
+}
+
+// طريقة بديلة: الاستماع لأي زر إغلاق داخل نافذة الدردشة
+document.addEventListener('click', function(e) {
+    if (e.target.id === 'closePrivateChat' || e.target.closest('#closePrivateChat')) {
+        const panel = document.getElementById('privateChatPanel');
+        if (panel) {
+            panel.style.display = 'none';
+        }
+    }
+});
