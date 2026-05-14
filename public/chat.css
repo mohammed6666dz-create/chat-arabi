@@ -1892,3 +1892,95 @@ header h1 {
         font-size: 0.7rem !important;
     }
 }
+/* ========== تغيير شكل النوافذ من دائري إلى مربع ========== */
+
+/* نافذة الشات الرئيسية */
+#chatWindow {
+    border-radius: 0px !important;
+}
+
+/* نافذة الدردشة الخاصة */
+.private-chat-panel {
+    border-radius: 8px !important;
+}
+
+/* رأس نافذة الدردشة الخاصة */
+.private-chat-panel .private-header {
+    border-radius: 8px 8px 0 0 !important;
+}
+
+/* لوحة المستخدمين */
+#usersPanel {
+    border-radius: 8px !important;
+}
+
+/* جميع النوافذ المنبثقة */
+.modal-content,
+#myProfilePanel,
+.other-profile-modal .modal-content,
+.apps-panel,
+.conversations-panel,
+.friend-requests-panel,
+.reports-panel {
+    border-radius: 8px !important;
+}
+
+/* فقاعات الرسائل */
+.message .message-content,
+.my-message .message-content {
+    border-radius: 12px !important;
+    border-bottom-left-radius: 4px !important;
+}
+
+/* فقاعة الرسالة الخاصة بي */
+.my-message .message-content {
+    border-bottom-right-radius: 4px !important;
+}
+
+/* الرسائل الخاصة - الفقاعات */
+.private-message .private-content,
+.my-private-message .private-content {
+    border-radius: 12px !important;
+}
+
+/* سهم الرسالة الواردة */
+.private-message .private-content::before {
+    border-radius: 0 !important;
+}
+
+/* سهم رسالتي أنا */
+.my-private-message .private-content::after {
+    border-radius: 0 !important;
+}
+
+/* أزرار */
+.icon-btn,
+#messageForm button,
+.comment-input-area button,
+.buy-btn,
+.post-btn,
+.action-btn {
+    border-radius: 8px !important;
+}
+
+/* حقل الإدخال */
+#messageInput,
+#privateChatInput,
+.comment-input-area input,
+.post-input-area textarea {
+    border-radius: 8px !important;
+}
+
+/* بطاقات المستخدمين */
+.user-item-simple,
+.user-item,
+.conversation-item,
+.request-item,
+.post-item {
+    border-radius: 8px !important;
+}
+
+/* تبويبات البروفايل */
+.m-tab {
+    border-radius: 8px !important;
+}
