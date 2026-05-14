@@ -517,7 +517,7 @@ io.on('connection', socket => {
       // تحديث قائمة غير المتصلين
       broadcastOfflineUsers();
       
-      const NEW_USER_LIMIT = 100;
+      const NEW_USER_LIMIT = 5000;
       const OLD_USER_LIMIT = 5000;
       const isNewUser = user.created_at > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
       const limit = isNewUser ? NEW_USER_LIMIT : OLD_USER_LIMIT;
