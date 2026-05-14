@@ -504,6 +504,7 @@ header h1 {
   cursor: pointer;
 }
 /* الرسائل الخاصة */
+/* الرسائل الخاصة */
 .private-message, .my-private-message {
     display: flex !important;
     align-items: flex-start !important;
@@ -513,13 +514,13 @@ header h1 {
     margin-bottom: 12px !important;
 }
 
-/* الرسالة الواردة */
+/* الرسالة الواردة (من شخص آخر) */
 .private-message {
     align-self: flex-start !important;
     flex-direction: row !important;
 }
 
-/* الرسالة الصادرة */
+/* الرسالة الصادرة (رسائلي أنا) */
 .my-private-message {
     align-self: flex-end !important;
     flex-direction: row-reverse !important;
@@ -533,6 +534,80 @@ header h1 {
     object-fit: cover !important;
     flex-shrink: 0 !important;
     margin: 0 !important;
+}
+
+/* محتوى الرسالة الواردة (من شخص آخر) */
+.private-message .private-content {
+    max-width: calc(100% - 46px) !important;
+    padding: 8px 12px !important;
+    border-radius: 18px !important;
+    background: #2a3942 !important;
+    color: white !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    position: relative !important;
+}
+
+/* محتوى رسالتي أنا */
+.my-private-message .private-content {
+    max-width: calc(100% - 46px) !important;
+    padding: 8px 12px !important;
+    border-radius: 18px !important;
+    background: #075e54 !important;  /* لون أخضر مثل واتساب */
+    color: white !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    position: relative !important;
+}
+
+/* اسم المستخدم في الرسالة الواردة (لون أزرق) */
+.private-message .private-content strong {
+    display: block !important;
+    font-size: 11px !important;
+    color: #3b82f6 !important;  /* أزرق */
+    margin-bottom: 3px !important;
+}
+
+/* اسمي أنا في رسالتي (لون رمادي) */
+.my-private-message .private-content strong {
+    display: block !important;
+    font-size: 11px !important;
+    color: #94a3b8 !important;  /* رمادي فاتح */
+    margin-bottom: 3px !important;
+    text-align: left !important;
+}
+
+/* نص الرسالة */
+.private-content p {
+    margin: 0 !important;
+    font-size: 13px !important;
+    word-wrap: break-word !important;
+}
+
+/* سهم للرسالة الواردة */
+.private-message .private-content::before {
+    content: '';
+    position: absolute;
+    right: -8px;
+    top: 12px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 8px 6px 0;
+    border-color: transparent #2a3942 transparent transparent;
+}
+
+/* سهم لرسالتي أنا */
+.my-private-message .private-content::after {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 12px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 0 6px 8px;
+    border-color: transparent transparent transparent #075e54;
 }
 
 /* محتوى الرسالة */
