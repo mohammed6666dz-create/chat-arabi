@@ -94,7 +94,6 @@ async function initDatabase() {
         role TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
-      -- جدول منشورات الأصدقاء
       CREATE TABLE IF NOT EXISTS friends_posts (
         id SERIAL PRIMARY KEY,
         username TEXT NOT NULL,
@@ -103,11 +102,19 @@ async function initDatabase() {
         liked_by TEXT[] DEFAULT '{}',
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      CREATE TABLE IF NOT EXISTS post_comments (
+        id SERIAL PRIMARY KEY,
+        post_id INTEGER NOT NULL,
+        username TEXT NOT NULL,
+        content TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
       CREATE INDEX IF NOT EXISTS idx_pm_users ON private_messages (from_user, to_user);
       CREATE INDEX IF NOT EXISTS idx_room_messages_room_created ON room_messages (room, created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_friends_posts_created ON friends_posts (created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_post_comments_post ON post_comments (post_id);
     `);
-    console.log('✓ الجداول جاهزة (مع جدول friends_posts)');
+    console.log('✓ الجداول جاهزة (مع friends_posts و post_comments)');
   } catch (err) {
     console.error('خطأ في تهيئة الجداول:', err);
   }
@@ -247,6 +254,24 @@ async function broadcastOfflineUsers() {
   }
 }
 
+// إرسال إشعار لمستخدم معين
+async function sendNotification(toUsername, notification) {
+  try {
+    await pool.query(
+      'UPDATE users SET notifications = notifications || $1::jsonb WHERE username = $2',
+      [JSON.stringify(notification), toUsername]
+    );
+    for (const socket of io.sockets.sockets.values()) {
+      if (socket.username === toUsername) {
+        socket.emit('new_notification', notification);
+        break;
+      }
+    }
+  } catch (err) {
+    console.error('خطأ في إرسال الإشعار:', err);
+  }
+}
+
 // Routes
 app.post('/register', async (req, res) => {
   const { username, password } = req.body;
@@ -292,111 +317,6 @@ const verifyToken = (req, res, next) => {
     res.status(401).json({ msg: 'توكن غير صالح' });
   }
 };
-
-// ========== مسارات المنشورات (حائط الأصدقاء) ==========
-// تم نقلها هنا بعد تعريف verifyToken
-
-// إنشاء منشور جديد
-app.post('/api/create-post', verifyToken, async (req, res) => {
-  const { content } = req.body;
-  const username = req.user.username;
-  
-  if (!content || content.trim() === '') {
-    return res.status(400).json({ msg: 'المنشور لا يمكن أن يكون فارغاً' });
-  }
-  
-  try {
-    await pool.query(
-      'INSERT INTO friends_posts (username, content, created_at) VALUES ($1, $2, NOW())',
-      [username, content.trim()]
-    );
-    res.json({ success: true, msg: 'تم نشر المنشور بنجاح' });
-  } catch (err) {
-    console.error('خطأ في إنشاء منشور:', err);
-    res.status(500).json({ msg: 'خطأ في نشر المنشور' });
-  }
-});
-
-// جلب منشورات الأصدقاء فقط
-app.get('/api/get-friends-posts', verifyToken, async (req, res) => {
-  const username = req.user.username;
-  
-  try {
-    // جلب قائمة أصدقاء المستخدم
-    const user = await getUser(username);
-    const friendsList = user.friends || [];
-    
-    if (friendsList.length === 0) {
-      return res.json([]);
-    }
-    
-    // جلب منشورات الأصدقاء + منشورات المستخدم نفسه
-    const allUsernames = [username, ...friendsList];
-    
-    const { rows: posts } = await pool.query(`
-      SELECT p.*, u.avatar
-      FROM friends_posts p
-      LEFT JOIN users u ON p.username = u.username
-      WHERE p.username = ANY($1::text[])
-      ORDER BY p.created_at DESC
-      LIMIT 50
-    `, [allUsernames]);
-    
-    // إضافة معلومات هل المستخدم أعجب بالمنشور
-    const postsWithLiked = posts.map(post => ({
-      ...post,
-      user_liked: post.liked_by ? post.liked_by.includes(username) : false
-    }));
-    
-    res.json(postsWithLiked);
-  } catch (err) {
-    console.error('خطأ في جلب منشورات الأصدقاء:', err);
-    res.status(500).json([]);
-  }
-});
-
-// إعجاب بمنشور
-app.post('/api/like-post', verifyToken, async (req, res) => {
-  const { postId } = req.body;
-  const username = req.user.username;
-  
-  if (!postId) {
-    return res.status(400).json({ msg: 'معرف المنشور مطلوب' });
-  }
-  
-  try {
-    // جلب المنشور الحالي
-    const { rows } = await pool.query('SELECT liked_by FROM friends_posts WHERE id = $1', [postId]);
-    if (rows.length === 0) {
-      return res.status(404).json({ msg: 'المنشور غير موجود' });
-    }
-    
-    let likedBy = rows[0].liked_by || [];
-    let newLikes = rows[0].likes || 0;
-    
-    if (likedBy.includes(username)) {
-      // إزالة الإعجاب
-      likedBy = likedBy.filter(u => u !== username);
-      newLikes--;
-    } else {
-      // إضافة إعجاب
-      likedBy.push(username);
-      newLikes++;
-    }
-    
-    await pool.query(
-      'UPDATE friends_posts SET likes = $1, liked_by = $2 WHERE id = $3',
-      [newLikes, likedBy, postId]
-    );
-    
-    res.json({ success: true });
-  } catch (err) {
-    console.error('خطأ في الإعجاب:', err);
-    res.status(500).json({ msg: 'خطأ في الإعجاب' });
-  }
-});
-
-// ========== باقي المسارات ==========
 
 app.get('/profile', verifyToken, async (req, res) => {
   const user = await getUser(req.user.username);
@@ -544,6 +464,234 @@ app.post('/api/save-last-room', verifyToken, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false });
+  }
+});
+
+// ========== مسارات حائط الأصدقاء ==========
+
+// إنشاء منشور جديد
+app.post('/api/create-post', verifyToken, async (req, res) => {
+  const { content } = req.body;
+  const username = req.user.username;
+  
+  if (!content || content.trim() === '') {
+    return res.status(400).json({ msg: 'المنشور لا يمكن أن يكون فارغاً' });
+  }
+  
+  try {
+    const result = await pool.query(
+      'INSERT INTO friends_posts (username, content, created_at) VALUES ($1, $2, NOW()) RETURNING id',
+      [username, content.trim()]
+    );
+    const postId = result.rows[0].id;
+    
+    // إرسال إشعارات للأصدقاء
+    const user = await getUser(username);
+    const friendsList = user.friends || [];
+    
+    for (const friend of friendsList) {
+      const notification = {
+        id: Date.now(),
+        type: 'new_post',
+        from: username,
+        post_id: postId,
+        message: `${username} نشر منشور جديد: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+        created_at: new Date().toISOString()
+      };
+      await sendNotification(friend, notification);
+    }
+    
+    res.json({ success: true, msg: 'تم نشر المنشور بنجاح' });
+  } catch (err) {
+    console.error('خطأ في إنشاء منشور:', err);
+    res.status(500).json({ msg: 'خطأ في نشر المنشور' });
+  }
+});
+
+// جلب منشورات الأصدقاء فقط
+app.get('/api/get-friends-posts', verifyToken, async (req, res) => {
+  const username = req.user.username;
+  
+  try {
+    const user = await getUser(username);
+    const friendsList = user.friends || [];
+    
+    if (friendsList.length === 0) {
+      return res.json([]);
+    }
+    
+    const allUsernames = [username, ...friendsList];
+    
+    const { rows: posts } = await pool.query(`
+      SELECT p.*, u.avatar
+      FROM friends_posts p
+      LEFT JOIN users u ON p.username = u.username
+      WHERE p.username = ANY($1::text[])
+      ORDER BY p.created_at DESC
+      LIMIT 50
+    `, [allUsernames]);
+    
+    const postsWithLiked = posts.map(post => ({
+      ...post,
+      user_liked: post.liked_by ? post.liked_by.includes(username) : false
+    }));
+    
+    res.json(postsWithLiked);
+  } catch (err) {
+    console.error('خطأ في جلب منشورات الأصدقاء:', err);
+    res.status(500).json([]);
+  }
+});
+
+// إعجاب بمنشور
+app.post('/api/like-post', verifyToken, async (req, res) => {
+  const { postId } = req.body;
+  const username = req.user.username;
+  
+  if (!postId) {
+    return res.status(400).json({ msg: 'معرف المنشور مطلوب' });
+  }
+  
+  try {
+    const { rows } = await pool.query('SELECT liked_by, likes, username as post_owner FROM friends_posts WHERE id = $1', [postId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ msg: 'المنشور غير موجود' });
+    }
+    
+    let likedBy = rows[0].liked_by || [];
+    let newLikes = rows[0].likes || 0;
+    const postOwner = rows[0].post_owner;
+    
+    if (likedBy.includes(username)) {
+      likedBy = likedBy.filter(u => u !== username);
+      newLikes--;
+    } else {
+      likedBy.push(username);
+      newLikes++;
+      
+      // إرسال إشعار للمنشور إذا كان المعجب ليس صاحب المنشور
+      if (postOwner !== username) {
+        const notification = {
+          id: Date.now(),
+          type: 'like',
+          from: username,
+          post_id: postId,
+          message: `${username} أعجب بمنشورك: ${rows[0].content?.substring(0, 50) || ''}`,
+          created_at: new Date().toISOString()
+        };
+        await sendNotification(postOwner, notification);
+      }
+    }
+    
+    await pool.query(
+      'UPDATE friends_posts SET likes = $1, liked_by = $2 WHERE id = $3',
+      [newLikes, likedBy, postId]
+    );
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('خطأ في الإعجاب:', err);
+    res.status(500).json({ msg: 'خطأ في الإعجاب' });
+  }
+});
+
+// جلب التعليقات لمنشور
+app.get('/api/get-comments', verifyToken, async (req, res) => {
+  const { postId } = req.query;
+  
+  if (!postId) {
+    return res.status(400).json([]);
+  }
+  
+  try {
+    const { rows } = await pool.query(`
+      SELECT c.*, u.avatar
+      FROM post_comments c
+      LEFT JOIN users u ON c.username = u.username
+      WHERE c.post_id = $1
+      ORDER BY c.created_at ASC
+      LIMIT 50
+    `, [postId]);
+    
+    res.json(rows);
+  } catch (err) {
+    console.error('خطأ في جلب التعليقات:', err);
+    res.status(500).json([]);
+  }
+});
+
+// إضافة تعليق
+app.post('/api/add-comment', verifyToken, async (req, res) => {
+  const { postId, content } = req.body;
+  const username = req.user.username;
+  
+  if (!postId || !content || content.trim() === '') {
+    return res.status(400).json({ msg: 'البيانات غير مكتملة' });
+  }
+  
+  try {
+    // جلب صاحب المنشور
+    const { rows: postRows } = await pool.query('SELECT username as post_owner, content as post_content FROM friends_posts WHERE id = $1', [postId]);
+    if (postRows.length === 0) {
+      return res.status(404).json({ msg: 'المنشور غير موجود' });
+    }
+    const postOwner = postRows[0].post_owner;
+    
+    await pool.query(
+      'INSERT INTO post_comments (post_id, username, content, created_at) VALUES ($1, $2, $3, NOW())',
+      [postId, username, content.trim()]
+    );
+    
+    // إرسال إشعار لصاحب المنشور إذا لم يكن المعلق هو صاحب المنشور
+    if (postOwner !== username) {
+      const notification = {
+        id: Date.now(),
+        type: 'comment',
+        from: username,
+        post_id: postId,
+        message: `${username} علق على منشورك: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+        created_at: new Date().toISOString()
+      };
+      await sendNotification(postOwner, notification);
+    }
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('خطأ في إضافة التعليق:', err);
+    res.status(500).json({ msg: 'خطأ في إضافة التعليق' });
+  }
+});
+
+// جلب الإشعارات
+app.get('/api/get-notifications', verifyToken, async (req, res) => {
+  const username = req.user.username;
+  
+  try {
+    const user = await getUser(username);
+    const notifications = user.notifications || [];
+    // ترتيب الإشعارات من الأحدث إلى الأقدم
+    notifications.reverse();
+    res.json(notifications.slice(0, 50));
+  } catch (err) {
+    console.error('خطأ في جلب الإشعارات:', err);
+    res.status(500).json([]);
+  }
+});
+
+// تعليم الإشعار كمقروء
+app.post('/api/mark-notification-read', verifyToken, async (req, res) => {
+  const { notifId } = req.body;
+  const username = req.user.username;
+  
+  try {
+    const user = await getUser(username);
+    let notifications = user.notifications || [];
+    notifications = notifications.filter(n => n.id !== notifId);
+    await pool.query('UPDATE users SET notifications = $1 WHERE username = $2', [JSON.stringify(notifications), username]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('خطأ في تعليم الإشعار كمقروء:', err);
+    res.status(500).json({ msg: 'خطأ في تحديث الإشعارات' });
   }
 });
 
@@ -771,12 +919,16 @@ io.on('connection', socket => {
     if (sender.sent_requests.includes(targetUsername) || target.friend_requests.includes(socket.username) || sender.friends.includes(targetUsername)) return;
     await pool.query('UPDATE users SET friend_requests = COALESCE(friend_requests, \'[]\'::jsonb) || jsonb_build_array($1::text) WHERE username = $2', [socket.username, targetUsername]);
     await pool.query('UPDATE users SET sent_requests = COALESCE(sent_requests, \'[]\'::jsonb) || jsonb_build_array($1::text) WHERE username = $2', [targetUsername, socket.username]);
-    sendNotification(targetUsername, {
+    
+    const notification = {
+      id: Date.now(),
       type: 'friend_request',
       from: socket.username,
       message: `${socket.username} أرسل لك طلب صداقة`,
-      time: new Date().toISOString()
-    });
+      created_at: new Date().toISOString()
+    };
+    await sendNotification(targetUsername, notification);
+    
     socket.emit('request_sent', targetUsername);
   });
   
@@ -786,12 +938,16 @@ io.on('connection', socket => {
     if (!acceptorUser || !senderUser) return;
     await pool.query(`UPDATE users SET friend_requests = friend_requests - $1::text, friends = COALESCE(friends, '[]'::jsonb) || jsonb_build_array($1::text) WHERE username = $2`, [fromUsername, acceptor]);
     await pool.query(`UPDATE users SET sent_requests = sent_requests - $1::text, friends = COALESCE(friends, '[]'::jsonb) || jsonb_build_array($1::text) WHERE username = $2`, [acceptor, fromUsername]);
-    sendNotification(fromUsername, {
+    
+    const notification = {
+      id: Date.now(),
       type: 'friend_accepted',
       from: acceptor,
       message: `${acceptor} قبل طلب الصداقة`,
-      time: new Date().toISOString()
-    });
+      created_at: new Date().toISOString()
+    };
+    await sendNotification(fromUsername, notification);
+    
     socket.emit('friend_accepted', fromUsername);
   });
   
@@ -920,12 +1076,14 @@ io.on('connection', socket => {
         if (s.username === to) s.emit('msg_notification', { from });
       }
       if (!isOnline) {
-        sendNotification(to, {
+        const notification = {
+          id: Date.now(),
           type: 'private_message',
-          from,
+          from: from,
           message: `رسالة خاصة جديدة من ${from}`,
-          time: new Date().toISOString()
-        });
+          created_at: new Date().toISOString()
+        };
+        await sendNotification(to, notification);
       }
     } catch (err) {
       console.error('خطأ في حفظ الرسالة الخاصة:', err);
@@ -952,25 +1110,11 @@ io.on('connection', socket => {
   });
 });
 
-async function sendNotification(toUsername, notification) {
-  try {
-    await pool.query('UPDATE users SET notifications = notifications || $1::jsonb WHERE username = $2', [JSON.stringify(notification), toUsername]);
-    for (const socket of io.sockets.sockets.values()) {
-      if (socket.username === toUsername) {
-        socket.emit('new notification', notification);
-        break;
-      }
-    }
-  } catch (err) {
-    console.error('خطأ في إرسال الإشعار:', err);
-  }
-}
-
 // تشغيل السيرفر
 http.listen(PORT, '0.0.0.0', () => {
   console.log('=====================================');
   console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
-  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت + حفظ الجلسة + منشورات الأصدقاء)');
+  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت + حفظ الجلسة + حائط الأصدقاء)');
   console.log('');
   console.log('افتح الشات من:');
   console.log(`http://localhost:${PORT}/index.html`);
