@@ -1557,3 +1557,150 @@ header h1 {
         height: 28px !important;
     }
 }
+/* ========== تحسين شكل بروفايل المستخدم الآخر ========== */
+
+/* تحسين شكل المودال بالكامل */
+.other-profile-modal .modal-content {
+    width: 95%;
+    max-width: 500px;
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    border-radius: 28px;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+/* صورة الغلاف */
+.other-profile-modal .profile-cover {
+    height: 140px;
+    background: linear-gradient(135deg, #075e54, #128c7e);
+    position: relative;
+}
+
+.other-profile-modal .profile-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.7));
+}
+
+/* صورة البروفايل الكبيرة */
+.other-profile-modal .large-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid #1e293b;
+    object-fit: cover;
+    margin-top: -50px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+}
+
+/* معلومات المستخدم */
+.other-profile-modal .user-info-text h2 {
+    font-size: 1.6rem;
+    margin: 10px 0 5px;
+    background: linear-gradient(135deg, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.other-profile-modal .status-text {
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+
+/* الأزرار */
+.other-profile-modal .profile-actions {
+    display: flex;
+    gap: 12px;
+    padding: 15px 25px;
+    justify-content: center;
+    flex-wrap: wrap;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.other-profile-modal .action-btn {
+    padding: 8px 20px;
+    border-radius: 40px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.other-profile-modal .action-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* تفاصيل البروفايل */
+.other-profile-modal .profile-details {
+    padding: 20px 25px 30px;
+}
+
+.other-profile-modal .detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.15);
+    font-size: 0.9rem;
+}
+
+.other-profile-modal .detail-item:last-child {
+    border-bottom: none;
+}
+
+.other-profile-modal .detail-item span:first-child {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.other-profile-modal .detail-item span:last-child {
+    color: #e2e8f0;
+    font-weight: 400;
+}
+
+/* زر إغلاق المودال */
+.other-profile-modal .close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    width: 32px;
+    height: 32px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s;
+}
+
+.other-profile-modal .close-modal:hover {
+    background: rgba(239, 68, 68, 0.8);
+    transform: rotate(90deg);
+}
+
+/* مشغل الأغنية */
+#dynamicSongPlayer {
+    margin: 5px 20px 15px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 40px;
+    padding: 8px 12px;
+}
+
+#dynamicSongPlayer audio {
+    width: 100%;
+    height: 36px;
+    border-radius: 30px;
+}
+
+#dynamicSongPlayer audio::-webkit-media-controls-panel {
+    background: #1e293b;
+}
+
+#dynamicSongPlayer audio::-webkit-media-controls-current-time-display,
+#dynamicSongPlayer audio::-webkit-media-controls-time-remaining-display {
+    color: white;
+}
