@@ -9,6 +9,12 @@ if (!token) {
     window.location.href = 'index.html'; 
 }
 
+// ========== استرجاع آخر غرفة وفتحها تلقائياً ==========
+const lastRoom = localStorage.getItem('lastRoom');
+if (lastRoom) {
+    window.location.href = `chat.html?room=${lastRoom}`;
+}
+
 /**
  * دالة جلب بيانات الغرف وتحديث الواجهة
  */
@@ -67,9 +73,11 @@ function renderRooms(counts) {
 }
 
 /**
- * دالة الانتقال إلى غرفة الدردشة
+ * دالة الانتقال إلى غرفة الدردشة (مع حفظ آخر غرفة)
  */
 function enterRoom(room) { 
+    // حفظ آخر غرفة في localStorage
+    localStorage.setItem('lastRoom', room);
     window.location.href = `chat.html?room=${room}`; 
 } 
 
