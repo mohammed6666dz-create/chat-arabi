@@ -12,7 +12,6 @@ if (!room) {
 if (room) {
     localStorage.setItem('lastRoom', room);
     
-    // إرسال آخر غرفة للسيرفر
     fetch('/api/save-last-room', {
         method: 'POST',
         headers: {
@@ -34,7 +33,6 @@ let myRole = 'guest';
 let myProfileSong = '';
 const mentionSound = new Audio('./bird-chirp-short.mp3');
 mentionSound.volume = 0.7;
-// لمنع تكرار الرسائل الخاصة
 let receivedMessagesIds = new Set();
 
 socket.emit('join', room, token);
@@ -76,8 +74,6 @@ socket.on('update users', (users) => {
     });
 });
 
-// استقبال قائمة غير المتصلين
-// استقبال قائمة غير المتصلين
 socket.on('offline users update', (offlineUsers) => {
     const offlineList = document.getElementById('offlineUsersList');
     const offlineCount = document.getElementById('offlineCount');
@@ -101,6 +97,7 @@ socket.on('offline users update', (offlineUsers) => {
     });
     if (offlineCount) offlineCount.innerText = offlineUsers.length;
 });
+
 socket.on('message', ({ username, msg, avatar, role, border }) => {
     appendMessage(username, msg, avatar, username === myUsername, role || 'guest', border || 'none');
 });
@@ -331,6 +328,17 @@ async function loadMyProfile() {
         window.myRank = user.rank;
         updatePointsLevelDisplay();
         
+        // استرجاع خلفية الدردشة الخاصة من السيرفر
+        if (user.private_bg) {
+            const messagesContainer = document.getElementById('privateChatMessages');
+            if (messagesContainer) {
+                messagesContainer.style.backgroundImage = `url(${user.private_bg})`;
+                messagesContainer.style.backgroundSize = 'cover';
+                messagesContainer.style.backgroundPosition = 'center';
+                messagesContainer.style.backgroundRepeat = 'no-repeat';
+            }
+        }
+        
         if (myProfileSong) {
             const songStatus = document.getElementById('songStatus');
             if (songStatus) {
@@ -387,7 +395,6 @@ document.getElementById('avatarUpload')?.addEventListener('change', async (e) =>
     }
 });
 
-// ========== رفع أغنية البروفايل ==========
 const uploadSongBtn = document.getElementById('uploadProfileSongBtn');
 const songInput = document.getElementById('profileSongUpload');
 const songStatus = document.getElementById('songStatus');
@@ -442,7 +449,6 @@ if (uploadSongBtn && songInput) {
     });
 }
 
-// ========== جلب بيانات أي مستخدم (لأغنية البروفايل) ==========
 async function getUserProfileData(username) {
     try {
         const res = await fetch(`/profile-data?username=${encodeURIComponent(username)}`, {
@@ -456,9 +462,83 @@ async function getUserProfileData(username) {
     }
 }
 
+// ========== رفع خلفية الدردشة الخاصة إلى السيرفر ==========
+
+async function uploadPrivateBgToServer(file) {
+    const formData = new FormData();
+    formData.append('bg', file);
+    
+    const res = await fetch('/upload-private-bg', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+    });
+    const data = await res.json();
+    return data.bgUrl;
+}
+
+// فتح وإغلاق لوحة اختيار الخلفية
+const changeBgBtn = document.getElementById('changePrivateBgBtn');
+const bgPicker = document.getElementById('privateBgPicker');
+const bgInput = document.getElementById('privateBgInput');
+const uploadBgBtn = document.getElementById('uploadPrivateBgBtn');
+const resetBgBtn = document.getElementById('resetPrivateBgBtn');
+
+if (changeBgBtn && bgPicker) {
+    changeBgBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        bgPicker.classList.toggle('show');
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!bgPicker.contains(e.target) && e.target !== changeBgBtn) {
+            bgPicker.classList.remove('show');
+        }
+    });
+}
+
+// رفع صورة خلفية من الجهاز وحفظها في السيرفر
+if (uploadBgBtn && bgInput) {
+    uploadBgBtn.addEventListener('click', () => {
+        bgInput.click();
+    });
+    
+    bgInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const bgUrl = await uploadPrivateBgToServer(file);
+            if (bgUrl) {
+                const messagesContainer = document.getElementById('privateChatMessages');
+                if (messagesContainer) {
+                    messagesContainer.style.backgroundImage = `url(${bgUrl})`;
+                    messagesContainer.style.backgroundSize = 'cover';
+                    messagesContainer.style.backgroundPosition = 'center';
+                }
+            }
+            bgPicker.classList.remove('show');
+        }
+    });
+}
+
+// إعادة الخلفية الافتراضية (وحذفها من السيرفر)
+if (resetBgBtn) {
+    resetBgBtn.addEventListener('click', async () => {
+        const messagesContainer = document.getElementById('privateChatMessages');
+        if (messagesContainer) {
+            messagesContainer.style.backgroundImage = '';
+            messagesContainer.style.backgroundColor = '#1a2a3a';
+        }
+        bgPicker.classList.remove('show');
+        
+        await fetch('/api/clear-private-bg', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+    });
+}
+
 // ========== دوال حائط الأصدقاء ==========
 
-// جلب منشورات الأصدقاء فقط
 async function loadPosts() {
     try {
         const res = await fetch('/api/get-friends-posts', {
@@ -508,7 +588,6 @@ async function loadPosts() {
     }
 }
 
-// تبديل ظهور التعليقات
 async function toggleComments(postId) {
     const commentsArea = document.getElementById(`comments-area-${postId}`);
     if (commentsArea.style.display === 'none' || commentsArea.style.display === '') {
@@ -519,7 +598,6 @@ async function toggleComments(postId) {
     }
 }
 
-// جلب التعليقات
 async function loadComments(postId) {
     try {
         const res = await fetch(`/api/get-comments?postId=${postId}`, {
@@ -549,7 +627,6 @@ async function loadComments(postId) {
     }
 }
 
-// إضافة تعليق
 async function addComment(postId) {
     const input = document.getElementById(`comment-input-${postId}`);
     const content = input.value.trim();
@@ -576,7 +653,6 @@ async function addComment(postId) {
     }
 }
 
-// نشر منشور جديد
 async function publishPost() {
     const content = document.getElementById('postContent').value.trim();
     if (!content) {
@@ -608,7 +684,6 @@ async function publishPost() {
     }
 }
 
-// إعجاب بمنشور
 async function likePost(postId) {
     try {
         const res = await fetch('/api/like-post', {
@@ -627,7 +702,6 @@ async function likePost(postId) {
     }
 }
 
-// جلب الأخبار
 async function loadNews() {
     const container = document.getElementById('newsList');
     if (!container) return;
@@ -842,10 +916,9 @@ socket.on('role updated', ({ username, role }) => {
     }
 });
 
-// ========== الرسائل الخاصة (معدلة لمنع التكرار وحفظ 5000 رسالة) ==========
+// ========== الرسائل الخاصة ==========
 
 socket.on('private message', ({ id, from, to, msg, avatar, createdAt }) => {
-    // منع تكرار الرسائل باستخدام ID
     if (id && receivedMessagesIds.has(id)) return;
     if (id) receivedMessagesIds.add(id);
     
@@ -871,7 +944,6 @@ socket.on('previous private messages', ({ withUser, messages }) => {
     if (chat) {
         chat.innerHTML = '';
         messages.forEach(m => {
-            // تخزين IDs الرسائل المستلمة لتجنب التكرار مستقبلاً
             if (m.id) receivedMessagesIds.add(m.id);
             const isMe = m.from === myUsername;
             appendPrivateMessage(
@@ -1003,7 +1075,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // زر التطبيقات
     const appsBtn = document.getElementById('appsBtn');
     const appsPanel = document.getElementById('appsPanel');
     if (appsBtn && appsPanel) {
@@ -1013,7 +1084,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // أزرار التطبيقات الداخلية
     const appBtns = document.querySelectorAll('.app-btn');
     appBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1033,7 +1103,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // زر نشر منشور
     const publishBtn = document.getElementById('publishPostBtn');
     if (publishBtn) {
         publishBtn.addEventListener('click', publishPost);
@@ -1238,26 +1307,12 @@ socket.on('private message', ({ from, to, msg, avatar }) => {
         updateMessageBadge(totalUnreadMsgs);
     }
 });
-// تأكد من أن زر الرسالة الخاصة يعمل
-document.addEventListener('click', function(e) {
-    if (e.target.id === 'sendPrivateMsgBtn' || e.target.closest('#sendPrivateMsgBtn')) {
-        const btn = document.getElementById('sendPrivateMsgBtn');
-        if (btn && btn.style.display !== 'none') {
-            const username = document.getElementById('otherUserDisplayName')?.textContent;
-            if (username && username !== myUsername) {
-                closeOtherUserProfile();
-                startPrivateChat(username);
-            }
-        }
-    }
-});
+
 // ========== إصلاح زر الرسالة الخاصة ==========
 
-// دالة إصلاح زر الرسالة الخاصة
 function fixPrivateMessageButton() {
     const sendBtn = document.getElementById('sendPrivateMsgBtn');
     if (sendBtn && sendBtn.style.display !== 'none') {
-        // إزالة أي event listeners قديمة
         const newBtn = sendBtn.cloneNode(true);
         sendBtn.parentNode.replaceChild(newBtn, sendBtn);
         
@@ -1267,13 +1322,11 @@ function fixPrivateMessageButton() {
             console.log('🟢 تم الضغط على زر الرسالة الخاصة');
             const username = document.getElementById('otherUserDisplayName')?.textContent;
             if (username && username !== myUsername) {
-                // إغلاق المودال أولاً
                 const modal = document.getElementById('otherUserProfileModal');
                 if (modal) {
                     modal.classList.add('hidden');
                     modal.style.display = 'none';
                 }
-                // فتح الدردشة الخاصة
                 startPrivateChat(username);
             }
         };
@@ -1281,7 +1334,6 @@ function fixPrivateMessageButton() {
     }
 }
 
-// مراقبة فتح المودال وتفعيل الزر
 const observer = new MutationObserver(function(mutations) {
     mutations.forEach(function(mutation) {
         if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
@@ -1298,7 +1350,6 @@ if (modal) {
     observer.observe(modal, { attributes: true });
 }
 
-// أيضاً عند فتح المودال عبر openUserProfile
 const originalOpenUserProfile = window.openUserProfile;
 if (originalOpenUserProfile) {
     window.openUserProfile = async function(username, role, avatar) {
@@ -1307,7 +1358,6 @@ if (originalOpenUserProfile) {
     };
 }
 
-// دالة startPrivateChat (إذا مش موجودة)
 if (typeof startPrivateChat !== 'function') {
     function startPrivateChat(targetName) {
         const name = targetName || document.getElementById('otherUserDisplayName')?.textContent;
@@ -1321,7 +1371,6 @@ if (typeof startPrivateChat !== 'function') {
         }
         console.log('🟢 بدء دردشة خاصة مع:', name);
         
-        // إغلاق أي مودال مفتوح
         const modal = document.getElementById('otherUserProfileModal');
         if (modal) {
             modal.classList.add('hidden');
@@ -1343,7 +1392,6 @@ if (typeof startPrivateChat !== 'function') {
     }
 }
 
-// دالة closeOtherUserProfile (إذا مش موجودة)
 if (typeof closeOtherUserProfile !== 'function') {
     function closeOtherUserProfile() {
         const modal = document.getElementById('otherUserProfileModal');
@@ -1355,9 +1403,9 @@ if (typeof closeOtherUserProfile !== 'function') {
         if (player) player.remove();
     }
 }
+
 // ========== إغلاق نافذة الدردشة الخاصة ==========
 
-// إغلاق عند الضغط على زر الإغلاق (X)
 const closePrivateChatBtn = document.getElementById('closePrivateChat');
 if (closePrivateChatBtn) {
     const newCloseBtn = closePrivateChatBtn.cloneNode(true);
@@ -1372,7 +1420,6 @@ if (closePrivateChatBtn) {
     };
 }
 
-// طريقة بديلة: الاستماع لأي زر إغلاق داخل نافذة الدردشة
 document.addEventListener('click', function(e) {
     if (e.target.id === 'closePrivateChat' || e.target.closest('#closePrivateChat')) {
         const panel = document.getElementById('privateChatPanel');
@@ -1381,162 +1428,3 @@ document.addEventListener('click', function(e) {
         }
     }
 });
-// ========== تغيير خلفية الدردشة الخاصة ==========
-
-// فتح وإغلاق لوحة اختيار الخلفية
-const changeBgBtn = document.getElementById('changePrivateBgBtn');
-const bgPicker = document.getElementById('privateBgPicker');
-const bgInput = document.getElementById('privateBgInput');
-const uploadBgBtn = document.getElementById('uploadPrivateBgBtn');
-const resetBgBtn = document.getElementById('resetPrivateBgBtn');
-
-if (changeBgBtn && bgPicker) {
-    // فتح/إغلاق لوحة الخلفية
-    changeBgBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        bgPicker.classList.toggle('show');
-    });
-    
-    // إغلاق اللوحة عند الضغط خارجها
-    document.addEventListener('click', (e) => {
-        if (!bgPicker.contains(e.target) && e.target !== changeBgBtn) {
-            bgPicker.classList.remove('show');
-        }
-    });
-}
-
-// ========== رفع خلفية الدردشة الخاصة إلى السيرفر ==========
-
-async function uploadPrivateBgToServer(file) {
-    const formData = new FormData();
-    formData.append('bg', file);
-    
-    const res = await fetch('/upload-private-bg', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token },
-        body: formData
-    });
-    const data = await res.json();
-    return data.bgUrl;
-}
-
-async function loadPrivateBgFromServer() {
-    try {
-        const res = await fetch('/profile', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const user = await res.json();
-        if (user.private_bg) {
-            const messagesContainer = document.getElementById('privateChatMessages');
-            if (messagesContainer) {
-                messagesContainer.style.backgroundImage = `url(${user.private_bg})`;
-                messagesContainer.style.backgroundSize = 'cover';
-                messagesContainer.style.backgroundPosition = 'center';
-                messagesContainer.style.backgroundRepeat = 'no-repeat';
-            }
-        }
-    } catch (err) {
-        console.log('خطأ في استرجاع الخلفية:', err);
-    }
-}
-
-// فتح وإغلاق لوحة اختيار الخلفية
-const changeBgBtn = document.getElementById('changePrivateBgBtn');
-const bgPicker = document.getElementById('privateBgPicker');
-const bgInput = document.getElementById('privateBgInput');
-const uploadBgBtn = document.getElementById('uploadPrivateBgBtn');
-const resetBgBtn = document.getElementById('resetPrivateBgBtn');
-
-if (changeBgBtn && bgPicker) {
-    changeBgBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        bgPicker.classList.toggle('show');
-    });
-    
-    document.addEventListener('click', (e) => {
-        if (!bgPicker.contains(e.target) && e.target !== changeBgBtn) {
-            bgPicker.classList.remove('show');
-        }
-    });
-}
-
-// رفع صورة خلفية من الجهاز وحفظها في السيرفر
-if (uploadBgBtn && bgInput) {
-    uploadBgBtn.addEventListener('click', () => {
-        bgInput.click();
-    });
-    
-    bgInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            // رفع إلى السيرفر
-            const bgUrl = await uploadPrivateBgToServer(file);
-            if (bgUrl) {
-                const messagesContainer = document.getElementById('privateChatMessages');
-                if (messagesContainer) {
-                    messagesContainer.style.backgroundImage = `url(${bgUrl})`;
-                    messagesContainer.style.backgroundSize = 'cover';
-                    messagesContainer.style.backgroundPosition = 'center';
-                }
-            }
-            bgPicker.classList.remove('show');
-        }
-    });
-}
-
-// إعادة الخلفية الافتراضية (وحذفها من السيرفر)
-if (resetBgBtn) {
-    resetBgBtn.addEventListener('click', async () => {
-        const messagesContainer = document.getElementById('privateChatMessages');
-        if (messagesContainer) {
-            messagesContainer.style.backgroundImage = '';
-            messagesContainer.style.backgroundColor = '#1a2a3a';
-        }
-        bgPicker.classList.remove('show');
-        
-        // حذف الخلفية من السيرفر
-        await fetch('/api/clear-private-bg', {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-    });
-}
-
-// استرجاع الخلفية من السيرفر عند تحميل الصفحة
-setTimeout(() => {
-    loadPrivateBgFromServer();
-}, 1000);
-// إعادة الخلفية الافتراضية
-if (resetBgBtn) {
-    resetBgBtn.addEventListener('click', () => {
-        const messagesContainer = document.querySelector('#privateChatMessages');
-        if (messagesContainer) {
-            messagesContainer.style.backgroundImage = '';
-            messagesContainer.style.backgroundColor = '#1a2a3a';
-            // حذف من localStorage
-            localStorage.removeItem(`privateBg_${myUsername}`);
-        }
-        bgPicker.classList.remove('show');
-    });
-}
-
-// استرجاع الخلفية المحفوظة عند تحميل الصفحة
-function loadSavedPrivateBg() {
-    const savedBg = localStorage.getItem(`privateBg_${myUsername}`);
-    if (savedBg) {
-        const messagesContainer = document.querySelector('#privateChatMessages');
-        if (messagesContainer) {
-            messagesContainer.style.backgroundImage = `url(${savedBg})`;
-            messagesContainer.style.backgroundSize = 'cover';
-            messagesContainer.style.backgroundPosition = 'center';
-            messagesContainer.style.backgroundRepeat = 'no-repeat';
-        }
-    }
-}
-
-// استدعاء الدالة بعد تحميل myUsername
-const originalLoadMyProfile = loadMyProfile;
-window.loadMyProfile = async function() {
-    await originalLoadMyProfile();
-    loadSavedPrivateBg();
-};
