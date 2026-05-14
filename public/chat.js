@@ -15,7 +15,6 @@ let myPoints = 1;
 let myLevel = 1;
 let myRole = 'guest';
 let myProfileSong = '';
-let notificationCount = 0;
 const mentionSound = new Audio('./bird-chirp-short.mp3');
 mentionSound.volume = 0.7;
 
@@ -58,6 +57,7 @@ socket.on('update users', (users) => {
     });
 });
 
+// استقبال قائمة غير المتصلين
 socket.on('offline users update', (offlineUsers) => {
     const offlineList = document.getElementById('offlineUsersList');
     const offlineCount = document.getElementById('offlineCount');
@@ -99,12 +99,6 @@ socket.on('mention notification', ({ from, room }) => {
     mentionSound.play().catch(err => {
         console.log("مشكلة تشغيل صوت الطاق:", err);
     });
-});
-
-socket.on('new_notification', (data) => {
-    notificationCount++;
-    updateNotificationBadge();
-    mentionSound.play().catch(err => console.log("مشكلة تشغيل الصوت:", err));
 });
 
 document.getElementById('messageForm').addEventListener('submit', (e) => {
@@ -371,6 +365,7 @@ document.getElementById('avatarUpload')?.addEventListener('change', async (e) =>
     }
 });
 
+// ========== رفع أغنية البروفايل ==========
 const uploadSongBtn = document.getElementById('uploadProfileSongBtn');
 const songInput = document.getElementById('profileSongUpload');
 const songStatus = document.getElementById('songStatus');
@@ -425,6 +420,7 @@ if (uploadSongBtn && songInput) {
     });
 }
 
+// ========== جلب بيانات أي مستخدم (لأغنية البروفايل) ==========
 async function getUserProfileData(username) {
     try {
         const res = await fetch(`/profile-data?username=${encodeURIComponent(username)}`, {
@@ -438,74 +434,9 @@ async function getUserProfileData(username) {
     }
 }
 
-function updateNotificationBadge() {
-    const badge = document.getElementById('notificationsBadge');
-    if (badge) {
-        if (notificationCount > 0) {
-            badge.innerText = notificationCount;
-            badge.style.display = 'flex';
-        } else {
-            badge.style.display = 'none';
-        }
-    }
-}
+// ========== دوال حائط الأصدقاء (منشورات فقط) ==========
 
-async function loadNotifications() {
-    try {
-        const res = await fetch('/api/get-notifications', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const notifications = await res.json();
-        const container = document.getElementById('notificationsList');
-        
-        if (container) {
-            if (notifications.length === 0) {
-                container.innerHTML = '<div class="no-notifications">لا توجد إشعارات</div>';
-                return;
-            }
-            
-            container.innerHTML = notifications.map(notif => `
-                <div class="notification-item" onclick="handleNotificationClick(${notif.id}, '${notif.type}', ${notif.post_id || 0})">
-                    <div class="notification-icon">
-                        <i class="fas ${notif.type === 'comment' ? 'fa-comment' : 'fa-newspaper'}"></i>
-                    </div>
-                    <div class="notification-content">
-                        <div class="notification-title">${escapeHtml(notif.message)}</div>
-                        <div class="notification-time">${new Date(notif.created_at).toLocaleString('ar')}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-    } catch (err) {
-        console.error('خطأ في جلب الإشعارات:', err);
-    }
-}
-
-async function handleNotificationClick(notifId, type, postId) {
-    await fetch('/api/mark-notification-read', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify({ notifId })
-    });
-    
-    document.getElementById('notificationsPanel').style.display = 'none';
-    
-    const appsPanel = document.getElementById('appsPanel');
-    appsPanel.style.display = 'block';
-    
-    document.querySelectorAll('.app-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    document.getElementById('app-wall').classList.add('active');
-    loadPosts();
-    
-    notificationCount = Math.max(0, notificationCount - 1);
-    updateNotificationBadge();
-}
-
+// جلب منشورات الأصدقاء فقط
 async function loadPosts() {
     try {
         const res = await fetch('/api/get-friends-posts', {
@@ -532,90 +463,20 @@ async function loadPosts() {
                         <button class="like-btn ${post.user_liked ? 'liked' : ''}" onclick="likePost(${post.id})">
                             <i class="fas fa-heart"></i> ${post.likes || 0}
                         </button>
-                        <button class="comment-btn" onclick="toggleComments(${post.id})">
-                            <i class="fas fa-comment"></i> تعليقات
-                        </button>
-                    </div>
-                    <div id="comments-area-${post.id}" class="comments-area">
-                        <div id="comments-list-${post.id}" class="comments-list"></div>
-                        <div class="comment-input-area">
-                            <input type="text" id="comment-input-${post.id}" placeholder="اكتب تعليقك..." maxlength="200">
-                            <button onclick="addComment(${post.id})"><i class="fas fa-paper-plane"></i></button>
-                        </div>
                     </div>
                 </div>
             `).join('');
         }
     } catch (err) {
         console.error('خطأ في جلب المنشورات:', err);
-    }
-}
-
-async function toggleComments(postId) {
-    const commentsArea = document.getElementById(`comments-area-${postId}`);
-    if (commentsArea.classList.contains('show')) {
-        commentsArea.classList.remove('show');
-    } else {
-        commentsArea.classList.add('show');
-        await loadComments(postId);
-    }
-}
-
-async function loadComments(postId) {
-    try {
-        const res = await fetch(`/api/get-comments?postId=${postId}`, {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const comments = await res.json();
-        const commentsList = document.getElementById(`comments-list-${postId}`);
-        
-        if (commentsList) {
-            if (comments.length === 0) {
-                commentsList.innerHTML = '<div style="text-align:center; padding:10px; color:#94a3b8;">لا توجد تعليقات</div>';
-                return;
-            }
-            
-            commentsList.innerHTML = comments.map(comment => `
-                <div class="comment-item">
-                    <img src="${comment.avatar || 'https://via.placeholder.com/20'}" alt="${comment.username}">
-                    <div class="comment-text">
-                        <span class="comment-username">${escapeHtml(comment.username)}</span>
-                        <span>${escapeHtml(comment.content)}</span>
-                    </div>
-                </div>
-            `).join('');
+        const postsList = document.getElementById('postsList');
+        if (postsList) {
+            postsList.innerHTML = '<div class="no-data">خطأ في تحميل المنشورات</div>';
         }
-    } catch (err) {
-        console.error('خطأ في جلب التعليقات:', err);
     }
 }
 
-async function addComment(postId) {
-    const input = document.getElementById(`comment-input-${postId}`);
-    const content = input.value.trim();
-    if (!content) return;
-    
-    try {
-        const res = await fetch('/api/add-comment', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
-            },
-            body: JSON.stringify({ postId, content })
-        });
-        
-        if (res.ok) {
-            input.value = '';
-            await loadComments(postId);
-        } else {
-            alert('فشل في إضافة التعليق');
-        }
-    } catch (err) {
-        console.error('خطأ في إضافة التعليق:', err);
-    }
-}
-
+// نشر منشور جديد
 async function publishPost() {
     const content = document.getElementById('postContent').value.trim();
     if (!content) {
@@ -636,6 +497,7 @@ async function publishPost() {
         if (res.ok) {
             document.getElementById('postContent').value = '';
             loadPosts();
+            alert('تم نشر المنشور بنجاح!');
         } else {
             const data = await res.json();
             alert(data.msg || 'فشل في نشر المنشور');
@@ -646,6 +508,7 @@ async function publishPost() {
     }
 }
 
+// إعجاب بمنشور
 async function likePost(postId) {
     try {
         const res = await fetch('/api/like-post', {
@@ -664,6 +527,7 @@ async function likePost(postId) {
     }
 }
 
+// جلب الأخبار
 async function loadNews() {
     const container = document.getElementById('newsList');
     if (!container) return;
@@ -691,6 +555,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// ========== فتح بروفايل المستخدم (معدل لتشغيل الأغنية) ==========
 async function openUserProfile(username, role = 'guest', avatar = '') {
     const displayName = document.getElementById('otherUserDisplayName');
     const largeAvatar = document.getElementById('otherUserAvatarLarge');
@@ -781,6 +646,8 @@ async function openUserProfile(username, role = 'guest', avatar = '') {
     if (adminBox) {
         const superAdminRanks = ['superadmin', 'سوبر أدمن', 'Super Admin', 'سوبرادمن', 'صاحب الموقع', 'مالك'];
         const isSuperAdmin = superAdminRanks.includes(myRole?.toLowerCase());
+        
+        console.log('رتبتي الحالية:', myRole, 'هل أنا سوبر أدمن؟', isSuperAdmin);
         
         if (isSuperAdmin && !isMe) {
             adminBox.style.display = 'block';
@@ -900,15 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    const notificationsBtn = document.getElementById('notificationsBtn');
-    const notificationsPanel = document.getElementById('notificationsPanel');
-    if (notificationsBtn && notificationsPanel) {
-        notificationsBtn.addEventListener('click', () => {
-            notificationsPanel.style.display = 'block';
-            loadNotifications();
-        });
-    }
-    
+    // زر التطبيقات
     const appsBtn = document.getElementById('appsBtn');
     const appsPanel = document.getElementById('appsPanel');
     if (appsBtn && appsPanel) {
@@ -918,6 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // أزرار التطبيقات الداخلية
     const appBtns = document.querySelectorAll('.app-btn');
     appBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -937,6 +797,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
+    // زر نشر منشور
     const publishBtn = document.getElementById('publishPostBtn');
     if (publishBtn) {
         publishBtn.addEventListener('click', publishPost);
