@@ -378,8 +378,8 @@
       margin-top: 2px;
     }
 
-    /* ========== اللوحة الجانبية الجديدة (حائط الأصدقاء) ========== */
-    .wall-panel {
+    /* ========== اللوحة الجانبية للتطبيقات ========== */
+    .apps-panel {
       position: fixed;
       top: 60px;
       left: 20px;
@@ -395,7 +395,7 @@
       display: none;
       border: 1px solid #334155;
     }
-    .wall-panel .panel-header {
+    .apps-panel .panel-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -403,111 +403,128 @@
       border-bottom: 1px solid #334155;
       padding-bottom: 10px;
     }
-    .wall-panel .panel-header h3 {
+    .apps-panel .panel-header h3 {
       margin: 0;
       font-size: 1.2rem;
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .post-input-area {
-      background: #0f172a;
-      border-radius: 12px;
-      padding: 12px;
+    .apps-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       margin-bottom: 20px;
+    }
+    .app-btn {
+      background: #0f172a;
+      border: 1px solid #334155;
+      padding: 12px 16px;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      text-align: right;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s;
+    }
+    .app-btn:hover {
+      background: #334155;
+      border-color: #3b82f6;
+      transform: translateX(-5px);
+    }
+    .app-btn i {
+      width: 24px;
+      font-size: 1.2rem;
+    }
+    .app-content {
+      display: none;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #334155;
+    }
+    .app-content.active {
+      display: block;
     }
     .post-input-area textarea {
       width: 100%;
-      background: #1e293b;
+      background: #0f172a;
       border: 1px solid #334155;
       border-radius: 12px;
       padding: 12px;
       color: white;
-      font-size: 14px;
       resize: vertical;
       font-family: inherit;
     }
-    .post-input-area textarea:focus {
-      outline: none;
-      border-color: #3b82f6;
-    }
     .post-btn {
       background: linear-gradient(135deg, #3b82f6, #2563eb);
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 30px;
-      cursor: pointer;
       margin-top: 10px;
-      font-weight: bold;
+      padding: 10px;
+      border: none;
+      border-radius: 30px;
+      color: white;
+      cursor: pointer;
       width: 100%;
     }
-    .post-btn:hover {
-      transform: scale(1.02);
-      opacity: 0.9;
-    }
     .posts-list {
-      max-height: 500px;
+      max-height: 300px;
       overflow-y: auto;
+      margin-top: 15px;
     }
     .post-item {
       background: #0f172a;
       border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 15px;
-      border: 1px solid #334155;
+      padding: 12px;
+      margin-bottom: 12px;
     }
     .post-header {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
     .post-header img {
-      width: 40px;
-      height: 40px;
+      width: 35px;
+      height: 35px;
       border-radius: 50%;
-      object-fit: cover;
     }
-    .post-header .post-username {
+    .post-username {
       font-weight: bold;
       color: #3b82f6;
     }
-    .post-header .post-time {
+    .post-time {
       font-size: 10px;
       color: #94a3b8;
       margin-right: auto;
     }
-    .post-content {
-      color: #e2e8f0;
-      font-size: 14px;
-      line-height: 1.5;
-      margin-bottom: 10px;
-    }
-    .post-actions {
-      display: flex;
-      gap: 15px;
-      border-top: 1px solid #334155;
-      padding-top: 10px;
-      margin-top: 5px;
-    }
-    .like-btn, .comment-btn {
-      background: none;
+    .dino-frame {
+      width: 100%;
+      height: 250px;
       border: none;
-      color: #94a3b8;
+      border-radius: 10px;
+      background: white;
+    }
+    .news-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .news-item {
+      padding: 10px;
+      border-bottom: 1px solid #334155;
       cursor: pointer;
+    }
+    .news-item:hover {
+      background: #334155;
+    }
+    .news-title {
+      font-weight: bold;
       font-size: 13px;
-      transition: all 0.2s;
     }
-    .like-btn:hover, .comment-btn:hover {
-      color: #3b82f6;
-    }
-    .like-btn.liked {
-      color: #ef4444;
-    }
-    .no-posts {
+    .no-data {
       text-align: center;
-      padding: 40px;
+      padding: 30px;
       color: #94a3b8;
     }
   </style>
@@ -536,9 +553,9 @@
         <button class="icon-btn" id="shopBtn" title="المتجر">
           <i class="fas fa-shopping-cart"></i>
         </button>
-        <button class="icon-btn" id="wallBtn" title="حائطي">
-          <i class="fas fa-newspaper"></i>
-          <span class="wall-text">حائطي</span>
+        <button class="icon-btn" id="appsBtn" title="التطبيقات">
+          <i class="fas fa-th"></i>
+          <span class="apps-text">تطبيقات</span>
         </button>
         <button class="icon-btn" id="myLevelBtn" title="نقاطي ومستواي">
           <i class="fas fa-star"></i>
@@ -580,20 +597,46 @@
     <div id="reportsList"></div>
   </div>
 
-  <!-- لوحة حائط الأصدقاء -->
-  <div id="wallPanel" class="wall-panel">
+  <!-- لوحة التطبيقات -->
+  <div id="appsPanel" class="apps-panel">
     <div class="panel-header">
-      <h3><i class="fas fa-newspaper"></i> حائطي</h3>
-      <span class="close-panel" onclick="document.getElementById('wallPanel').style.display='none'">×</span>
+      <h3><i class="fas fa-th"></i> التطبيقات</h3>
+      <span class="close-panel" onclick="document.getElementById('appsPanel').style.display='none'">×</span>
     </div>
     
-    <div class="post-input-area">
-      <textarea id="postContent" rows="3" placeholder="شارك رأيك أو حدثنا عن يومك..."></textarea>
-      <button id="publishPostBtn" class="post-btn"><i class="fas fa-paper-plane"></i> نشر</button>
+    <div class="apps-buttons">
+      <button class="app-btn" data-app="wall">
+        <i class="fas fa-users"></i> حائط الأصدقاء
+      </button>
+      <button class="app-btn" data-app="dino">
+        <i class="fas fa-dragon"></i> لعبة الديناصور
+      </button>
+      <button class="app-btn" data-app="news">
+        <i class="fas fa-newspaper"></i> الأخبار
+      </button>
     </div>
-    
-    <div class="posts-list" id="postsList">
-      <div class="no-posts">لا توجد منشورات بعد، كن أول من ينشر!</div>
+
+    <!-- حائط الأصدقاء -->
+    <div id="app-wall" class="app-content">
+      <div class="post-input-area">
+        <textarea id="postContent" rows="2" placeholder="شارك رأيك أو حدثنا عن يومك..."></textarea>
+        <button id="publishPostBtn" class="post-btn"><i class="fas fa-paper-plane"></i> نشر</button>
+      </div>
+      <div id="postsList" class="posts-list">
+        <div class="no-data">لا توجد منشورات</div>
+      </div>
+    </div>
+
+    <!-- لعبة الديناصور -->
+    <div id="app-dino" class="app-content">
+      <iframe class="dino-frame" src="https://chromedino.com/" title="Dino Game"></iframe>
+    </div>
+
+    <!-- الأخبار -->
+    <div id="app-news" class="app-content">
+      <div id="newsList" class="news-list">
+        <div class="no-data">جاري تحميل الأخبار...</div>
+      </div>
     </div>
   </div>
 
@@ -955,13 +998,33 @@
         document.getElementById('shopPanel').style.display = 'none';
       });
 
-      // زر حائطي
-      document.getElementById('wallBtn')?.addEventListener('click', () => {
-        const panel = document.getElementById('wallPanel');
-        if (panel) {
-          panel.style.display = 'block';
-          loadPosts();
-        }
+      // زر التطبيقات
+      const appsBtn = document.getElementById('appsBtn');
+      const appsPanel = document.getElementById('appsPanel');
+      if (appsBtn && appsPanel) {
+        appsBtn.addEventListener('click', () => {
+          appsPanel.style.display = 'block';
+        });
+      }
+
+      // أزرار التطبيقات الداخلية
+      const appBtns = document.querySelectorAll('.app-btn');
+      appBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const appName = btn.getAttribute('data-app');
+          document.querySelectorAll('.app-content').forEach(content => {
+            content.classList.remove('active');
+          });
+          const targetContent = document.getElementById(`app-${appName}`);
+          if (targetContent) {
+            targetContent.classList.add('active');
+          }
+          if (appName === 'wall') {
+            loadPosts();
+          } else if (appName === 'news') {
+            loadNews();
+          }
+        });
       });
 
       const levelBtn = document.getElementById('myLevelBtn');
@@ -1048,7 +1111,7 @@
         
         if (postsList) {
           if (posts.length === 0) {
-            postsList.innerHTML = '<div class="no-posts">لا توجد منشورات بعد، كن أول من ينشر!</div>';
+            postsList.innerHTML = '<div class="no-data">لا توجد منشورات</div>';
             return;
           }
           
@@ -1128,12 +1191,32 @@
     function commentOnPost(postId) {
       const comment = prompt('اكتب تعليقك:');
       if (comment && comment.trim()) {
-        // يمكن إضافة دالة التعليق هنا
         alert('سيتم إضافة خاصية التعليقات قريباً!');
       }
     }
 
-    // دالة لتشفير النص
+    // جلب الأخبار
+    async function loadNews() {
+      const container = document.getElementById('newsList');
+      if (!container) return;
+      container.innerHTML = '<div class="no-data">جاري التحميل...</div>';
+      try {
+        const res = await fetch('https://gnews.io/api/v4/top-headlines?lang=ar&country=eg&token=861dca860ee588e289b286f042df0c62');
+        const data = await res.json();
+        if (data.articles && data.articles.length) {
+          container.innerHTML = data.articles.slice(0, 10).map(article => `
+            <div class="news-item" onclick="window.open('${article.url}', '_blank')">
+              <div class="news-title">${article.title.substring(0, 60)}...</div>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = '<div class="no-data">لا توجد أخبار</div>';
+        }
+      } catch (err) {
+        container.innerHTML = '<div class="no-data">خطأ في تحميل الأخبار</div>';
+      }
+    }
+
     function escapeHtml(text) {
       const div = document.createElement('div');
       div.textContent = text;
