@@ -551,7 +551,66 @@
       color: #94a3b8;
     }
 
-    /* ========== خلفية الدردشة الخاصة ========== */
+    /* ========== قائمة الغرف في التطبيقات ========== */
+    .rooms-list-app {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .room-item-app {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .room-item-app:hover {
+      background: #1e293b;
+      border-color: #3b82f6;
+      transform: translateX(-5px);
+    }
+    .room-icon-app {
+      width: 48px;
+      height: 48px;
+      background: #1e293b;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+    }
+    .room-info-app {
+      flex: 1;
+    }
+    .room-name-app {
+      font-weight: bold;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+    .room-count-app {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+    .room-join-btn {
+      background: #3b82f6;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 20px;
+      color: white;
+      cursor: pointer;
+      font-size: 0.75rem;
+    }
+    .room-join-btn:hover {
+      background: #2563eb;
+    }
+
+    /* خلفية الدردشة الخاصة */
     .private-bg-picker {
       position: absolute;
       bottom: 70px;
@@ -593,6 +652,15 @@
     }
     .private-bg-picker .reset-bg:hover {
       background: #dc2626;
+    }
+
+    /* خلفية منطقة الرسائل الخاصة */
+    #privateChatMessages {
+      background-size: cover !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+      transition: background-image 0.3s ease;
+      background-color: #1a2a3a;
     }
   </style>
 </head>
@@ -681,6 +749,9 @@
       <button class="app-btn" data-app="news">
         <i class="fas fa-newspaper"></i> الأخبار
       </button>
+      <button class="app-btn" data-app="rooms">
+        <i class="fas fa-door-open"></i> قائمة الغرف
+      </button>
     </div>
 
     <!-- حائط الأصدقاء -->
@@ -705,6 +776,13 @@
         <div class="no-data">جاري تحميل الأخبار...</div>
       </div>
     </div>
+
+    <!-- قائمة الغرف -->
+    <div id="app-rooms" class="app-content">
+      <div id="roomsListApp" class="rooms-list-app">
+        <div class="no-data">جاري تحميل الغرف...</div>
+      </div>
+    </div>
   </div>
 
   <div class="chat-main">
@@ -720,7 +798,6 @@
       </div>
       <div id="usersList" class="users-list-simple"></div>
       
-      <!-- قسم غير المتصلين -->
       <div class="offline-section">
         <div class="users-header-simple">
           <h3><i class="fas fa-user-slash"></i> غير متصلين <span id="offlineCount">0</span></h3>
@@ -793,7 +870,6 @@
       </div>
     </div>
 
-    <!-- زر رفع الأغنية تحت البروفايل مباشرة -->
     <div style="padding: 0 25px 15px 25px;">
       <button id="uploadProfileSongBtn" class="upload-song-btn">
         <i class="fas fa-music"></i> 🎵 أغنية البروفايل 🎵
@@ -813,37 +889,16 @@
     <div class="tab-content">
       <div id="tab-info" class="tab-pane active">
         <div class="profile-info-grid">
-          <div class="info-item">
-            <span class="label">الاسم:</span>
-            <span>اسم مستخدم</span>
-          </div>
-          <div class="info-item">
-            <span class="label">الجنس:</span>
-            <span>ذكر</span>
-          </div>
-          <div class="info-item">
-            <span class="label">العمر:</span>
-            <span>عدم إظهار</span>
-          </div>
-          <div class="info-item">
-            <span class="label">البلد:</span>
-            <span>فرنسا</span>
-          </div>
-          <div class="info-item">
-            <span class="label">الحالة:</span>
-            <span>عدم إظهار</span>
-          </div>
+          <div class="info-item"><span class="label">الاسم:</span><span>اسم مستخدم</span></div>
+          <div class="info-item"><span class="label">الجنس:</span><span>ذكر</span></div>
+          <div class="info-item"><span class="label">العمر:</span><span>عدم إظهار</span></div>
+          <div class="info-item"><span class="label">البلد:</span><span>فرنسا</span></div>
+          <div class="info-item"><span class="label">الحالة:</span><span>عدم إظهار</span></div>
         </div>
       </div>
-      <div id="tab-friends" class="tab-pane hidden">
-        <p>قائمة أصدقائك ستظهر هنا...</p>
-      </div>
-      <div id="tab-blocked" class="tab-pane hidden">
-        <p>الأشخاص الذين تم تجاهلهم...</p>
-      </div>
-      <div id="tab-options" class="tab-pane hidden">
-        <p>الإعدادات والخيارات...</p>
-      </div>
+      <div id="tab-friends" class="tab-pane hidden"><p>قائمة أصدقائك ستظهر هنا...</p></div>
+      <div id="tab-blocked" class="tab-pane hidden"><p>الأشخاص الذين تم تجاهلهم...</p></div>
+      <div id="tab-options" class="tab-pane hidden"><p>الإعدادات والخيارات...</p></div>
       <div id="tab-features" class="tab-pane hidden">
         <h4 style="margin-bottom: 15px; color: #fff; text-align: center;">إطار الصورة الشخصية</h4>
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid #333;">
@@ -852,90 +907,37 @@
           <div onclick="updateAvatarBorder('4px solid #ffd700')" style="aspect-ratio: 1/1; background: #ffd700; border-radius: 4px; cursor: pointer;"></div>
           <div onclick="updateAvatarBorder('none')" style="aspect-ratio: 1/1; background: #333; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px;">حذف</div>
         </div>
-        <div style="margin-top: 15px; display: flex; gap: 10px;">
-          <button onclick="saveBorderSelection()" style="flex: 1; padding: 10px; background: #00bcd4; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">حفظ الإطار</button>
-        </div>
+        <div style="margin-top: 15px; display: flex; gap: 10px;"><button onclick="saveBorderSelection()" style="flex: 1; padding: 10px; background: #00bcd4; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">حفظ الإطار</button></div>
         <hr style="margin: 20px 0; border: 0; border-top: 1px solid #333;">
         <h4>المميزات الخاصة بك</h4>
         <p>اشتراكك الحالي: <strong>عادي</strong></p>
       </div>
-      <div id="tab-account" class="tab-pane hidden">
-        <h4>إدارة الحساب</h4>
-        <button class="danger-btn">حذف الحساب</button>
-      </div>
+      <div id="tab-account" class="tab-pane hidden"><h4>إدارة الحساب</h4><button class="danger-btn">حذف الحساب</button></div>
     </div>
   </div>
 
   <div id="shopPanel" class="shop-panel" style="display:none;">
-    <div class="shop-header">
-      <h3>المتجر</h3>
-      <span id="closeShop" class="close-panel">×</span>
-    </div>
+    <div class="shop-header"><h3>المتجر</h3><span id="closeShop" class="close-panel">×</span></div>
     <div class="shop-body">
       <h4>رصيد نقاطك: <span id="myPoints">0</span></h4>
       <div class="shop-items">
-        <div class="shop-item">
-          <div class="item-info">
-            <span class="badge superadmin">سوبر أدمن ⚙️</span>
-            <span class="price">5000 نقطة</span>
-          </div>
-          <button class="buy-btn" data-role="superadmin" data-price="5000">شراء</button>
-        </div>
-        <div class="shop-item">
-          <div class="item-info">
-            <span class="badge admin">أدمن 🔰</span>
-            <span class="price">3000 نقطة</span>
-          </div>
-          <button class="buy-btn" data-role="admin" data-price="3000">شراء</button>
-        </div>
-        <div class="shop-item">
-          <div class="item-info">
-            <span class="badge premium">بريميوم 💎</span>
-            <span class="price">1500 نقطة</span>
-          </div>
-          <button class="buy-btn" data-role="premium" data-price="1500">شراء</button>
-        </div>
-        <div class="shop-item">
-          <div class="item-info">
-            <span class="badge vip">VIP ★</span>
-            <span class="price">800 نقطة</span>
-          </div>
-          <button class="buy-btn" data-role="vip" data-price="800">شراء</button>
-        </div>
+        <div class="shop-item"><div class="item-info"><span class="badge superadmin">سوبر أدمن ⚙️</span><span class="price">5000 نقطة</span></div><button class="buy-btn" data-role="superadmin" data-price="5000">شراء</button></div>
+        <div class="shop-item"><div class="item-info"><span class="badge admin">أدمن 🔰</span><span class="price">3000 نقطة</span></div><button class="buy-btn" data-role="admin" data-price="3000">شراء</button></div>
+        <div class="shop-item"><div class="item-info"><span class="badge premium">بريميوم 💎</span><span class="price">1500 نقطة</span></div><button class="buy-btn" data-role="premium" data-price="1500">شراء</button></div>
+        <div class="shop-item"><div class="item-info"><span class="badge vip">VIP ★</span><span class="price">800 نقطة</span></div><button class="buy-btn" data-role="vip" data-price="800">شراء</button></div>
       </div>
     </div>
   </div>
 
   <div id="levelPointsPanel" class="level-panel hidden">
     <div class="level-panel-content">
-      <div class="level-header">
-        <h3>نقاطي ومستواي</h3>
-        <span class="close-level-panel">×</span>
-      </div>
-      <div class="level-main-info">
-        <div class="level-circle">
-          <span class="current-level">1</span>
-          <span class="level-label">المستوى</span>
-        </div>
-        <div class="points-info">
-          <div class="points-number">
-            <span id="myRealPoints">1</span>
-          </div>
-          <div class="points-label">نقطة</div>
-        </div>
-      </div>
-      <div class="level-progress">
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: 0%"></div>
-        </div>
-        <div class="progress-text">
-          <span>0</span> / <span id="nextLevelPoints">100</span> للمستوى التالي
-        </div>
-      </div>
+      <div class="level-header"><h3>نقاطي ومستواي</h3><span class="close-level-panel">×</span></div>
+      <div class="level-main-info"><div class="level-circle"><span class="current-level">1</span><span class="level-label">المستوى</span></div><div class="points-info"><div class="points-number"><span id="myRealPoints">1</span></div><div class="points-label">نقطة</div></div></div>
+      <div class="level-progress"><div class="progress-bar"><div class="progress-fill" style="width: 0%"></div></div><div class="progress-text"><span>0</span> / <span id="nextLevelPoints">100</span> للمستوى التالي</div></div>
     </div>
   </div>
 
-  <!-- نافذة الدردشة الخاصة (معدلة) -->
+  <!-- نافذة الدردشة الخاصة -->
   <div id="privateChatPanel" class="private-chat-panel" style="display: none;">
     <div class="private-header">
       <h3 id="privateChatWith"></h3>
@@ -951,7 +953,6 @@
       <input type="text" id="privateChatInput" placeholder="اكتب رسالة..." autocomplete="off">
       <button type="submit"><i class="fas fa-paper-plane"></i></button>
     </form>
-    <!-- لوحة اختيار الخلفية -->
     <div id="privateBgPicker" class="private-bg-picker">
       <h4><i class="fas fa-palette"></i> خلفية الدردشة</h4>
       <button id="uploadPrivateBgBtn"><i class="fas fa-upload"></i> رفع صورة من الجهاز</button>
@@ -966,10 +967,7 @@
       <div class="profile-cover" id="otherUserCover"></div>
       <div class="profile-header-info">
         <img id="otherUserAvatarLarge" src="https://via.placeholder.com/140" alt="صورة المستخدم" class="large-avatar">
-        <div class="user-info-text">
-          <h2 id="otherUserDisplayName">اسم المستخدم</h2>
-          <p id="otherUserStatus" class="status-text">We will meet in Paradise</p>
-        </div>
+        <div class="user-info-text"><h2 id="otherUserDisplayName">اسم المستخدم</h2><p id="otherUserStatus" class="status-text">We will meet in Paradise</p></div>
       </div>
       <div class="profile-actions">
         <button class="action-btn msg-btn" id="sendPrivateMsgBtn">رسالة خاصة</button>
@@ -978,30 +976,13 @@
         <div id="adminActionsContainer" style="display: none; margin-top: 15px; border-top: 1px solid #333; padding-top: 10px;"></div>
       </div>
       <div class="profile-details">
-        <div class="detail-item">
-          <span>رابط الملف</span>
-          <span id="otherProfileUrl">https://chat.arabi.com/u/...</span>
-        </div>
-        <div class="detail-item">
-          <span>تاريخ الانضمام</span>
-          <span id="otherJoinDate">2026-01-05</span>
-        </div>
-        <div class="detail-item">
-          <span>البلد</span>
-          <span id="otherCountry">الجزائر</span>
-        </div>
-        <div class="detail-item">
-          <span>آخر تواجد</span>
-          <span id="otherLastSeen">الآن</span>
-        </div>
-        <div class="detail-item">
-          <span>النقاط</span>
-          <span id="otherPoints">1821</span>
-        </div>
+        <div class="detail-item"><span>رابط الملف</span><span id="otherProfileUrl">https://chat.arabi.com/u/...</span></div>
+        <div class="detail-item"><span>تاريخ الانضمام</span><span id="otherJoinDate">2026-01-05</span></div>
+        <div class="detail-item"><span>البلد</span><span id="otherCountry">الجزائر</span></div>
+        <div class="detail-item"><span>آخر تواجد</span><span id="otherLastSeen">الآن</span></div>
+        <div class="detail-item"><span>النقاط</span><span id="otherPoints">1821</span></div>
         <div id="adminRankControls" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center; display: none;">
-          <button onclick="toggleRankList()" style="background:#fbbf24; color:black; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <i class="fas fa-gift"></i> إهداء رتبة
-          </button>
+          <button onclick="toggleRankList()" style="background:#fbbf24; color:black; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;"><i class="fas fa-gift"></i> إهداء رتبة</button>
           <div id="ranksListMenu" style="display:none; margin-top:10px; background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; grid-template-columns: 1fr 1fr; gap:8px;">
             <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'superadmin')" style="background:#6d28d9; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">سوبر أدمن</button>
             <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'admin')" style="background:#3b82f6; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">أدمن</button>
@@ -1078,7 +1059,6 @@
         document.getElementById('shopPanel').style.display = 'none';
       });
 
-      // زر التطبيقات
       const appsBtn = document.getElementById('appsBtn');
       const appsPanel = document.getElementById('appsPanel');
       if (appsBtn && appsPanel) {
@@ -1087,7 +1067,6 @@
         });
       }
 
-      // أزرار التطبيقات الداخلية
       const appBtns = document.querySelectorAll('.app-btn');
       appBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1103,6 +1082,8 @@
             if (typeof loadPosts === 'function') loadPosts();
           } else if (appName === 'news') {
             if (typeof loadNews === 'function') loadNews();
+          } else if (appName === 'rooms') {
+            if (typeof loadRoomsList === 'function') loadRoomsList();
           }
         });
       });
@@ -1175,12 +1156,66 @@
         });
       });
 
-      // زر نشر منشور
       const publishBtn = document.getElementById('publishPostBtn');
       if (publishBtn && typeof publishPost === 'function') {
         publishBtn.addEventListener('click', publishPost);
       }
     });
+
+    // دالة جلب قائمة الغرف
+    async function loadRoomsList() {
+      try {
+        const res = await fetch('/room-counts');
+        const counts = await res.json();
+        const rooms = [
+          { id: 'general', name: '🏠 الغرفة العامة', icon: '💬', color: '#10b981' },
+          { id: 'algeria', name: '🇩🇿 الجزائر', icon: '🇩🇿', color: '#006233' },
+          { id: 'all_countries', name: '🌍 جميع الدول', icon: '🌍', color: '#3b82f6' }
+        ];
+        
+        const container = document.getElementById('roomsListApp');
+        if (container) {
+          container.innerHTML = rooms.map(room => `
+            <div class="room-item-app" onclick="switchToRoom('${room.id}')">
+              <div class="room-icon-app">${room.icon}</div>
+              <div class="room-info-app">
+                <div class="room-name-app">${room.name}</div>
+                <div class="room-count-app">عدد المتصلين: ${counts[room.id] || 0}</div>
+              </div>
+              <button class="room-join-btn" onclick="event.stopPropagation(); switchToRoom('${room.id}')">دخول ➜</button>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('خطأ في جلب الغرف:', err);
+        const container = document.getElementById('roomsListApp');
+        if (container) {
+          container.innerHTML = '<div class="no-data">خطأ في تحميل الغرف</div>';
+        }
+      }
+    }
+
+    // دالة الانتقال لغرفة جديدة
+    function switchToRoom(roomId) {
+      // حفظ آخر غرفة
+      localStorage.setItem('lastRoom', roomId);
+      // حفظ في السيرفر
+      const token = localStorage.getItem('token');
+      fetch('/api/save-last-room', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ 
+          roomId: roomId, 
+          roomName: roomId === 'general' ? 'الغرفة العامة' : (roomId === 'algeria' ? 'الجزائر' : 'جميع الدول')
+        })
+      }).catch(err => console.log('خطأ في حفظ آخر غرفة:', err));
+      
+      // الانتقال للغرفة الجديدة
+      window.location.href = `chat.html?room=${roomId}`;
+    }
   </script>
   <script src="chat.js"></script>
 </body>
