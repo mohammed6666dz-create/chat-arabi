@@ -1,4 +1,4 @@
- const express = require('express');
+const express = require('express');
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -68,6 +68,7 @@ async function initDatabase() {
         avatar TEXT DEFAULT '',
         background TEXT DEFAULT '',
         profile_song TEXT DEFAULT '',
+        private_bg TEXT DEFAULT '',
         friends JSONB DEFAULT '[]'::jsonb,
         friend_requests JSONB DEFAULT '[]'::jsonb,
         sent_requests JSONB DEFAULT '[]'::jsonb,
@@ -114,7 +115,7 @@ async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_friends_posts_created ON friends_posts (created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_post_comments_post ON post_comments (post_id);
     `);
-    console.log('✓ الجداول جاهزة (مع friends_posts و post_comments)');
+    console.log('✓ الجداول جاهزة (مع private_bg)');
   } catch (err) {
     console.error('خطأ في تهيئة الجداول:', err);
   }
@@ -328,6 +329,7 @@ app.get('/profile', verifyToken, async (req, res) => {
     avatar: user.avatar,
     background: user.background,
     profile_song: user.profile_song || '',
+    private_bg: user.private_bg || '',
     friends: user.friends,
     friend_requests: user.friend_requests || [],
     rank: user.rank || 'ضيف',
@@ -397,6 +399,26 @@ app.post('/upload-profile-song', verifyToken, uploadSong.single('song'), async (
     res.status(500).json({ 
       msg: 'فشل رفع الأغنية: ' + err.message 
     });
+  }
+});
+
+// رفع خلفية الدردشة الخاصة
+app.post('/upload-private-bg', verifyToken, upload.single('bg'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
+  try {
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: "private_bg",
+      unsigned: true,
+      upload_preset: "ywfrua3f"
+    });
+    const success = await updateUserFields(req.user.username, { private_bg: result.secure_url });
+    if (!success) return res.status(500).json({ msg: 'خطأ في حفظ الرابط بقاعدة البيانات' });
+    res.json({ bgUrl: result.secure_url });
+  } catch (err) {
+    console.error("خطأ رفع الخلفية:", err);
+    res.status(500).json({ msg: 'فشل الرفع: ' + err.message });
   }
 });
 
@@ -485,7 +507,6 @@ app.post('/api/create-post', verifyToken, async (req, res) => {
     );
     const postId = result.rows[0].id;
     
-    // إرسال إشعارات للأصدقاء
     const user = await getUser(username);
     const friendsList = user.friends || [];
     
@@ -569,7 +590,6 @@ app.post('/api/like-post', verifyToken, async (req, res) => {
       likedBy.push(username);
       newLikes++;
       
-      // إرسال إشعار للمنشور إذا كان المعجب ليس صاحب المنشور
       if (postOwner !== username) {
         const notification = {
           id: Date.now(),
@@ -630,8 +650,7 @@ app.post('/api/add-comment', verifyToken, async (req, res) => {
   }
   
   try {
-    // جلب صاحب المنشور
-    const { rows: postRows } = await pool.query('SELECT username as post_owner, content as post_content FROM friends_posts WHERE id = $1', [postId]);
+    const { rows: postRows } = await pool.query('SELECT username as post_owner FROM friends_posts WHERE id = $1', [postId]);
     if (postRows.length === 0) {
       return res.status(404).json({ msg: 'المنشور غير موجود' });
     }
@@ -642,7 +661,6 @@ app.post('/api/add-comment', verifyToken, async (req, res) => {
       [postId, username, content.trim()]
     );
     
-    // إرسال إشعار لصاحب المنشور إذا لم يكن المعلق هو صاحب المنشور
     if (postOwner !== username) {
       const notification = {
         id: Date.now(),
@@ -669,7 +687,6 @@ app.get('/api/get-notifications', verifyToken, async (req, res) => {
   try {
     const user = await getUser(username);
     const notifications = user.notifications || [];
-    // ترتيب الإشعارات من الأحدث إلى الأقدم
     notifications.reverse();
     res.json(notifications.slice(0, 50));
   } catch (err) {
@@ -1114,9 +1131,9 @@ io.on('connection', socket => {
 http.listen(PORT, '0.0.0.0', () => {
   console.log('=====================================');
   console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
-  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت + حفظ الجلسة + حائط الأصدقاء)');
+  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت + حفظ الجلسة + حائط الأصدقاء + خلفية خاصة)');
   console.log('');
   console.log('افتح الشات من:');
   console.log(`http://localhost:${PORT}/index.html`);
   console.log('=====================================');
-}); 
+});
