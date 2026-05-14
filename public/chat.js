@@ -1405,34 +1405,107 @@ if (changeBgBtn && bgPicker) {
     });
 }
 
-// رفع صورة خلفية من الجهاز
+// ========== رفع خلفية الدردشة الخاصة إلى السيرفر ==========
+
+async function uploadPrivateBgToServer(file) {
+    const formData = new FormData();
+    formData.append('bg', file);
+    
+    const res = await fetch('/upload-private-bg', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+    });
+    const data = await res.json();
+    return data.bgUrl;
+}
+
+async function loadPrivateBgFromServer() {
+    try {
+        const res = await fetch('/profile', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const user = await res.json();
+        if (user.private_bg) {
+            const messagesContainer = document.getElementById('privateChatMessages');
+            if (messagesContainer) {
+                messagesContainer.style.backgroundImage = `url(${user.private_bg})`;
+                messagesContainer.style.backgroundSize = 'cover';
+                messagesContainer.style.backgroundPosition = 'center';
+                messagesContainer.style.backgroundRepeat = 'no-repeat';
+            }
+        }
+    } catch (err) {
+        console.log('خطأ في استرجاع الخلفية:', err);
+    }
+}
+
+// فتح وإغلاق لوحة اختيار الخلفية
+const changeBgBtn = document.getElementById('changePrivateBgBtn');
+const bgPicker = document.getElementById('privateBgPicker');
+const bgInput = document.getElementById('privateBgInput');
+const uploadBgBtn = document.getElementById('uploadPrivateBgBtn');
+const resetBgBtn = document.getElementById('resetPrivateBgBtn');
+
+if (changeBgBtn && bgPicker) {
+    changeBgBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        bgPicker.classList.toggle('show');
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!bgPicker.contains(e.target) && e.target !== changeBgBtn) {
+            bgPicker.classList.remove('show');
+        }
+    });
+}
+
+// رفع صورة خلفية من الجهاز وحفظها في السيرفر
 if (uploadBgBtn && bgInput) {
     uploadBgBtn.addEventListener('click', () => {
         bgInput.click();
     });
     
-    bgInput.addEventListener('change', (e) => {
+    bgInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const bgUrl = event.target.result;
-                const messagesContainer = document.querySelector('#privateChatMessages');
+            // رفع إلى السيرفر
+            const bgUrl = await uploadPrivateBgToServer(file);
+            if (bgUrl) {
+                const messagesContainer = document.getElementById('privateChatMessages');
                 if (messagesContainer) {
                     messagesContainer.style.backgroundImage = `url(${bgUrl})`;
                     messagesContainer.style.backgroundSize = 'cover';
                     messagesContainer.style.backgroundPosition = 'center';
-                    messagesContainer.style.backgroundRepeat = 'no-repeat';
-                    // حفظ في localStorage
-                    localStorage.setItem(`privateBg_${myUsername}`, bgUrl);
                 }
-                bgPicker.classList.remove('show');
-            };
-            reader.readAsDataURL(file);
+            }
+            bgPicker.classList.remove('show');
         }
     });
 }
 
+// إعادة الخلفية الافتراضية (وحذفها من السيرفر)
+if (resetBgBtn) {
+    resetBgBtn.addEventListener('click', async () => {
+        const messagesContainer = document.getElementById('privateChatMessages');
+        if (messagesContainer) {
+            messagesContainer.style.backgroundImage = '';
+            messagesContainer.style.backgroundColor = '#1a2a3a';
+        }
+        bgPicker.classList.remove('show');
+        
+        // حذف الخلفية من السيرفر
+        await fetch('/api/clear-private-bg', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+    });
+}
+
+// استرجاع الخلفية من السيرفر عند تحميل الصفحة
+setTimeout(() => {
+    loadPrivateBgFromServer();
+}, 1000);
 // إعادة الخلفية الافتراضية
 if (resetBgBtn) {
     resetBgBtn.addEventListener('click', () => {
