@@ -1234,3 +1234,107 @@ document.addEventListener('click', function(e) {
         }
     }
 });
+// ========== إصلاح زر الرسالة الخاصة ==========
+
+// دالة إصلاح زر الرسالة الخاصة
+function fixPrivateMessageButton() {
+    const sendBtn = document.getElementById('sendPrivateMsgBtn');
+    if (sendBtn && sendBtn.style.display !== 'none') {
+        // إزالة أي event listeners قديمة
+        const newBtn = sendBtn.cloneNode(true);
+        sendBtn.parentNode.replaceChild(newBtn, sendBtn);
+        
+        newBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🟢 تم الضغط على زر الرسالة الخاصة');
+            const username = document.getElementById('otherUserDisplayName')?.textContent;
+            if (username && username !== myUsername) {
+                // إغلاق المودال أولاً
+                const modal = document.getElementById('otherUserProfileModal');
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.style.display = 'none';
+                }
+                // فتح الدردشة الخاصة
+                startPrivateChat(username);
+            }
+        };
+        console.log('✅ تم تفعيل زر الرسالة الخاصة');
+    }
+}
+
+// مراقبة فتح المودال وتفعيل الزر
+const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+            const modal = document.getElementById('otherUserProfileModal');
+            if (modal && modal.style.display === 'flex') {
+                setTimeout(fixPrivateMessageButton, 100);
+            }
+        }
+    });
+});
+
+const modal = document.getElementById('otherUserProfileModal');
+if (modal) {
+    observer.observe(modal, { attributes: true });
+}
+
+// أيضاً عند فتح المودال عبر openUserProfile
+const originalOpenUserProfile = window.openUserProfile;
+if (originalOpenUserProfile) {
+    window.openUserProfile = async function(username, role, avatar) {
+        await originalOpenUserProfile(username, role, avatar);
+        setTimeout(fixPrivateMessageButton, 150);
+    };
+}
+
+// دالة startPrivateChat (إذا مش موجودة)
+if (typeof startPrivateChat !== 'function') {
+    function startPrivateChat(targetName) {
+        const name = targetName || document.getElementById('otherUserDisplayName')?.textContent;
+        if (!name) {
+            console.log('❌ لا يوجد اسم مستخدم للدردشة');
+            return;
+        }
+        if (name === myUsername) {
+            console.log('❌ لا يمكن بدء دردشة مع نفسك');
+            return;
+        }
+        console.log('🟢 بدء دردشة خاصة مع:', name);
+        
+        // إغلاق أي مودال مفتوح
+        const modal = document.getElementById('otherUserProfileModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+        
+        currentPrivateChat = name;
+        const panel = document.getElementById('privateChatPanel');
+        const title = document.getElementById('privateChatWith');
+        if (panel) {
+            panel.style.display = 'block';
+            panel.style.zIndex = '2000';
+        }
+        if (title) title.textContent = 'دردشة مع ' + name;
+        
+        socket.emit('join private', name);
+        socket.emit('mark messages read', name);
+        socket.emit('get private messages', name);
+    }
+}
+
+// دالة closeOtherUserProfile (إذا مش موجودة)
+if (typeof closeOtherUserProfile !== 'function') {
+    function closeOtherUserProfile() {
+        const modal = document.getElementById('otherUserProfileModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+        const player = document.getElementById('dynamicSongPlayer');
+        if (player) player.remove();
+    }
+}
