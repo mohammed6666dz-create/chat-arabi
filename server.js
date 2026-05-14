@@ -94,10 +94,20 @@ async function initDatabase() {
         role TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      -- جدول منشورات الأصدقاء
+      CREATE TABLE IF NOT EXISTS friends_posts (
+        id SERIAL PRIMARY KEY,
+        username TEXT NOT NULL,
+        content TEXT NOT NULL,
+        likes INTEGER DEFAULT 0,
+        liked_by TEXT[] DEFAULT '{}',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
       CREATE INDEX IF NOT EXISTS idx_pm_users ON private_messages (from_user, to_user);
       CREATE INDEX IF NOT EXISTS idx_room_messages_room_created ON room_messages (room, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_friends_posts_created ON friends_posts (created_at DESC);
     `);
-    console.log('✓ الجداول جاهزة');
+    console.log('✓ الجداول جاهزة (مع جدول friends_posts)');
   } catch (err) {
     console.error('خطأ في تهيئة الجداول:', err);
   }
@@ -236,6 +246,108 @@ async function broadcastOfflineUsers() {
     console.error('خطأ في بث غير المتصلين:', err);
   }
 }
+
+// ========== مسارات المنشورات (حائط الأصدقاء) ==========
+
+// إنشاء منشور جديد
+app.post('/api/create-post', verifyToken, async (req, res) => {
+  const { content } = req.body;
+  const username = req.user.username;
+  
+  if (!content || content.trim() === '') {
+    return res.status(400).json({ msg: 'المنشور لا يمكن أن يكون فارغاً' });
+  }
+  
+  try {
+    await pool.query(
+      'INSERT INTO friends_posts (username, content, created_at) VALUES ($1, $2, NOW())',
+      [username, content.trim()]
+    );
+    res.json({ success: true, msg: 'تم نشر المنشور بنجاح' });
+  } catch (err) {
+    console.error('خطأ في إنشاء منشور:', err);
+    res.status(500).json({ msg: 'خطأ في نشر المنشور' });
+  }
+});
+
+// جلب منشورات الأصدقاء فقط
+app.get('/api/get-friends-posts', verifyToken, async (req, res) => {
+  const username = req.user.username;
+  
+  try {
+    // جلب قائمة أصدقاء المستخدم
+    const user = await getUser(username);
+    const friendsList = user.friends || [];
+    
+    if (friendsList.length === 0) {
+      return res.json([]);
+    }
+    
+    // جلب منشورات الأصدقاء + منشورات المستخدم نفسه
+    const allUsernames = [username, ...friendsList];
+    
+    const { rows: posts } = await pool.query(`
+      SELECT p.*, u.avatar
+      FROM friends_posts p
+      LEFT JOIN users u ON p.username = u.username
+      WHERE p.username = ANY($1::text[])
+      ORDER BY p.created_at DESC
+      LIMIT 50
+    `, [allUsernames]);
+    
+    // إضافة معلومات هل المستخدم أعجب بالمنشور
+    const postsWithLiked = posts.map(post => ({
+      ...post,
+      user_liked: post.liked_by ? post.liked_by.includes(username) : false
+    }));
+    
+    res.json(postsWithLiked);
+  } catch (err) {
+    console.error('خطأ في جلب منشورات الأصدقاء:', err);
+    res.status(500).json([]);
+  }
+});
+
+// إعجاب بمنشور
+app.post('/api/like-post', verifyToken, async (req, res) => {
+  const { postId } = req.body;
+  const username = req.user.username;
+  
+  if (!postId) {
+    return res.status(400).json({ msg: 'معرف المنشور مطلوب' });
+  }
+  
+  try {
+    // جلب المنشور الحالي
+    const { rows } = await pool.query('SELECT liked_by FROM friends_posts WHERE id = $1', [postId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ msg: 'المنشور غير موجود' });
+    }
+    
+    let likedBy = rows[0].liked_by || [];
+    let newLikes = rows[0].likes || 0;
+    
+    if (likedBy.includes(username)) {
+      // إزالة الإعجاب
+      likedBy = likedBy.filter(u => u !== username);
+      newLikes--;
+    } else {
+      // إضافة إعجاب
+      likedBy.push(username);
+      newLikes++;
+    }
+    
+    await pool.query(
+      'UPDATE friends_posts SET likes = $1, liked_by = $2 WHERE id = $3',
+      [newLikes, likedBy, postId]
+    );
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('خطأ في الإعجاب:', err);
+    res.status(500).json({ msg: 'خطأ في الإعجاب' });
+  }
+});
 
 // Routes
 app.post('/register', async (req, res) => {
@@ -514,7 +626,6 @@ io.on('connection', socket => {
       else if (room === 'all_countries') roomName = 'جميع الدول';
       await pool.query('UPDATE users SET last_room = $1, last_room_name = $2, last_seen = NOW() WHERE username = $3', [room, roomName, username]);
       
-      // تحديث قائمة غير المتصلين
       broadcastOfflineUsers();
       
       const NEW_USER_LIMIT = 5000;
@@ -831,10 +942,7 @@ io.on('connection', socket => {
       io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
       io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
       
-      // تحديث آخر ظهور في قاعدة البيانات
       await pool.query('UPDATE users SET last_seen = NOW() WHERE username = $1', [username]);
-      
-      // تحديث قائمة غير المتصلين
       broadcastOfflineUsers();
     }
     socket.username = null;
@@ -859,7 +967,7 @@ async function sendNotification(toUsername, notification) {
 http.listen(PORT, '0.0.0.0', () => {
   console.log('=====================================');
   console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
-  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت + حفظ الجلسة)');
+  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت + حفظ الجلسة + منشورات الأصدقاء)');
   console.log('');
   console.log('افتح الشات من:');
   console.log(`http://localhost:${PORT}/index.html`);
