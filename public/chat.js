@@ -434,7 +434,7 @@ async function getUserProfileData(username) {
     }
 }
 
-// ========== دوال حائط الأصدقاء (منشورات فقط) ==========
+// ========== دوال المنشورات (حائط الأصدقاء) ==========
 
 // جلب منشورات الأصدقاء فقط
 async function loadPosts() {
@@ -455,13 +455,16 @@ async function loadPosts() {
                 <div class="post-item" data-post-id="${post.id}">
                     <div class="post-header">
                         <img src="${post.avatar || 'https://via.placeholder.com/40'}" alt="${post.username}">
-                        <span class="post-username">${escapeHtml(post.username)}</span>
+                        <span class="post-username">${post.username}</span>
                         <span class="post-time">${new Date(post.created_at).toLocaleString('ar')}</span>
                     </div>
                     <div class="post-content">${escapeHtml(post.content)}</div>
                     <div class="post-actions">
                         <button class="like-btn ${post.user_liked ? 'liked' : ''}" onclick="likePost(${post.id})">
                             <i class="fas fa-heart"></i> ${post.likes || 0}
+                        </button>
+                        <button class="comment-btn" onclick="commentOnPost(${post.id})">
+                            <i class="fas fa-comment"></i> تعليق
                         </button>
                     </div>
                 </div>
@@ -496,7 +499,7 @@ async function publishPost() {
         
         if (res.ok) {
             document.getElementById('postContent').value = '';
-            loadPosts();
+            loadPosts(); // تحديث المنشورات
             alert('تم نشر المنشور بنجاح!');
         } else {
             const data = await res.json();
@@ -520,10 +523,18 @@ async function likePost(postId) {
             body: JSON.stringify({ postId })
         });
         if (res.ok) {
-            loadPosts();
+            loadPosts(); // تحديث المنشورات بعد الإعجاب
         }
     } catch (err) {
         console.error('خطأ في الإعجاب:', err);
+    }
+}
+
+// تعليق على منشور
+function commentOnPost(postId) {
+    const comment = prompt('اكتب تعليقك:');
+    if (comment && comment.trim()) {
+        alert('سيتم إضافة خاصية التعليقات قريباً!');
     }
 }
 
@@ -554,6 +565,8 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
+// ========== باقي الكود الأصلي (لم يتم التعديل عليه) ==========
 
 // ========== فتح بروفايل المستخدم (معدل لتشغيل الأغنية) ==========
 async function openUserProfile(username, role = 'guest', avatar = '') {
@@ -646,8 +659,6 @@ async function openUserProfile(username, role = 'guest', avatar = '') {
     if (adminBox) {
         const superAdminRanks = ['superadmin', 'سوبر أدمن', 'Super Admin', 'سوبرادمن', 'صاحب الموقع', 'مالك'];
         const isSuperAdmin = superAdminRanks.includes(myRole?.toLowerCase());
-        
-        console.log('رتبتي الحالية:', myRole, 'هل أنا سوبر أدمن؟', isSuperAdmin);
         
         if (isSuperAdmin && !isMe) {
             adminBox.style.display = 'block';
@@ -773,6 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (appsBtn && appsPanel) {
         appsBtn.addEventListener('click', () => {
             appsPanel.style.display = 'block';
+            // تحميل المنشورات عند فتح اللوحة
             loadPosts();
         });
     }
