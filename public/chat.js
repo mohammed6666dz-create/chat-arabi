@@ -8,6 +8,23 @@ const room = params.get('room');
 if (!room) {
     window.location.href = 'rooms.html';
 }
+// حفظ آخر غرفة في localStorage و Supabase
+if (room) {
+    localStorage.setItem('lastRoom', room);
+    
+    // إرسال آخر غرفة للسيرفر
+    fetch('/api/save-last-room', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ 
+            roomId: room, 
+            roomName: room === 'general' ? 'الغرفة العامة' : (room === 'algeria' ? 'الجزائر' : 'جميع الدول')
+        })
+    }).catch(err => console.log('خطأ في حفظ آخر غرفة:', err));
+}
 let myUsername = '';
 let myAvatar = 'https://via.placeholder.com/40';
 let currentPrivateChat = null;
