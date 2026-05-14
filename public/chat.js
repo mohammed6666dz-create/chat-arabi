@@ -20,7 +20,7 @@ mentionSound.volume = 0.7;
 
 socket.emit('join', room, token);
 
-socket.on('previous messages', (messages) => {
+socket.on('load messages', (messages) => {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.innerHTML = '';
     messages.forEach(({ username, msg, avatar, role }) => {
@@ -207,8 +207,8 @@ function getUserBadge(username, role = 'guest') {
     if (lowerUsername === 'mohamed') {
         return '<span class="badge owner">صاحب الموقع 👑</span>';
     }
-    if (lowerUsername === 'mira') {
-        return '<span class="badge owner">نائبة مدير لموقع🌹</span>';
+    if (lowerUsername === 'malak16') {
+        return '<span class="badge owner">ملكة الموقع🌹</span>';
     }
     switch (role.toLowerCase()) {
         case 'superadmin':
@@ -434,7 +434,7 @@ async function getUserProfileData(username) {
     }
 }
 
-// ========== دوال المنشورات (حائط الأصدقاء) ==========
+// ========== دوال حائط الأصدقاء ==========
 
 // جلب منشورات الأصدقاء فقط
 async function loadPosts() {
@@ -455,7 +455,7 @@ async function loadPosts() {
                 <div class="post-item" data-post-id="${post.id}">
                     <div class="post-header">
                         <img src="${post.avatar || 'https://via.placeholder.com/40'}" alt="${post.username}">
-                        <span class="post-username">${post.username}</span>
+                        <span class="post-username">${escapeHtml(post.username)}</span>
                         <span class="post-time">${new Date(post.created_at).toLocaleString('ar')}</span>
                     </div>
                     <div class="post-content">${escapeHtml(post.content)}</div>
@@ -463,9 +463,16 @@ async function loadPosts() {
                         <button class="like-btn ${post.user_liked ? 'liked' : ''}" onclick="likePost(${post.id})">
                             <i class="fas fa-heart"></i> ${post.likes || 0}
                         </button>
-                        <button class="comment-btn" onclick="commentOnPost(${post.id})">
-                            <i class="fas fa-comment"></i> تعليق
+                        <button class="comment-btn" onclick="toggleComments(${post.id})">
+                            <i class="fas fa-comment"></i> تعليقات
                         </button>
+                    </div>
+                    <div id="comments-area-${post.id}" class="comments-area" style="display:none;">
+                        <div id="comments-list-${post.id}" class="comments-list"></div>
+                        <div class="comment-input-area">
+                            <input type="text" id="comment-input-${post.id}" placeholder="اكتب تعليقك..." maxlength="200">
+                            <button onclick="addComment(${post.id})"><i class="fas fa-paper-plane"></i></button>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -476,6 +483,74 @@ async function loadPosts() {
         if (postsList) {
             postsList.innerHTML = '<div class="no-data">خطأ في تحميل المنشورات</div>';
         }
+    }
+}
+
+// تبديل ظهور التعليقات
+async function toggleComments(postId) {
+    const commentsArea = document.getElementById(`comments-area-${postId}`);
+    if (commentsArea.style.display === 'none' || commentsArea.style.display === '') {
+        commentsArea.style.display = 'block';
+        await loadComments(postId);
+    } else {
+        commentsArea.style.display = 'none';
+    }
+}
+
+// جلب التعليقات
+async function loadComments(postId) {
+    try {
+        const res = await fetch(`/api/get-comments?postId=${postId}`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const comments = await res.json();
+        const commentsList = document.getElementById(`comments-list-${postId}`);
+        
+        if (commentsList) {
+            if (comments.length === 0) {
+                commentsList.innerHTML = '<div style="text-align:center; padding:10px; color:#94a3b8;">لا توجد تعليقات</div>';
+                return;
+            }
+            
+            commentsList.innerHTML = comments.map(comment => `
+                <div class="comment-item">
+                    <img src="${comment.avatar || 'https://via.placeholder.com/20'}" alt="${comment.username}">
+                    <div class="comment-text">
+                        <span class="comment-username">${escapeHtml(comment.username)}</span>
+                        <span>${escapeHtml(comment.content)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+    } catch (err) {
+        console.error('خطأ في جلب التعليقات:', err);
+    }
+}
+
+// إضافة تعليق
+async function addComment(postId) {
+    const input = document.getElementById(`comment-input-${postId}`);
+    const content = input.value.trim();
+    if (!content) return;
+    
+    try {
+        const res = await fetch('/api/add-comment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ postId, content })
+        });
+        
+        if (res.ok) {
+            input.value = '';
+            await loadComments(postId);
+        } else {
+            alert('فشل في إضافة التعليق');
+        }
+    } catch (err) {
+        console.error('خطأ في إضافة التعليق:', err);
     }
 }
 
@@ -499,7 +574,7 @@ async function publishPost() {
         
         if (res.ok) {
             document.getElementById('postContent').value = '';
-            loadPosts(); // تحديث المنشورات
+            loadPosts();
             alert('تم نشر المنشور بنجاح!');
         } else {
             const data = await res.json();
@@ -523,18 +598,10 @@ async function likePost(postId) {
             body: JSON.stringify({ postId })
         });
         if (res.ok) {
-            loadPosts(); // تحديث المنشورات بعد الإعجاب
+            loadPosts();
         }
     } catch (err) {
         console.error('خطأ في الإعجاب:', err);
-    }
-}
-
-// تعليق على منشور
-function commentOnPost(postId) {
-    const comment = prompt('اكتب تعليقك:');
-    if (comment && comment.trim()) {
-        alert('سيتم إضافة خاصية التعليقات قريباً!');
     }
 }
 
@@ -565,8 +632,6 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
-
-// ========== باقي الكود الأصلي (لم يتم التعديل عليه) ==========
 
 // ========== فتح بروفايل المستخدم (معدل لتشغيل الأغنية) ==========
 async function openUserProfile(username, role = 'guest', avatar = '') {
@@ -659,6 +724,8 @@ async function openUserProfile(username, role = 'guest', avatar = '') {
     if (adminBox) {
         const superAdminRanks = ['superadmin', 'سوبر أدمن', 'Super Admin', 'سوبرادمن', 'صاحب الموقع', 'مالك'];
         const isSuperAdmin = superAdminRanks.includes(myRole?.toLowerCase());
+        
+        console.log('رتبتي الحالية:', myRole, 'هل أنا سوبر أدمن؟', isSuperAdmin);
         
         if (isSuperAdmin && !isMe) {
             adminBox.style.display = 'block';
@@ -784,7 +851,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (appsBtn && appsPanel) {
         appsBtn.addEventListener('click', () => {
             appsPanel.style.display = 'block';
-            // تحميل المنشورات عند فتح اللوحة
             loadPosts();
         });
     }
