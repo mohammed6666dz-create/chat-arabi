@@ -60,6 +60,7 @@ socket.on('update users', (users) => {
 });
 
 // استقبال قائمة غير المتصلين
+// استقبال قائمة غير المتصلين
 socket.on('offline users update', (offlineUsers) => {
     const offlineList = document.getElementById('offlineUsersList');
     const offlineCount = document.getElementById('offlineCount');
@@ -83,7 +84,6 @@ socket.on('offline users update', (offlineUsers) => {
     });
     if (offlineCount) offlineCount.innerText = offlineUsers.length;
 });
-
 socket.on('message', ({ username, msg, avatar, role, border }) => {
     appendMessage(username, msg, avatar, username === myUsername, role || 'guest', border || 'none');
 });
