@@ -207,8 +207,8 @@ function getUserBadge(username, role = 'guest') {
     if (lowerUsername === 'mohamed') {
         return '<span class="badge owner">صاحب الموقع 👑</span>';
     }
-    if (lowerUsername === 'malak16') {
-        return '<span class="badge owner">ملكة الموقع🌹</span>';
+    if (lowerUsername === 'mira') {
+        return '<span class="badge owner">نائبة مدير لموقع🌹</span>';
     }
     switch (role.toLowerCase()) {
         case 'superadmin':
