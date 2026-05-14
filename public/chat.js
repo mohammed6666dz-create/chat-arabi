@@ -434,6 +434,140 @@ async function getUserProfileData(username) {
     }
 }
 
+// ========== دوال المنشورات (حائط الأصدقاء) ==========
+
+// جلب منشورات الأصدقاء فقط
+async function loadPosts() {
+    try {
+        const res = await fetch('/api/get-friends-posts', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const posts = await res.json();
+        const postsList = document.getElementById('postsList');
+        
+        if (postsList) {
+            if (posts.length === 0) {
+                postsList.innerHTML = '<div class="no-data">لا توجد منشورات من أصدقائك بعد</div>';
+                return;
+            }
+            
+            postsList.innerHTML = posts.map(post => `
+                <div class="post-item" data-post-id="${post.id}">
+                    <div class="post-header">
+                        <img src="${post.avatar || 'https://via.placeholder.com/40'}" alt="${post.username}">
+                        <span class="post-username">${post.username}</span>
+                        <span class="post-time">${new Date(post.created_at).toLocaleString('ar')}</span>
+                    </div>
+                    <div class="post-content">${escapeHtml(post.content)}</div>
+                    <div class="post-actions">
+                        <button class="like-btn ${post.user_liked ? 'liked' : ''}" onclick="likePost(${post.id})">
+                            <i class="fas fa-heart"></i> ${post.likes || 0}
+                        </button>
+                        <button class="comment-btn" onclick="commentOnPost(${post.id})">
+                            <i class="fas fa-comment"></i> تعليق
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    } catch (err) {
+        console.error('خطأ في جلب المنشورات:', err);
+        const postsList = document.getElementById('postsList');
+        if (postsList) {
+            postsList.innerHTML = '<div class="no-data">خطأ في تحميل المنشورات</div>';
+        }
+    }
+}
+
+// نشر منشور جديد
+async function publishPost() {
+    const content = document.getElementById('postContent').value.trim();
+    if (!content) {
+        alert('الرجاء كتابة منشور قبل النشر');
+        return;
+    }
+    
+    try {
+        const res = await fetch('/api/create-post', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ content })
+        });
+        
+        if (res.ok) {
+            document.getElementById('postContent').value = '';
+            loadPosts(); // تحديث المنشورات
+            alert('تم نشر المنشور بنجاح!');
+        } else {
+            const data = await res.json();
+            alert(data.msg || 'فشل في نشر المنشور');
+        }
+    } catch (err) {
+        console.error('خطأ في النشر:', err);
+        alert('حدث خطأ في النشر');
+    }
+}
+
+// إعجاب بمنشور
+async function likePost(postId) {
+    try {
+        const res = await fetch('/api/like-post', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ postId })
+        });
+        if (res.ok) {
+            loadPosts(); // تحديث المنشورات بعد الإعجاب
+        }
+    } catch (err) {
+        console.error('خطأ في الإعجاب:', err);
+    }
+}
+
+// تعليق على منشور
+function commentOnPost(postId) {
+    const comment = prompt('اكتب تعليقك:');
+    if (comment && comment.trim()) {
+        alert('سيتم إضافة خاصية التعليقات قريباً!');
+    }
+}
+
+// جلب الأخبار
+async function loadNews() {
+    const container = document.getElementById('newsList');
+    if (!container) return;
+    container.innerHTML = '<div class="no-data">جاري التحميل...</div>';
+    try {
+        const res = await fetch('https://gnews.io/api/v4/top-headlines?lang=ar&country=eg&token=861dca860ee588e289b286f042df0c62');
+        const data = await res.json();
+        if (data.articles && data.articles.length) {
+            container.innerHTML = data.articles.slice(0, 10).map(article => `
+                <div class="news-item" onclick="window.open('${article.url}', '_blank')">
+                    <div class="news-title">${article.title.substring(0, 60)}...</div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = '<div class="no-data">لا توجد أخبار</div>';
+        }
+    } catch (err) {
+        container.innerHTML = '<div class="no-data">خطأ في تحميل الأخبار</div>';
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ========== باقي الكود الأصلي (لم يتم التعديل عليه) ==========
+
 // ========== فتح بروفايل المستخدم (معدل لتشغيل الأغنية) ==========
 async function openUserProfile(username, role = 'guest', avatar = '') {
     const displayName = document.getElementById('otherUserDisplayName');
@@ -448,14 +582,11 @@ async function openUserProfile(username, role = 'guest', avatar = '') {
     modal.style.overflowY = 'auto';
     modal.style.maxHeight = '90vh';
     
-    // إزالة أي مشغل أغنية قديم
     const oldPlayer = document.getElementById('dynamicSongPlayer');
     if (oldPlayer) oldPlayer.remove();
     
-    // جلب بيانات المستخدم (بما فيها الأغنية)
     const userData = await getUserProfileData(username);
     
-    // تشغيل الأغنية إذا وجدت
     if (userData && userData.profile_song && userData.profile_song !== '') {
         const songPlayer = document.createElement('div');
         songPlayer.id = 'dynamicSongPlayer';
@@ -528,8 +659,6 @@ async function openUserProfile(username, role = 'guest', avatar = '') {
     if (adminBox) {
         const superAdminRanks = ['superadmin', 'سوبر أدمن', 'Super Admin', 'سوبرادمن', 'صاحب الموقع', 'مالك'];
         const isSuperAdmin = superAdminRanks.includes(myRole?.toLowerCase());
-        
-        console.log('رتبتي الحالية:', myRole, 'هل أنا سوبر أدمن؟', isSuperAdmin);
         
         if (isSuperAdmin && !isMe) {
             adminBox.style.display = 'block';
@@ -648,6 +777,43 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
+    
+    // زر التطبيقات
+    const appsBtn = document.getElementById('appsBtn');
+    const appsPanel = document.getElementById('appsPanel');
+    if (appsBtn && appsPanel) {
+        appsBtn.addEventListener('click', () => {
+            appsPanel.style.display = 'block';
+            // تحميل المنشورات عند فتح اللوحة
+            loadPosts();
+        });
+    }
+    
+    // أزرار التطبيقات الداخلية
+    const appBtns = document.querySelectorAll('.app-btn');
+    appBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const appName = btn.getAttribute('data-app');
+            document.querySelectorAll('.app-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            const targetContent = document.getElementById(`app-${appName}`);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+            if (appName === 'wall') {
+                loadPosts();
+            } else if (appName === 'news') {
+                loadNews();
+            }
+        });
+    });
+    
+    // زر نشر منشور
+    const publishBtn = document.getElementById('publishPostBtn');
+    if (publishBtn) {
+        publishBtn.addEventListener('click', publishPost);
+    }
 });
 
 document.getElementById('sendPrivateMsgBtn')?.addEventListener('click', () => {
