@@ -377,6 +377,117 @@
       color: #64748b;
       margin-top: 2px;
     }
+
+    /* ========== اللوحة الجانبية الجديدة (Games Panel) ========== */
+    .games-panel {
+      position: fixed;
+      top: 60px;
+      left: 20px;
+      width: 320px;
+      max-height: 85vh;
+      background: #1e293b;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      z-index: 1000;
+      overflow-y: auto;
+      padding: 15px;
+      color: white;
+      display: none;
+      border: 1px solid #334155;
+    }
+    .games-panel .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 10px;
+    }
+    .games-panel .panel-header h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .games-section {
+      margin-bottom: 20px;
+    }
+    .games-section h4 {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      margin-bottom: 10px;
+      border-right: 3px solid #3b82f6;
+      padding-right: 10px;
+    }
+    .friends-list {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .friend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      background: #0f172a;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .friend-item:hover {
+      background: #334155;
+    }
+    .friend-item img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .friend-item .friend-name {
+      flex: 1;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+    .dino-game {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    .dino-game iframe {
+      width: 100%;
+      height: 200px;
+      border: none;
+      border-radius: 8px;
+      background: #fff;
+    }
+    .news-list {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .news-item {
+      padding: 8px;
+      border-bottom: 1px solid #334155;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .news-item:hover {
+      background: #334155;
+    }
+    .news-item .news-title {
+      font-weight: bold;
+      font-size: 0.85rem;
+      margin-bottom: 3px;
+    }
+    .news-item .news-date {
+      font-size: 0.7rem;
+      color: #94a3b8;
+    }
+    .close-panel-btn {
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
   </style>
 </head>
 <body>
@@ -403,6 +514,10 @@
         <button class="icon-btn" id="shopBtn" title="المتجر">
           <i class="fas fa-shopping-cart"></i>
         </button>
+        <button class="icon-btn" id="gamesBtn" title="الألعاب والتطبيقات">
+          <i class="fas fa-gamepad"></i>
+          <span class="games-text">تطبيقات</span>
+        </button>
         <button class="icon-btn" id="myLevelBtn" title="نقاطي ومستواي">
           <i class="fas fa-star"></i>
           <span class="level-text">مستواي</span>
@@ -419,6 +534,7 @@
     </div>
   </header>
 
+  <!-- اللوحات الجانبية -->
   <div id="conversationsPanel" class="conversations-panel">
     <div class="panel-header">
       <h3>المحادثات الخاصة</h3>
@@ -441,6 +557,42 @@
       <span class="close-panel" onclick="document.getElementById('reportsPanel').style.display='none'">×</span>
     </div>
     <div id="reportsList"></div>
+  </div>
+
+  <!-- اللوحة الجانبية الجديدة (Games Panel) -->
+  <div id="gamesPanel" class="games-panel">
+    <div class="panel-header">
+      <h3><i class="fas fa-gamepad"></i> التطبيقات</h3>
+      <span class="close-panel-btn" onclick="document.getElementById('gamesPanel').style.display='none'">×</span>
+    </div>
+    
+    <!-- قسم الأصدقاء -->
+    <div class="games-section">
+      <h4><i class="fas fa-users"></i> أصدقائي</h4>
+      <div id="gamesFriendsList" class="friends-list">
+        <div style="text-align:center; padding:20px; color:#94a3b8;">
+          <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+        </div>
+      </div>
+    </div>
+
+    <!-- قسم لعبة الديناصور -->
+    <div class="games-section">
+      <h4><i class="fas fa-dragon"></i> لعبة الديناصور</h4>
+      <div class="dino-game">
+        <iframe src="https://chromedino.com/" title="Dino Game" loading="lazy"></iframe>
+      </div>
+    </div>
+
+    <!-- قسم الأخبار -->
+    <div class="games-section">
+      <h4><i class="fas fa-newspaper"></i> آخر الأخبار</h4>
+      <div id="newsList" class="news-list">
+        <div style="text-align:center; padding:20px; color:#94a3b8;">
+          <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="chat-main">
@@ -801,6 +953,16 @@
         document.getElementById('shopPanel').style.display = 'none';
       });
 
+      // زر الألعاب والتطبيقات
+      document.getElementById('gamesBtn')?.addEventListener('click', () => {
+        const panel = document.getElementById('gamesPanel');
+        if (panel) {
+          panel.style.display = 'block';
+          loadGamesFriendsList();
+          loadNews();
+        }
+      });
+
       const levelBtn = document.getElementById('myLevelBtn');
       const levelPanel = document.getElementById('levelPointsPanel');
       const closeLevel = document.querySelector('.close-level-panel');
@@ -869,6 +1031,64 @@
         });
       });
     });
+
+    // جلب قائمة الأصدقاء للوحة التطبيقات
+    async function loadGamesFriendsList() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/profile', {
+          headers: { Authorization: token }
+        });
+        const user = await res.json();
+        const friendsList = document.getElementById('gamesFriendsList');
+        if (friendsList) {
+          if (user.friends && user.friends.length > 0) {
+            friendsList.innerHTML = user.friends.map(friend => `
+              <div class="friend-item" onclick="openUserProfile('${friend}')">
+                <img src="https://via.placeholder.com/32" alt="${friend}">
+                <span class="friend-name">${friend}</span>
+                <i class="fas fa-comment" style="color:#3b82f6; font-size:12px;"></i>
+              </div>
+            `).join('');
+          } else {
+            friendsList.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">لا يوجد أصدقاء بعد</div>';
+          }
+        }
+      } catch (err) {
+        console.error('خطأ في جلب الأصدقاء:', err);
+      }
+    }
+
+    // جلب الأخبار من API خارجي
+    async function loadNews() {
+      try {
+        const newsList = document.getElementById('newsList');
+        if (newsList) {
+          newsList.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل الأخبار...</div>';
+          
+          // استخدام API مجاني للأخبار العربية
+          const response = await fetch('https://gnews.io/api/v4/top-headlines?lang=ar&country=eg&token=861dca860ee588e289b286f042df0c62');
+          const data = await response.json();
+          
+          if (data.articles && data.articles.length > 0) {
+            newsList.innerHTML = data.articles.slice(0, 10).map(article => `
+              <div class="news-item" onclick="window.open('${article.url}', '_blank')">
+                <div class="news-title">${article.title.substring(0, 60)}...</div>
+                <div class="news-date">${new Date(article.publishedAt).toLocaleDateString('ar')}</div>
+              </div>
+            `).join('');
+          } else {
+            newsList.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">عذراً، لا توجد أخبار حالياً</div>';
+          }
+        }
+      } catch (err) {
+        console.error('خطأ في جلب الأخبار:', err);
+        const newsList = document.getElementById('newsList');
+        if (newsList) {
+          newsList.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">عذراً، حدث خطأ في تحميل الأخبار</div>';
+        }
+      }
+    }
   </script>
   <script src="chat.js"></script>
 </body>
