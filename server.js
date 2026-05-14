@@ -247,7 +247,54 @@ async function broadcastOfflineUsers() {
   }
 }
 
+// Routes
+app.post('/register', async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ msg: 'يجب إدخال اسم المستخدم وكلمة المرور' });
+  }
+  const exists = await getUser(username);
+  if (exists) return res.status(400).json({ msg: 'المستخدم موجود مسبقاً' });
+  const passwordHash = bcrypt.hashSync(password, 10);
+  const success = await createUser(username, passwordHash);
+  if (!success) {
+    return res.status(500).json({ msg: 'خطأ في التسجيل' });
+  }
+  res.json({ msg: 'تم التسجيل بنجاح' });
+});
+
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  const user = await getUser(username);
+  if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+    return res.status(400).json({ msg: 'بيانات خاطئة' });
+  }
+  const token = jwt.sign({ username }, secret, { expiresIn: '7d' });
+  res.json({ 
+    token,
+    last_room: user.last_room || 'general',
+    last_room_name: user.last_room_name || 'الغرفة العامة'
+  });
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  res.sendFile(path.join(__dirname, 'sitemap.xml'));
+});
+
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ msg: 'لا يوجد توكن' });
+  const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : authHeader;
+  try {
+    req.user = jwt.verify(token, secret);
+    next();
+  } catch (e) {
+    res.status(401).json({ msg: 'توكن غير صالح' });
+  }
+};
+
 // ========== مسارات المنشورات (حائط الأصدقاء) ==========
+// تم نقلها هنا بعد تعريف verifyToken
 
 // إنشاء منشور جديد
 app.post('/api/create-post', verifyToken, async (req, res) => {
@@ -349,51 +396,7 @@ app.post('/api/like-post', verifyToken, async (req, res) => {
   }
 });
 
-// Routes
-app.post('/register', async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ msg: 'يجب إدخال اسم المستخدم وكلمة المرور' });
-  }
-  const exists = await getUser(username);
-  if (exists) return res.status(400).json({ msg: 'المستخدم موجود مسبقاً' });
-  const passwordHash = bcrypt.hashSync(password, 10);
-  const success = await createUser(username, passwordHash);
-  if (!success) {
-    return res.status(500).json({ msg: 'خطأ في التسجيل' });
-  }
-  res.json({ msg: 'تم التسجيل بنجاح' });
-});
-
-app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-  const user = await getUser(username);
-  if (!user || !bcrypt.compareSync(password, user.password_hash)) {
-    return res.status(400).json({ msg: 'بيانات خاطئة' });
-  }
-  const token = jwt.sign({ username }, secret, { expiresIn: '7d' });
-  res.json({ 
-    token,
-    last_room: user.last_room || 'general',
-    last_room_name: user.last_room_name || 'الغرفة العامة'
-  });
-});
-
-app.get('/sitemap.xml', (req, res) => {
-  res.sendFile(path.join(__dirname, 'sitemap.xml'));
-});
-
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ msg: 'لا يوجد توكن' });
-  const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : authHeader;
-  try {
-    req.user = jwt.verify(token, secret);
-    next();
-  } catch (e) {
-    res.status(401).json({ msg: 'توكن غير صالح' });
-  }
-};
+// ========== باقي المسارات ==========
 
 app.get('/profile', verifyToken, async (req, res) => {
   const user = await getUser(req.user.username);
