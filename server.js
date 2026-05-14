@@ -1,4 +1,4 @@
-طيب شوف الحين ذا كود سرفر تبعي طيب اسمع رح ارسلك كود سرفر ضيف وش قتلك كامل وضيف تبع  انو يقول للشخص  يلي وصل لمستوى معين مبروك const express = require('express');
+ const express = require('express');
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
