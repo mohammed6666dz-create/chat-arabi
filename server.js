@@ -68,6 +68,8 @@ async function initDatabase() {
         avatar TEXT DEFAULT '',
         background TEXT DEFAULT '',
         profile_song TEXT DEFAULT '',
+        points INTEGER DEFAULT 0,
+        level INTEGER DEFAULT 1,
         friends JSONB DEFAULT '[]'::jsonb,
         friend_requests JSONB DEFAULT '[]'::jsonb,
         sent_requests JSONB DEFAULT '[]'::jsonb,
@@ -114,7 +116,7 @@ async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_friends_posts_created ON friends_posts (created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_post_comments_post ON post_comments (post_id);
     `);
-    console.log('✓ الجداول جاهزة (مع friends_posts و post_comments)');
+    console.log('✓ الجداول جاهزة (مع نقاط ومستوى)');
   } catch (err) {
     console.error('خطأ في تهيئة الجداول:', err);
   }
@@ -124,7 +126,7 @@ initDatabase();
 // المتغيرات المؤقتة
 let roomUsers = { general: [], algeria: [], all_countries: [] };
 let roomCounts = { general: 0, algeria: 0, all_countries: 0 };
-const RANKS = ['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع'];
+const RANKS = ['ضيف', 'عضو', 'بريميوم', 'أدمن', 'صاحب الموقع', 'VIP', 'سوبر أدمن'];
 const secret = 'secretkey';
 const PORT = process.env.PORT || 3000;
 
@@ -331,8 +333,67 @@ app.get('/profile', verifyToken, async (req, res) => {
     friends: user.friends,
     friend_requests: user.friend_requests || [],
     rank: user.rank || 'ضيف',
+    points: user.points || 0,
+    level: user.level || 1,
     unread_messages: unreadCount
   });
+});
+
+// جلب نقاط المستخدم
+app.get('/api/user-points', verifyToken, async (req, res) => {
+  try {
+    const user = await getUser(req.user.username);
+    res.json({
+      points: user.points || 0,
+      level: user.level || 1
+    });
+  } catch (err) {
+    res.status(500).json({ points: 0, level: 1 });
+  }
+});
+
+// شراء رتبة من المتجر
+app.post('/api/buy-rank', verifyToken, async (req, res) => {
+  const { rank, price } = req.body;
+  const username = req.user.username;
+  
+  const rankPrices = {
+    'VIP': 800,
+    'بريميوم': 1500,
+    'أدمن': 3000,
+    'سوبر أدمن': 5000
+  };
+  
+  const actualPrice = price || rankPrices[rank];
+  if (!actualPrice) {
+    return res.status(400).json({ msg: 'رتبة غير صالحة' });
+  }
+  
+  try {
+    const user = await getUser(username);
+    const currentPoints = user.points || 0;
+    
+    if (currentPoints < actualPrice) {
+      return res.status(400).json({ msg: `نقاطك غير كافية. تحتاج ${actualPrice} نقطة` });
+    }
+    
+    await pool.query(
+      'UPDATE users SET points = points - $1, rank = $2 WHERE username = $3',
+      [actualPrice, rank, username]
+    );
+    
+    // إرسال تحديث للجميع
+    io.emit('rank update', { username, rank });
+    
+    res.json({ 
+      success: true, 
+      msg: `تم شراء رتبة ${rank} بنجاح`,
+      remainingPoints: currentPoints - actualPrice
+    });
+  } catch (err) {
+    console.error('خطأ في شراء الرتبة:', err);
+    res.status(500).json({ msg: 'خطأ في شراء الرتبة' });
+  }
 });
 
 app.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res) => {
@@ -569,7 +630,6 @@ app.post('/api/like-post', verifyToken, async (req, res) => {
       likedBy.push(username);
       newLikes++;
       
-      // إرسال إشعار للمنشور إذا كان المعجب ليس صاحب المنشور
       if (postOwner !== username) {
         const notification = {
           id: Date.now(),
@@ -630,7 +690,6 @@ app.post('/api/add-comment', verifyToken, async (req, res) => {
   }
   
   try {
-    // جلب صاحب المنشور
     const { rows: postRows } = await pool.query('SELECT username as post_owner, content as post_content FROM friends_posts WHERE id = $1', [postId]);
     if (postRows.length === 0) {
       return res.status(404).json({ msg: 'المنشور غير موجود' });
@@ -642,7 +701,6 @@ app.post('/api/add-comment', verifyToken, async (req, res) => {
       [postId, username, content.trim()]
     );
     
-    // إرسال إشعار لصاحب المنشور إذا لم يكن المعلق هو صاحب المنشور
     if (postOwner !== username) {
       const notification = {
         id: Date.now(),
@@ -669,7 +727,6 @@ app.get('/api/get-notifications', verifyToken, async (req, res) => {
   try {
     const user = await getUser(username);
     const notifications = user.notifications || [];
-    // ترتيب الإشعارات من الأحدث إلى الأقدم
     notifications.reverse();
     res.json(notifications.slice(0, 50));
   } catch (err) {
@@ -710,7 +767,7 @@ io.on('connection', socket => {
     try {
       const decoded = jwt.verify(token, secret);
       const user = await getUser(decoded.username);
-      if (user && ['أدمن', 'صاحب الموقع', 'مالك'].includes(user.rank)) {
+      if (user && ['أدمن', 'صاحب الموقع', 'مالك', 'سوبر أدمن'].includes(user.rank)) {
         if (action === 'ban') {
           await pool.query('UPDATE users SET is_banned = true WHERE username = $1', [target]);
           for (const [id, s] of io.sockets.sockets) {
@@ -829,6 +886,24 @@ io.on('connection', socket => {
       const role = user.rank || 'ضيف';
       
       await pool.query(`INSERT INTO room_messages (room, username, message, avatar, role, created_at) VALUES ($1, $2, $3, $4, $5, NOW())`, [currentRoom, decoded.username, msg, avatar, role]);
+      
+      // ========== نظام النقاط والمستوى ==========
+      let newPoints = (user.points || 0) + 1;
+      let newLevel = Math.floor(newPoints / 1000) + 1;
+      let oldLevel = user.level || 1;
+      
+      await pool.query('UPDATE users SET points = $1, level = $2 WHERE username = $3', [newPoints, newLevel, decoded.username]);
+      
+      // إرسال تحديث النقاط للمستخدم
+      socket.emit('your points updated', { points: newPoints, level: newLevel });
+      
+      // إذا وصل المستخدم لمستوى جديد، أرسل رسالة تهنئة للجميع
+      if (newLevel > oldLevel) {
+        const congratsMessage = `🎉✨ مبروك! العضو المميز ${decoded.username} وصل للمستوى ${newLevel} 🎊🌟`;
+        io.emit('system message', congratsMessage);
+        io.emit('level up broadcast', { username: decoded.username, newLevel });
+      }
+      // ========================================
       
       const lowerMsg = msg.toLowerCase().trim();
       if (lowerMsg.includes('gpt')) {
@@ -1114,7 +1189,7 @@ io.on('connection', socket => {
 http.listen(PORT, '0.0.0.0', () => {
   console.log('=====================================');
   console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
-  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت + حفظ الجلسة + حائط الأصدقاء)');
+  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت + حفظ الجلسة + حائط الأصدقاء + نظام النقاط والمستويات)');
   console.log('');
   console.log('افتح الشات من:');
   console.log(`http://localhost:${PORT}/index.html`);
