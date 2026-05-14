@@ -1221,3 +1221,16 @@ socket.on('private message', ({ from, to, msg, avatar }) => {
         updateMessageBadge(totalUnreadMsgs);
     }
 });
+// تأكد من أن زر الرسالة الخاصة يعمل
+document.addEventListener('click', function(e) {
+    if (e.target.id === 'sendPrivateMsgBtn' || e.target.closest('#sendPrivateMsgBtn')) {
+        const btn = document.getElementById('sendPrivateMsgBtn');
+        if (btn && btn.style.display !== 'none') {
+            const username = document.getElementById('otherUserDisplayName')?.textContent;
+            if (username && username !== myUsername) {
+                closeOtherUserProfile();
+                startPrivateChat(username);
+            }
+        }
+    }
+});
