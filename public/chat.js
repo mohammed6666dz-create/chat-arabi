@@ -20,7 +20,7 @@ mentionSound.volume = 0.7;
 
 socket.emit('join', room, token);
 
-socket.on('previous messages', (messages) => {
+socket.on('load messages', (messages) => {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.innerHTML = '';
     messages.forEach(({ username, msg, avatar, role }) => {
