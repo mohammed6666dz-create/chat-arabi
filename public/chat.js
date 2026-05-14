@@ -15,6 +15,7 @@ let myPoints = 1;
 let myLevel = 1;
 let myRole = 'guest';
 let myProfileSong = '';
+let notificationCount = 0;
 const mentionSound = new Audio('./bird-chirp-short.mp3');
 mentionSound.volume = 0.7;
 
@@ -99,6 +100,13 @@ socket.on('mention notification', ({ from, room }) => {
     mentionSound.play().catch(err => {
         console.log("مشكلة تشغيل صوت الطاق:", err);
     });
+});
+
+// استقبال إشعارات جديدة عبر Socket
+socket.on('new_notification', (data) => {
+    notificationCount++;
+    updateNotificationBadge();
+    mentionSound.play().catch(err => console.log("مشكلة تشغيل الصوت:", err));
 });
 
 document.getElementById('messageForm').addEventListener('submit', (e) => {
@@ -207,8 +215,8 @@ function getUserBadge(username, role = 'guest') {
     if (lowerUsername === 'mohamed') {
         return '<span class="badge owner">صاحب الموقع 👑</span>';
     }
-    if (lowerUsername === 'mira') {
-        return '<span class="badge owner">نائبة مدير لموقع 🌹</span>';
+    if (lowerUsername === 'malak16') {
+        return '<span class="badge owner">ملكة الموقع🌹</span>';
     }
     switch (role.toLowerCase()) {
         case 'superadmin':
@@ -434,7 +442,82 @@ async function getUserProfileData(username) {
     }
 }
 
-// ========== دوال المنشورات (حائط الأصدقاء) ==========
+// ========== دوال الإشعارات ==========
+
+function updateNotificationBadge() {
+    const badge = document.getElementById('notificationsBadge');
+    if (badge) {
+        if (notificationCount > 0) {
+            badge.innerText = notificationCount;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+async function loadNotifications() {
+    try {
+        const res = await fetch('/api/get-notifications', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const notifications = await res.json();
+        const container = document.getElementById('notificationsList');
+        
+        if (container) {
+            if (notifications.length === 0) {
+                container.innerHTML = '<div class="no-notifications">لا توجد إشعارات</div>';
+                return;
+            }
+            
+            container.innerHTML = notifications.map(notif => `
+                <div class="notification-item" onclick="handleNotificationClick(${notif.id}, '${notif.type}', ${notif.post_id || 0})">
+                    <div class="notification-icon">
+                        <i class="fas ${notif.type === 'comment' ? 'fa-comment' : 'fa-newspaper'}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">${escapeHtml(notif.message)}</div>
+                        <div class="notification-time">${new Date(notif.created_at).toLocaleString('ar')}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    } catch (err) {
+        console.error('خطأ في جلب الإشعارات:', err);
+    }
+}
+
+async function handleNotificationClick(notifId, type, postId) {
+    // تحديث الإشعار كمقروء
+    await fetch('/api/mark-notification-read', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ notifId })
+    });
+    
+    // إغلاق لوحة الإشعارات
+    document.getElementById('notificationsPanel').style.display = 'none';
+    
+    // فتح لوحة التطبيقات والانتقال لحائط الأصدقاء
+    const appsPanel = document.getElementById('appsPanel');
+    appsPanel.style.display = 'block';
+    
+    // تفعيل تبويب حائط الأصدقاء
+    document.querySelectorAll('.app-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById('app-wall').classList.add('active');
+    loadPosts();
+    
+    // تقليل عداد الإشعارات
+    notificationCount = Math.max(0, notificationCount - 1);
+    updateNotificationBadge();
+}
+
+// ========== دوال المنشورات والتعليقات ==========
 
 // جلب منشورات الأصدقاء فقط
 async function loadPosts() {
@@ -455,7 +538,7 @@ async function loadPosts() {
                 <div class="post-item" data-post-id="${post.id}">
                     <div class="post-header">
                         <img src="${post.avatar || 'https://via.placeholder.com/40'}" alt="${post.username}">
-                        <span class="post-username">${post.username}</span>
+                        <span class="post-username">${escapeHtml(post.username)}</span>
                         <span class="post-time">${new Date(post.created_at).toLocaleString('ar')}</span>
                     </div>
                     <div class="post-content">${escapeHtml(post.content)}</div>
@@ -463,9 +546,16 @@ async function loadPosts() {
                         <button class="like-btn ${post.user_liked ? 'liked' : ''}" onclick="likePost(${post.id})">
                             <i class="fas fa-heart"></i> ${post.likes || 0}
                         </button>
-                        <button class="comment-btn" onclick="commentOnPost(${post.id})">
-                            <i class="fas fa-comment"></i> تعليق
+                        <button class="comment-btn" onclick="toggleComments(${post.id})">
+                            <i class="fas fa-comment"></i> تعليقات
                         </button>
+                    </div>
+                    <div id="comments-area-${post.id}" class="comments-area">
+                        <div id="comments-list-${post.id}" class="comments-list"></div>
+                        <div class="comment-input-area">
+                            <input type="text" id="comment-input-${post.id}" placeholder="اكتب تعليقك..." maxlength="200">
+                            <button onclick="addComment(${post.id})"><i class="fas fa-paper-plane"></i></button>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -476,6 +566,74 @@ async function loadPosts() {
         if (postsList) {
             postsList.innerHTML = '<div class="no-data">خطأ في تحميل المنشورات</div>';
         }
+    }
+}
+
+// تبديل ظهور التعليقات
+async function toggleComments(postId) {
+    const commentsArea = document.getElementById(`comments-area-${postId}`);
+    if (commentsArea.classList.contains('show')) {
+        commentsArea.classList.remove('show');
+    } else {
+        commentsArea.classList.add('show');
+        await loadComments(postId);
+    }
+}
+
+// جلب التعليقات
+async function loadComments(postId) {
+    try {
+        const res = await fetch(`/api/get-comments?postId=${postId}`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const comments = await res.json();
+        const commentsList = document.getElementById(`comments-list-${postId}`);
+        
+        if (commentsList) {
+            if (comments.length === 0) {
+                commentsList.innerHTML = '<div style="text-align:center; padding:10px; color:#94a3b8;">لا توجد تعليقات</div>';
+                return;
+            }
+            
+            commentsList.innerHTML = comments.map(comment => `
+                <div class="comment-item">
+                    <img src="${comment.avatar || 'https://via.placeholder.com/20'}" alt="${comment.username}">
+                    <div class="comment-text">
+                        <span class="comment-username">${escapeHtml(comment.username)}</span>
+                        <span>${escapeHtml(comment.content)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+    } catch (err) {
+        console.error('خطأ في جلب التعليقات:', err);
+    }
+}
+
+// إضافة تعليق
+async function addComment(postId) {
+    const input = document.getElementById(`comment-input-${postId}`);
+    const content = input.value.trim();
+    if (!content) return;
+    
+    try {
+        const res = await fetch('/api/add-comment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ postId, content })
+        });
+        
+        if (res.ok) {
+            input.value = '';
+            await loadComments(postId);
+        } else {
+            alert('فشل في إضافة التعليق');
+        }
+    } catch (err) {
+        console.error('خطأ في إضافة التعليق:', err);
     }
 }
 
@@ -499,8 +657,7 @@ async function publishPost() {
         
         if (res.ok) {
             document.getElementById('postContent').value = '';
-            loadPosts(); // تحديث المنشورات
-            alert('تم نشر المنشور بنجاح!');
+            loadPosts();
         } else {
             const data = await res.json();
             alert(data.msg || 'فشل في نشر المنشور');
@@ -523,18 +680,10 @@ async function likePost(postId) {
             body: JSON.stringify({ postId })
         });
         if (res.ok) {
-            loadPosts(); // تحديث المنشورات بعد الإعجاب
+            loadPosts();
         }
     } catch (err) {
         console.error('خطأ في الإعجاب:', err);
-    }
-}
-
-// تعليق على منشور
-function commentOnPost(postId) {
-    const comment = prompt('اكتب تعليقك:');
-    if (comment && comment.trim()) {
-        alert('سيتم إضافة خاصية التعليقات قريباً!');
     }
 }
 
@@ -565,8 +714,6 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
-
-// ========== باقي الكود الأصلي (لم يتم التعديل عليه) ==========
 
 // ========== فتح بروفايل المستخدم (معدل لتشغيل الأغنية) ==========
 async function openUserProfile(username, role = 'guest', avatar = '') {
@@ -778,13 +925,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // زر الإشعارات
+    const notificationsBtn = document.getElementById('notificationsBtn');
+    const notificationsPanel = document.getElementById('notificationsPanel');
+    if (notificationsBtn && notificationsPanel) {
+        notificationsBtn.addEventListener('click', () => {
+            notificationsPanel.style.display = 'block';
+            loadNotifications();
+        });
+    }
+    
     // زر التطبيقات
     const appsBtn = document.getElementById('appsBtn');
     const appsPanel = document.getElementById('appsPanel');
     if (appsBtn && appsPanel) {
         appsBtn.addEventListener('click', () => {
             appsPanel.style.display = 'block';
-            // تحميل المنشورات عند فتح اللوحة
             loadPosts();
         });
     }
