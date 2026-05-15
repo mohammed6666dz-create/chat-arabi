@@ -1650,21 +1650,13 @@ socket.on('news-updated', () => {
     loadNews();
 });
 
-// تحديث دالة loadMyProfile الأصلية لإضافة checkNewsAdmin
-const originalLoadMyProfile = loadMyProfile;
-window.loadMyProfile = async function() {
-    await originalLoadMyProfile();
-    checkNewsAdmin();
-    loadNews();
+// ربط الأخبار مع تحميل البروفايل
+const finalLoadMyProfile = loadMyProfile;
+loadMyProfile = async function() {
+    await finalLoadMyProfile();
+    const addSection = document.getElementById('addNewsSection');
+    if (addSection) addSection.style.display = myUsername === 'MOHAMED' ? 'block' : 'none';
+    if (typeof loadNews === 'function') loadNews();
 };
 
-// إذا كانت loadMyProfile موجودة بالفعل، نضيف لها التحقق
-if (typeof loadMyProfile === 'function') {
-    // نضيف استدعاء checkNewsAdmin بعد تحميل البروفايل
-    const oldLoadMyProfile = loadMyProfile;
-    loadMyProfile = async function() {
-        await oldLoadMyProfile();
-        checkNewsAdmin();
-        loadNews();
-    };
-}
+socket.on('news-updated', () => loadNews());
