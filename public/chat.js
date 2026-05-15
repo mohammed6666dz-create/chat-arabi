@@ -1668,23 +1668,3 @@ if (typeof loadMyProfile === 'function') {
         loadNews();
     };
 }
-// ========== إصلاح ظهور حقل الأخبار للمشرف ==========
-function initNewsSection() {
-    const addSection = document.getElementById('addNewsSection');
-    if (addSection) {
-        if (myUsername === 'MOHAMED') {
-            addSection.style.display = 'block';
-            console.log('✅ حقل الأخبار ظهر للمشرف MOHAMED');
-        } else {
-            addSection.style.display = 'none';
-        }
-    }
-}
-
-// استدعاء الدالة بعد تحميل اسم المستخدم
-const superLoadMyProfile = loadMyProfile;
-loadMyProfile = async function() {
-    await superLoadMyProfile();
-    initNewsSection();
-    if (typeof loadNews === 'function') loadNews();
-};
