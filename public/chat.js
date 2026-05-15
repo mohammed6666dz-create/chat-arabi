@@ -1676,3 +1676,22 @@ loadMyProfile = async function() {
 setTimeout(() => {
     showNewsSection();
 }, 1000);
+// ========== إصلاح مشكلة المسافة في حقل كتابة الأخبار ==========
+const newsTitleInput = document.getElementById('newsTitle');
+const newsContentInput = document.getElementById('newsContent');
+
+if (newsTitleInput) {
+    newsTitleInput.addEventListener('keydown', function(e) {
+        if (e.code === 'Space') {
+            e.stopPropagation();
+        }
+    });
+}
+
+if (newsContentInput) {
+    newsContentInput.addEventListener('keydown', function(e) {
+        if (e.code === 'Space') {
+            e.stopPropagation();
+        }
+    });
+}
