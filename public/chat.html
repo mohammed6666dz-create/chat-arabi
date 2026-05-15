@@ -850,13 +850,23 @@
         <i class="fas fa-gamepad"></i> تشغيل لعبة الديناصور
       </button>
     </div>
-
-    <!-- الأخبار -->
-    <div id="app-news" class="app-content">
-      <div id="newsList" class="news-list">
-        <div class="no-data">جاري تحميل الأخبار...</div>
-      </div>
-    </div>
+<!-- الأخبار -->
+<div id="app-news" class="app-content">
+  <!-- حقل إضافة خبر جديد (يظهر فقط لصاحب الموقع MOHAMED) -->
+  <div id="addNewsSection" style="display: none; margin-bottom: 20px; padding: 15px; background: #0f172a; border-radius: 12px; border: 1px solid #3b82f6;">
+    <h4 style="margin: 0 0 10px 0; color: #fbbf24;"><i class="fas fa-edit"></i> إضافة خبر جديد</h4>
+    <input type="text" id="newsTitle" placeholder="عنوان الخبر..." style="width: 100%; padding: 10px; margin-bottom: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white; box-sizing: border-box;">
+    <textarea id="newsContent" rows="3" placeholder="محتوى الخبر..." style="width: 100%; padding: 10px; margin-bottom: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white; resize: vertical; box-sizing: border-box;"></textarea>
+    <button id="publishNewsBtn" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold;">
+      <i class="fas fa-paper-plane"></i> نشر الخبر
+    </button>
+  </div>
+  
+  <!-- قائمة الأخبار -->
+  <div id="newsList" class="news-list">
+    <div class="no-data">جاري تحميل الأخبار...</div>
+  </div>
+</div>
 
     <!-- قائمة الغرف -->
     <div id="app-rooms" class="app-content">
