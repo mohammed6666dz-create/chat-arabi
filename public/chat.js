@@ -1532,3 +1532,139 @@ document.getElementById('messageInput')?.addEventListener('keydown', function(e)
         e.stopPropagation();
     }
 });
+// ========== نظام الأخبار الجديد ==========
+
+// جلب الأخبار من السيرفر
+async function loadNews() {
+    const container = document.getElementById('newsList');
+    if (!container) return;
+    
+    container.innerHTML = '<div class="no-data">⏳ جاري تحميل الأخبار...</div>';
+    
+    try {
+        const res = await fetch('/api/get-news');
+        const news = await res.json();
+        
+        if (news.length === 0) {
+            container.innerHTML = '<div class="no-data">📭 لا توجد أخبار حالياً</div>';
+            return;
+        }
+        
+        container.innerHTML = news.map(item => `
+            <div class="news-item" data-id="${item.id}">
+                <div class="news-title">
+                    <i class="fas fa-newspaper"></i> ${escapeHtml(item.title)}
+                </div>
+                <div class="news-content">${escapeHtml(item.content)}</div>
+                <div class="news-meta">
+                    <span class="news-author"><i class="fas fa-user"></i> ${escapeHtml(item.author)}</span>
+                    <span class="news-date"><i class="fas fa-calendar-alt"></i> ${new Date(item.created_at).toLocaleString('ar')}</span>
+                    ${myUsername === 'MOHAMED' ? `<button class="delete-news-btn" data-id="${item.id}"><i class="fas fa-trash"></i> حذف</button>` : ''}
+                </div>
+            </div>
+        `).join('');
+        
+        // إضافة حدث الحذف للمشرف
+        if (myUsername === 'MOHAMED') {
+            document.querySelectorAll('.delete-news-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    if (confirm('هل أنت متأكد من حذف هذا الخبر؟')) {
+                        const res = await fetch(`/api/delete-news/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': 'Bearer ' + token }
+                        });
+                        if (res.ok) {
+                            loadNews();
+                        } else {
+                            alert('فشل حذف الخبر');
+                        }
+                    }
+                });
+            });
+        }
+        
+    } catch (err) {
+        console.error('خطأ في جلب الأخبار:', err);
+        container.innerHTML = '<div class="no-data">❌ خطأ في تحميل الأخبار</div>';
+    }
+}
+
+// التحقق من صلاحيات المستخدم وإظهار حقل الإضافة
+function checkNewsAdmin() {
+    const addSection = document.getElementById('addNewsSection');
+    if (addSection) {
+        if (myUsername === 'MOHAMED') {
+            addSection.style.display = 'block';
+        } else {
+            addSection.style.display = 'none';
+        }
+    }
+}
+
+// نشر خبر جديد
+async function publishNews() {
+    const title = document.getElementById('newsTitle')?.value.trim();
+    const content = document.getElementById('newsContent')?.value.trim();
+    
+    if (!title || !content) {
+        alert('❌ الرجاء إدخال عنوان ومحتوى الخبر');
+        return;
+    }
+    
+    try {
+        const res = await fetch('/api/add-news', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ title, content })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            alert('✅ تم نشر الخبر بنجاح!');
+            document.getElementById('newsTitle').value = '';
+            document.getElementById('newsContent').value = '';
+            loadNews();
+        } else {
+            alert('❌ ' + (data.msg || 'فشل نشر الخبر'));
+        }
+    } catch (err) {
+        console.error('خطأ:', err);
+        alert('❌ حدث خطأ في نشر الخبر');
+    }
+}
+
+// ربط زر النشر
+const publishNewsBtn = document.getElementById('publishNewsBtn');
+if (publishNewsBtn) {
+    publishNewsBtn.addEventListener('click', publishNews);
+}
+
+// استماع لتحديثات الأخبار من السيرفر
+socket.on('news-updated', () => {
+    loadNews();
+});
+
+// تحديث دالة loadMyProfile الأصلية لإضافة checkNewsAdmin
+const originalLoadMyProfile = loadMyProfile;
+window.loadMyProfile = async function() {
+    await originalLoadMyProfile();
+    checkNewsAdmin();
+    loadNews();
+};
+
+// إذا كانت loadMyProfile موجودة بالفعل، نضيف لها التحقق
+if (typeof loadMyProfile === 'function') {
+    // نضيف استدعاء checkNewsAdmin بعد تحميل البروفايل
+    const oldLoadMyProfile = loadMyProfile;
+    loadMyProfile = async function() {
+        await oldLoadMyProfile();
+        checkNewsAdmin();
+        loadNews();
+    };
+}
