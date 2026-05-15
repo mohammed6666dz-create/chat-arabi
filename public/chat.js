@@ -1658,5 +1658,3 @@ loadMyProfile = async function() {
     if (addSection) addSection.style.display = myUsername === 'MOHAMED' ? 'block' : 'none';
     if (typeof loadNews === 'function') loadNews();
 };
-
-socket.on('news-updated', () => loadNews());
