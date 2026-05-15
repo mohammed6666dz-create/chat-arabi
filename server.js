@@ -375,18 +375,28 @@ app.post('/upload-background', verifyToken, upload.single('background'), async (
   }
 });
 
-// رفع أغنية البروفايل
-app.post('/upload-profile-song', verifyToken, uploadSong.single('song'), async (req, res) => {
+// رفع أغنية البروفايل (عبر Cloudinary)
+app.post('/upload-profile-song', verifyToken, upload.single('song'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
   }
   
   try {
-    const songUrl = `/uploads/${req.file.filename}`;
+    // تحويل الملف إلى base64
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+    
+    // رفع إلى Cloudinary (مجلد profile_songs)
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: "profile_songs",
+      resource_type: "auto"
+    });
+    
+    const songUrl = result.secure_url;
     const success = await updateUserFields(req.user.username, { profile_song: songUrl });
     
     if (!success) {
-      return res.status(500).json({ msg: 'خطأ في حفظ رابط الأغنية في قاعدة البيانات' });
+      return res.status(500).json({ msg: 'خطأ في حفظ رابط الأغنية' });
     }
     
     res.json({ 
