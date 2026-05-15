@@ -122,12 +122,20 @@ async function initDatabase() {
         content TEXT NOT NULL,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      -- جدول الأخبار
+      CREATE TABLE IF NOT EXISTS news (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        author TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
       CREATE INDEX IF NOT EXISTS idx_pm_users ON private_messages (from_user, to_user);
       CREATE INDEX IF NOT EXISTS idx_room_messages_room_created ON room_messages (room, created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_friends_posts_created ON friends_posts (created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_post_comments_post ON post_comments (post_id);
     `);
-    console.log('✓ الجداول جاهزة (مع private_bg)');
+    console.log('✓ الجداول جاهزة (مع الأخبار و private_bg)');
   } catch (err) {
     console.error('خطأ في تهيئة الجداول:', err);
   }
@@ -736,6 +744,68 @@ app.post('/api/mark-notification-read', verifyToken, async (req, res) => {
   }
 });
 
+// ========== مسارات الأخبار ==========
+
+// جلب جميع الأخبار (للجميع)
+app.get('/api/get-news', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT * FROM news 
+      ORDER BY created_at DESC 
+      LIMIT 50
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('خطأ في جلب الأخبار:', err);
+    res.status(500).json([]);
+  }
+});
+
+// إضافة خبر جديد (فقط MOHAMED)
+app.post('/api/add-news', verifyToken, async (req, res) => {
+  const { title, content } = req.body;
+  const username = req.user.username;
+  
+  if (username !== 'MOHAMED') {
+    return res.status(403).json({ msg: 'غير مصرح لك! فقط صاحب الموقع MOHAMED يمكنه نشر الأخبار' });
+  }
+  
+  if (!title || !content) {
+    return res.status(400).json({ msg: 'الرجاء إدخال عنوان ومحتوى الخبر' });
+  }
+  
+  try {
+    await pool.query(
+      'INSERT INTO news (title, content, author, created_at) VALUES ($1, $2, $3, NOW())',
+      [title.trim(), content.trim(), username]
+    );
+    io.emit('news-updated');
+    res.json({ success: true, msg: 'تم نشر الخبر بنجاح' });
+  } catch (err) {
+    console.error('خطأ في إضافة الخبر:', err);
+    res.status(500).json({ msg: 'فشل نشر الخبر' });
+  }
+});
+
+// حذف خبر (فقط MOHAMED)
+app.delete('/api/delete-news/:id', verifyToken, async (req, res) => {
+  const { id } = req.params;
+  const username = req.user.username;
+  
+  if (username !== 'MOHAMED') {
+    return res.status(403).json({ msg: 'غير مصرح لك!' });
+  }
+  
+  try {
+    await pool.query('DELETE FROM news WHERE id = $1', [id]);
+    io.emit('news-updated');
+    res.json({ success: true });
+  } catch (err) {
+    console.error('خطأ في حذف الخبر:', err);
+    res.status(500).json({ msg: 'فشل حذف الخبر' });
+  }
+});
+
 // تحديث غير المتصلين كل 30 ثانية
 setInterval(() => {
   broadcastOfflineUsers();
@@ -1155,7 +1225,7 @@ io.on('connection', socket => {
 http.listen(PORT, '0.0.0.0', () => {
   console.log('=====================================');
   console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
-  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت + حفظ الجلسة + حائط الأصدقاء + خلفية خاصة)');
+  console.log(' (مع قاعدة بيانات PostgreSQL + GPT بوت + حفظ الجلسة + حائط الأصدقاء + خلفية خاصة + نظام أخبار)');
   console.log('');
   console.log('افتح الشات من:');
   console.log(`http://localhost:${PORT}/index.html`);
