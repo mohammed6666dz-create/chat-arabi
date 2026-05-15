@@ -811,50 +811,44 @@ setInterval(() => {
   broadcastOfflineUsers();
 }, 30000);
 
-// Socket.IO
-io.on('connection', socket => {
-  let currentRoom = null;
-  let username = null;
-
-  socket.on('admin command', async (data) => {
+// Socket.IOsocket.on('admin command', async (data) => {
     const { action, target, token } = data;
     try {
-      const decoded = jwt.verify(token, secret);
-      const user = await getUser(decoded.username);
-      if (user && ['أدمن', 'صاحب الموقع', 'مالك'].includes(user.rank)) {
-        if (action === 'ban') {
-          await pool.query('UPDATE users SET is_banned = true WHERE username = $1', [target]);
-          for (const [id, s] of io.sockets.sockets) {
-            if (s.username === target) {
-              s.emit('execute-ban', { target: target });
-              s.disconnect();
+        const decoded = jwt.verify(token, secret);
+        const user = await getUser(decoded.username);
+        if (user && ['أدمن', 'صاحب الموقع', 'مالك'].includes(user.rank)) {
+            if (action === 'ban') {
+                await pool.query('UPDATE users SET is_banned = true WHERE username = $1', [target]);
+                for (const [id, s] of io.sockets.sockets) {
+                    if (s.username === target) {
+                        s.emit('execute-ban', { target: target });
+                        s.disconnect();
+                    }
+                }
             }
-          }
-        }
-        if (action === 'kick') {
-          for (const [id, s] of io.sockets.sockets) {
-            if (s.username === target) {
-              s.emit('execute-kick', { target: target });
-              s.disconnect();
+            if (action === 'kick') {
+                for (const [id, s] of io.sockets.sockets) {
+                    if (s.username === target) {
+                        s.emit('execute-kick', { target: target });
+                        s.disconnect();
+                    }
+                }
             }
-          }
+            if (action === 'unban') {
+                await pool.query('UPDATE users SET is_banned = false WHERE username = $1', [target]);
+                io.emit('system message', `✅ تم فك الحظر عن ${target}`);
+            }
+            if (action === 'mute') {
+                await pool.query('UPDATE users SET is_muted = true WHERE username = $1', [target]);
+            }
+            if (action === 'unmute') {
+                await pool.query('UPDATE users SET is_muted = false WHERE username = $1', [target]);
+            }
         }
-        if (action === 'unban') {
-          await pool.query('UPDATE users SET is_banned = false WHERE username = $1', [target]);
-          io.emit('system message', `✅ تم فك الحظر عن ${target}`);
-        }
-        if (action === 'mute') {
-          await pool.query('UPDATE users SET is_muted = true WHERE username = $1', [target]);
-        }
-        if (action === 'unmute') {
-          await pool.query('UPDATE users SET is_muted = false WHERE username = $1', [target]);
-        }
-      }
     } catch (err) {
-      console.error('Admin Error:', err);
+        console.error('Admin Error:', err);
     }
-  });
-  
+}); 
   socket.on('join', async (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
