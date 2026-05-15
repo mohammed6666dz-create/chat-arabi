@@ -421,7 +421,6 @@ app.post('/upload-private-bg', verifyToken, upload.single('bg'), async (req, res
     res.status(500).json({ msg: 'فشل الرفع: ' + err.message });
   }
 });
-
 // جلب بيانات أي مستخدم (للبروفايل)
 app.get('/profile-data', verifyToken, async (req, res) => {
   const { username } = req.query;
