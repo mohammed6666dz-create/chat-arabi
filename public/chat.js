@@ -1649,12 +1649,30 @@ if (publishNewsBtn) {
 socket.on('news-updated', () => {
     loadNews();
 });
+// ========== إظهار حقل الأخبار للمشرف ==========
 
-// ربط الأخبار مع تحميل البروفايل
-const finalLoadMyProfile = loadMyProfile;
-loadMyProfile = async function() {
-    await finalLoadMyProfile();
+// أولاً: دالة إظهار الحقل
+function showNewsSection() {
     const addSection = document.getElementById('addNewsSection');
-    if (addSection) addSection.style.display = myUsername === 'MOHAMED' ? 'block' : 'none';
+    if (addSection) {
+        if (myUsername === 'MOHAMED') {
+            addSection.style.display = 'block';
+            console.log('✅ حقل الأخبار ظهر للمشرف MOHAMED');
+        } else {
+            addSection.style.display = 'none';
+        }
+    }
+}
+
+// ثانياً: ربط مع loadMyProfile
+const originalLoadMyProfile = loadMyProfile;
+loadMyProfile = async function() {
+    await originalLoadMyProfile();
+    showNewsSection();
     if (typeof loadNews === 'function') loadNews();
 };
+
+// ثالثاً: إظهار فوري بعد تحميل الصفحة
+setTimeout(() => {
+    showNewsSection();
+}, 1000);
