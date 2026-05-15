@@ -402,21 +402,28 @@ app.post('/upload-profile-song', verifyToken, uploadSong.single('song'), async (
   }
 });
 
-// رفع خلفية الدردشة الخاصة (بسيط ومضمون)
-app.post('/upload-private-bg', verifyToken, upload.single('bg'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
-  try {
-    const b64 = Buffer.from(req.file.buffer).toString("base64");
-    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
-    const result = await cloudinary.uploader.upload(dataURI, { folder: "private_bg" });
-    const success = await updateUserFields(req.user.username, { private_bg: result.secure_url });
-    if (!success) return res.status(500).json({ msg: 'خطأ في حفظ الرابط' });
-    res.json({ bgUrl: result.secure_url });
-  } catch (err) {
-    console.error("خطأ:", err);
-    res.status(500).json({ msg: 'فشل الرفع: ' + err.message });
+// رفع خلفية الدردشة الخاصة (تخزين محلي)
+const privateBgDir = path.join(__dirname, 'public', 'private-bg');
+if (!fs.existsSync(privateBgDir)) fs.mkdirSync(privateBgDir, { recursive: true });
+
+const privateBgStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, privateBgDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, 'bg-' + req.user.username + '-' + Date.now() + ext);
   }
 });
+
+const privateBgUpload = multer({ storage: privateBgStorage, limits: { fileSize: 5 * 1024 * 1024 } });
+
+app.post('/upload-private-bg', verifyToken, privateBgUpload.single('bg'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
+  const bgUrl = `/private-bg/${req.file.filename}`;
+  await updateUserFields(req.user.username, { private_bg: bgUrl });
+  res.json({ bgUrl: bgUrl });
+});
+
+app.use('/private-bg', express.static(privateBgDir));
 // جلب بيانات أي مستخدم (للبروفايل)
 app.get('/profile-data', verifyToken, async (req, res) => {
   const { username } = req.query;
