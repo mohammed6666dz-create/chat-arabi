@@ -14,6 +14,11 @@ cloudinary.config({
   api_key: '156257997776869',
   api_secret: 'R_38erQJWoAgw6XQr9BjzvQdAAU'
 });
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(
+  'https://wgzikxgbhrcgfewnosiq.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndnemlreGdiaHJjZ2Zld25vc2lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUyMjA0OTAsImV4cCI6MjA1MDc5NjQ5MH0.TiZg0ZQkzBvLpB0q2zLhjPQJXQxInJYhJZqVrQTk4Yw'
+);
 const io = require('socket.io')(http);
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
