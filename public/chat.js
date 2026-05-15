@@ -468,13 +468,57 @@ async function uploadPrivateBgToServer(file) {
     const formData = new FormData();
     formData.append('bg', file);
     
-    const res = await fetch('/upload-private-bg', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token },
-        body: formData
-    });
-    const data = await res.json();
-    return data.bgUrl;
+    try {
+        const res = await fetch('/upload-private-bg', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token },
+            body: formData
+        });
+        
+        if (!res.ok) {
+            throw new Error('فشل رفع الخلفية');
+        }
+        
+        const data = await res.json();
+        console.log('✅ رد السيرفر على رفع الخلفية:', data);
+        
+        if (data.bgUrl) {
+            return data.bgUrl;
+        } else {
+            console.error('❌ السيرفر لم يعد bgUrl');
+            return null;
+        }
+    } catch (err) {
+        console.error('❌ خطأ في رفع الخلفية:', err);
+        return null;
+    }
+}
+
+// دالة لتطبيق الخلفية بشكل صحيح
+function applyPrivateBackground(bgUrl) {
+    const messagesContainer = document.getElementById('privateChatMessages');
+    if (!messagesContainer) {
+        console.log('❌ عنصر privateChatMessages غير موجود');
+        return;
+    }
+    
+    if (bgUrl && bgUrl !== '' && bgUrl !== 'null') {
+        const finalUrl = bgUrl + (bgUrl.includes('?') ? '&t=' : '?t=') + new Date().getTime();
+        
+        messagesContainer.style.setProperty('background-image', `url("${finalUrl}")`, 'important');
+        messagesContainer.style.setProperty('background-size', 'cover', 'important');
+        messagesContainer.style.setProperty('background-position', 'center', 'important');
+        messagesContainer.style.setProperty('background-repeat', 'no-repeat', 'important');
+        messagesContainer.style.setProperty('background-color', 'transparent', 'important');
+        
+        localStorage.setItem('privateChatBg', bgUrl);
+        console.log('✅ تم تطبيق الخلفية بنجاح:', finalUrl);
+    } else {
+        messagesContainer.style.backgroundImage = '';
+        messagesContainer.style.backgroundColor = '#1a2a3a';
+        localStorage.removeItem('privateChatBg');
+        console.log('🔄 تم إزالة الخلفية');
+    }
 }
 
 // فتح وإغلاق لوحة اختيار الخلفية
@@ -491,13 +535,13 @@ if (changeBgBtn && bgPicker) {
     });
     
     document.addEventListener('click', (e) => {
-        if (!bgPicker.contains(e.target) && e.target !== changeBgBtn) {
+        if (bgPicker && !bgPicker.contains(e.target) && e.target !== changeBgBtn) {
             bgPicker.classList.remove('show');
         }
     });
 }
 
-// رفع صورة خلفية من الجهاز وحفظها في السيرفر
+// رفع صورة خلفية من الجهاز
 if (uploadBgBtn && bgInput) {
     uploadBgBtn.addEventListener('click', () => {
         bgInput.click();
@@ -505,38 +549,92 @@ if (uploadBgBtn && bgInput) {
     
     bgInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
-        if (file) {
-            const bgUrl = await uploadPrivateBgToServer(file);
-            if (bgUrl) {
-                const messagesContainer = document.getElementById('privateChatMessages');
-                if (messagesContainer) {
-                    messagesContainer.style.backgroundImage = `url(${bgUrl})`;
-                    messagesContainer.style.backgroundSize = 'cover';
-                    messagesContainer.style.backgroundPosition = 'center';
-                }
+        if (!file) {
+            console.log('❌ لم يتم اختيار ملف');
+            return;
+        }
+        
+        if (!file.type.startsWith('image/')) {
+            alert('❌ الرجاء اختيار ملف صورة فقط');
+            return;
+        }
+        
+        const loadingMsg = document.createElement('div');
+        loadingMsg.className = 'system-message';
+        loadingMsg.textContent = '⏳ جاري رفع الخلفية...';
+        document.getElementById('chatWindow')?.appendChild(loadingMsg);
+        
+        console.log('📤 جاري رفع الخلفية:', file.name);
+        
+        const bgUrl = await uploadPrivateBgToServer(file);
+        
+        if (loadingMsg) loadingMsg.remove();
+        
+        if (bgUrl) {
+            applyPrivateBackground(bgUrl);
+            alert('✅ تم رفع الخلفية وتطبيقها بنجاح!');
+            setTimeout(() => loadMyProfile(), 500);
+        } else {
+            alert('❌ فشل رفع الخلفية، تأكد من اتصال الإنترنت');
+        }
+        
+        bgPicker.classList.remove('show');
+        bgInput.value = '';
+    });
+}
+
+// إعادة الخلفية الافتراضية
+if (resetBgBtn) {
+    resetBgBtn.addEventListener('click', async () => {
+        if (confirm('هل أنت متأكد من إزالة خلفية الدردشة الخاصة؟')) {
+            const messagesContainer = document.getElementById('privateChatMessages');
+            if (messagesContainer) {
+                messagesContainer.style.backgroundImage = '';
+                messagesContainer.style.backgroundColor = '#1a2a3a';
             }
+            
+            try {
+                await fetch('/api/clear-private-bg', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                localStorage.removeItem('privateChatBg');
+                alert('✅ تم إزالة الخلفية');
+            } catch (err) {
+                console.error('خطأ:', err);
+            }
+            
             bgPicker.classList.remove('show');
         }
     });
 }
 
-// إعادة الخلفية الافتراضية (وحذفها من السيرفر)
-if (resetBgBtn) {
-    resetBgBtn.addEventListener('click', async () => {
-        const messagesContainer = document.getElementById('privateChatMessages');
-        if (messagesContainer) {
-            messagesContainer.style.backgroundImage = '';
-            messagesContainer.style.backgroundColor = '#1a2a3a';
-        }
-        bgPicker.classList.remove('show');
-        
-        await fetch('/api/clear-private-bg', {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-    });
+// تحميل الخلفية المحفوظة عند فتح الدردشة
+function loadSavedPrivateBackground() {
+    const messagesContainer = document.getElementById('privateChatMessages');
+    if (!messagesContainer) return;
+    
+    const savedBg = localStorage.getItem('privateChatBg');
+    if (savedBg && savedBg !== 'null' && savedBg !== '') {
+        applyPrivateBackground(savedBg);
+    }
 }
 
+// استدعاء عند فتح الدردشة الخاصة
+const originalStartPrivateChat = window.startPrivateChat;
+window.startPrivateChat = function(targetName) {
+    if (originalStartPrivateChat) {
+        originalStartPrivateChat(targetName);
+    }
+    setTimeout(() => {
+        loadSavedPrivateBackground();
+    }, 200);
+};
+
+// تحميل الخلفية من localStorage عند بدء التشغيل
+setTimeout(() => {
+    loadSavedPrivateBackground();
+}, 1000);
 // ========== دوال حائط الأصدقاء ==========
 
 async function loadPosts() {
