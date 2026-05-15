@@ -1141,31 +1141,8 @@ io.on('connection', socket => {
     }
   });
   
-  socket.on('get private messages', async (targetUsername) => {
-    if (!socket.username || !targetUsername) return;
-    try {
-      const { rows } = await pool.query(`
-        SELECT from_user, to_user, message, created_at
-        FROM private_messages
-        WHERE (from_user = $1 AND to_user = $2)
-           OR (from_user = $2 AND to_user = $1)
-        ORDER BY created_at ASC
-        LIMIT 50
-      `, [socket.username, targetUsername]);
-      const messages = await Promise.all(rows.map(async (msg) => {
-        const user = await getUser(msg.from_user);
-        return {
-          from: msg.from_user,
-          msg: msg.message,
-          avatar: user ? user.avatar : 'https://via.placeholder.com/30',
-          createdAt: msg.created_at
-        };
-      }));
-      socket.emit('previous private messages', { withUser: targetUsername, messages });
-    } catch (err) {
-      console.error('خطأ في جلب الرسائل الخاصة:', err);
-    }
-  });
+socket.on('get private messages', async (targetUsername) => {
+
   
   socket.on('private message', async ({ to, msg }) => {
     const from = socket.username;
