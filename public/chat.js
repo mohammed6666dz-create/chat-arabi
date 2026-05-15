@@ -1768,3 +1768,50 @@ const fixAllSpaces = () => {
 };
 
 setTimeout(fixAllSpaces, 1000);
+// ========== منع تكرار الرسائل الخاصة ==========
+// تخزين معرفات الرسائل المرسلة مسبقاً
+const processedMessages = new Set();
+
+// تعديل حدث استقبال الرسائل الخاصة
+const originalPrivateMessageHandler = socket._callbacks?.['$private message']?.[0];
+if (originalPrivateMessageHandler) {
+    socket.off('private message');
+}
+
+socket.on('private message', (data) => {
+    // إنشاء معرف فريد للرسالة
+    const messageKey = `${data.id || data.createdAt}_${data.from}_${data.to}_${data.msg.substring(0, 20)}`;
+    
+    // التحقق من تكرار الرسالة
+    if (processedMessages.has(messageKey)) {
+        console.log('⚠️ تم تجاهل رسالة مكررة:', messageKey);
+        return;
+    }
+    
+    // إضافة المعرف للقائمة
+    processedMessages.add(messageKey);
+    
+    // تنظيف القائمة القديمة (احتفظ بآخر 100 رسالة فقط)
+    if (processedMessages.size > 100) {
+        const iterator = processedMessages.values();
+        for (let i = 0; i < 50; i++) {
+            processedMessages.delete(iterator.next().value);
+        }
+    }
+    
+    // معالجة الرسالة الأصلية
+    if (data.from === myUsername) return;
+    
+    if (currentPrivateChat === data.from || currentPrivateChat === data.to) {
+        const isMe = data.from === myUsername;
+        appendPrivateMessage(
+            isMe ? myUsername : data.from,
+            data.msg,
+            isMe ? myAvatar : (data.avatar || 'https://via.placeholder.com/30'),
+            isMe
+        );
+    } else {
+        totalUnreadMsgs++;
+        updateMessageBadge(totalUnreadMsgs);
+    }
+});
