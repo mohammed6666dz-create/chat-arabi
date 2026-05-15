@@ -811,7 +811,7 @@ setInterval(() => {
   broadcastOfflineUsers();
 }, 30000);
 
-Socket.IOsocket.on('admin command', async (data) => {
+socket.on('admin command', async (data) => {
     const { action, target, token } = data;
     try {
         const decoded = jwt.verify(token, secret);
