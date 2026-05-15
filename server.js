@@ -402,19 +402,17 @@ app.post('/upload-profile-song', verifyToken, uploadSong.single('song'), async (
   }
 });
 
-// رفع خلفية الدردشة الخاصة
+// رفع خلفية الدردشة الخاصة عبر Cloudinary (نفس الكود القديم لكن نتأكد من صلاحية المفاتيح)
 app.post('/upload-private-bg', verifyToken, upload.single('bg'), async (req, res) => {
   if (!req.file) return res.status(400).json({ msg: 'لم يتم رفع أي ملف' });
   try {
     const b64 = Buffer.from(req.file.buffer).toString("base64");
     const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
     const result = await cloudinary.uploader.upload(dataURI, {
-      folder: "private_bg",
-      unsigned: true,
-      upload_preset: "ywfrua3f"
+      folder: "private_bg"
     });
     const success = await updateUserFields(req.user.username, { private_bg: result.secure_url });
-    if (!success) return res.status(500).json({ msg: 'خطأ في حفظ الرابط بقاعدة البيانات' });
+    if (!success) return res.status(500).json({ msg: 'خطأ في حفظ الرابط' });
     res.json({ bgUrl: result.secure_url });
   } catch (err) {
     console.error("خطأ رفع الخلفية:", err);
