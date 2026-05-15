@@ -1526,3 +1526,9 @@ document.addEventListener('click', function(e) {
         }
     }
 });
+// السماح بكتابة المسافة في حقل الرسائل
+document.getElementById('messageInput')?.addEventListener('keydown', function(e) {
+    if (e.code === 'Space') {
+        e.stopPropagation();
+    }
+});
