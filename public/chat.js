@@ -1735,3 +1735,36 @@ if (newsContentInput) {
         }
     });
 }
+// ========== إصلاح مشكلة المسافة في حقل كتابة الرسائل الخاصة ==========
+const privateChatInput = document.getElementById('privateChatInput');
+
+if (privateChatInput) {
+    privateChatInput.addEventListener('keydown', function(e) {
+        if (e.code === 'Space') {
+            e.stopPropagation();
+        }
+    });
+    
+    // كمان نتأكد إنه يقبل المسافة
+    privateChatInput.addEventListener('input', function(e) {
+        // ما نسوي شيء، بس نسمح للمسافة
+        console.log('كتابة في الخاص:', this.value);
+    });
+}
+
+// كمان إصلاح حقول الأخبار مرة وحدة
+const fixAllSpaces = () => {
+    const inputs = ['messageInput', 'privateChatInput', 'newsTitle', 'newsContent'];
+    inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    e.stopPropagation();
+                }
+            });
+        }
+    });
+};
+
+setTimeout(fixAllSpaces, 1000);
