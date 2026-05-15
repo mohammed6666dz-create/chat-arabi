@@ -803,21 +803,61 @@ async function likePost(postId) {
 async function loadNews() {
     const container = document.getElementById('newsList');
     if (!container) return;
-    container.innerHTML = '<div class="no-data">جاري التحميل...</div>';
+    container.innerHTML = '<div class="no-data">⏳ جاري تحميل الأخبار...</div>';
     try {
-        const res = await fetch('https://gnews.io/api/v4/top-headlines?lang=ar&country=eg&token=861dca860ee588e289b286f042df0c62');
-        const data = await res.json();
-        if (data.articles && data.articles.length) {
-            container.innerHTML = data.articles.slice(0, 10).map(article => `
-                <div class="news-item" onclick="window.open('${article.url}', '_blank')">
-                    <div class="news-title">${article.title.substring(0, 60)}...</div>
+        const res = await fetch('/api/get-news');
+        const news = await res.json();
+        if (news.length === 0) {
+            container.innerHTML = '<div class="no-data">📭 لا توجد أخبار حالياً</div>';
+            return;
+        }
+        
+        // جلب صور المستخدمين لكل خبر
+        const newsWithAvatars = await Promise.all(news.map(async (item) => {
+            let avatar = 'https://via.placeholder.com/40';
+            try {
+                const userRes = await fetch(`/profile-data?username=${encodeURIComponent(item.author)}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (userRes.ok) {
+                    const userData = await userRes.json();
+                    avatar = userData.avatar || avatar;
+                }
+            } catch(e) { console.log(e); }
+            return { ...item, avatar };
+        }));
+        
+        container.innerHTML = newsWithAvatars.map(item => `
+            <div class="news-item">
+                <div class="news-header" style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <img src="${item.avatar}" alt="${escapeHtml(item.author)}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6;">
+                    <div>
+                        <div style="font-weight: bold; color: #e2e8f0;">${escapeHtml(item.author)}</div>
+                        <div style="font-size: 11px; color: #94a3b8;">${new Date(item.created_at).toLocaleString('ar')}</div>
+                    </div>
+                    ${myUsername === 'MOHAMED' ? `<button class="delete-news-btn" data-id="${item.id}" style="margin-right: auto; background: #ef4444; border: none; padding: 5px 10px; border-radius: 6px; color: white; cursor: pointer; font-size: 11px;">🗑️ حذف</button>` : ''}
                 </div>
-            `).join('');
-        } else {
-            container.innerHTML = '<div class="no-data">لا توجد أخبار</div>';
+                <div class="news-title" style="font-size: 18px; font-weight: bold; color: #fbbf24; margin-bottom: 8px;">📰 ${escapeHtml(item.title)}</div>
+                <div class="news-content" style="font-size: 14px; line-height: 1.5; color: #cbd5e1; margin-bottom: 10px;">${escapeHtml(item.content)}</div>
+            </div>
+        `).join('');
+        
+        // إضافة حدث الحذف للمشرف
+        if (myUsername === 'MOHAMED') {
+            document.querySelectorAll('.delete-news-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    if (confirm('هل أنت متأكد من حذف هذا الخبر؟')) {
+                        await fetch(`/api/delete-news/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+                        loadNews();
+                    }
+                });
+            });
         }
     } catch (err) {
-        container.innerHTML = '<div class="no-data">خطأ في تحميل الأخبار</div>';
+        console.error('خطأ:', err);
+        container.innerHTML = '<div class="no-data">❌ خطأ في تحميل الأخبار</div>';
     }
 }
 
