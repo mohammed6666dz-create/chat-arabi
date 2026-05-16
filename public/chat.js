@@ -1895,3 +1895,74 @@ setTimeout(() => {
         }
     });
 }, 500);
+// ========== خلفية الاسم في الرسائل ==========
+let selectedNameBg = localStorage.getItem('selectedNameBg') || '';
+
+// دالة تطبيق الخلفية على كل أسماء المستخدمين في الشات
+function applyNameBackground() {
+    const nameElements = document.querySelectorAll('.message-content strong');
+    nameElements.forEach(el => {
+        if (selectedNameBg) {
+            el.style.backgroundColor = selectedNameBg;
+            el.style.padding = '4px 12px';
+            el.style.borderRadius = '20px';
+            el.style.display = 'inline-block';
+            el.style.margin = '2px 0';
+        } else {
+            el.style.backgroundColor = '';
+            el.style.padding = '';
+            el.style.borderRadius = '';
+        }
+    });
+}
+
+// دالة عرض لوحة الألوان عند الضغط على زر "خلفية الاسم"
+function showNameBgPicker() {
+    const pickerHtml = `
+        <div id="nameBgPickerOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; align-items: center; justify-content: center;">
+            <div style="background: #1e293b; border-radius: 16px; padding: 20px; width: 300px; text-align: center; border: 1px solid #3b82f6;">
+                <h4 style="color: white; margin-bottom: 15px;">🎨 اختر لون خلفية الاسم</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 15px;">
+                    <div onclick="setNameBgColor('transparent')" style="width: 40px; height: 40px; background: transparent; border: 2px solid white; border-radius: 8px; cursor: pointer;"></div>
+                    <div onclick="setNameBgColor('#ef4444')" style="width: 40px; height: 40px; background: #ef4444; border-radius: 8px; cursor: pointer;"></div>
+                    <div onclick="setNameBgColor('#3b82f6')" style="width: 40px; height: 40px; background: #3b82f6; border-radius: 8px; cursor: pointer;"></div>
+                    <div onclick="setNameBgColor('#10b981')" style="width: 40px; height: 40px; background: #10b981; border-radius: 8px; cursor: pointer;"></div>
+                    <div onclick="setNameBgColor('#f59e0b')" style="width: 40px; height: 40px; background: #f59e0b; border-radius: 8px; cursor: pointer;"></div>
+                    <div onclick="setNameBgColor('#8b5cf6')" style="width: 40px; height: 40px; background: #8b5cf6; border-radius: 8px; cursor: pointer;"></div>
+                    <div onclick="setNameBgColor('#ec4899')" style="width: 40px; height: 40px; background: #ec4899; border-radius: 8px; cursor: pointer;"></div>
+                    <div onclick="setNameBgColor('#06b6d4')" style="width: 40px; height: 40px; background: #06b6d4; border-radius: 8px; cursor: pointer;"></div>
+                </div>
+                <button onclick="closeNameBgPicker()" style="background: #ef4444; border: none; padding: 8px 20px; border-radius: 8px; color: white; cursor: pointer;">إغلاق</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', pickerHtml);
+}
+
+// دالة تعيين لون الخلفية
+window.setNameBgColor = function(color) {
+    selectedNameBg = color === 'transparent' ? '' : color;
+    localStorage.setItem('selectedNameBg', selectedNameBg);
+    applyNameBackground();
+    closeNameBgPicker();
+}
+
+// دالة إغلاق اللوحة
+function closeNameBgPicker() {
+    const overlay = document.getElementById('nameBgPickerOverlay');
+    if (overlay) overlay.remove();
+}
+
+// ربط زر "خلفية الاسم"
+document.getElementById('featureNameBgBtn')?.addEventListener('click', showNameBgPicker);
+
+// تطبيق الخلفية عند إضافة رسائل جديدة
+const originalAppendMessage = window.appendMessage;
+window.appendMessage = function(username, msg, avatar, isMe, role, border) {
+    originalAppendMessage(username, msg, avatar, isMe, role, border);
+    setTimeout(applyNameBackground, 50);
+};
+
+// تطبيق الخلفية عند تحميل الصفحة
+setTimeout(applyNameBackground, 1000);
