@@ -741,6 +741,37 @@
       color: #3b82f6;
       font-size: 24px;
     }
+
+    /* ========== ستايلات المميزات ========== */
+    .features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .feature-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 14px 16px;
+      border-radius: 12px;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      text-align: right;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s;
+      width: 100%;
+    }
+    .feature-btn:hover {
+      background: #334155;
+      border-color: #3b82f6;
+      transform: translateX(-5px);
+    }
+    .feature-btn i {
+      width: 28px;
+      font-size: 1.2rem;
+    }
   </style>
 </head>
 <body>
@@ -850,23 +881,21 @@
         <i class="fas fa-gamepad"></i> تشغيل لعبة الديناصور
       </button>
     </div>
-<!-- الأخبار -->
-<div id="app-news" class="app-content">
-  <!-- حقل إضافة خبر جديد (يظهر فقط لصاحب الموقع MOHAMED) -->
-  <div id="addNewsSection" style="display: none; margin-bottom: 20px; padding: 15px; background: #0f172a; border-radius: 12px; border: 1px solid #3b82f6;">
-    <h4 style="margin: 0 0 10px 0; color: #fbbf24;"><i class="fas fa-edit"></i> إضافة خبر جديد</h4>
-    <input type="text" id="newsTitle" placeholder="عنوان الخبر..." style="width: 100%; padding: 10px; margin-bottom: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white; box-sizing: border-box;">
-    <textarea id="newsContent" rows="3" placeholder="محتوى الخبر..." style="width: 100%; padding: 10px; margin-bottom: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white; resize: vertical; box-sizing: border-box;"></textarea>
-    <button id="publishNewsBtn" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold;">
-      <i class="fas fa-paper-plane"></i> نشر الخبر
-    </button>
-  </div>
-  
-  <!-- قائمة الأخبار -->
-  <div id="newsList" class="news-list">
-    <div class="no-data">جاري تحميل الأخبار...</div>
-  </div>
-</div>
+
+    <!-- الأخبار -->
+    <div id="app-news" class="app-content">
+      <div id="addNewsSection" style="display: none; margin-bottom: 20px; padding: 15px; background: #0f172a; border-radius: 12px; border: 1px solid #3b82f6;">
+        <h4 style="margin: 0 0 10px 0; color: #fbbf24;"><i class="fas fa-edit"></i> إضافة خبر جديد</h4>
+        <input type="text" id="newsTitle" placeholder="عنوان الخبر..." style="width: 100%; padding: 10px; margin-bottom: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white; box-sizing: border-box;">
+        <textarea id="newsContent" rows="3" placeholder="محتوى الخبر..." style="width: 100%; padding: 10px; margin-bottom: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white; resize: vertical; box-sizing: border-box;"></textarea>
+        <button id="publishNewsBtn" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold;">
+          <i class="fas fa-paper-plane"></i> نشر الخبر
+        </button>
+      </div>
+      <div id="newsList" class="news-list">
+        <div class="no-data">جاري تحميل الأخبار...</div>
+      </div>
+    </div>
 
     <!-- قائمة الغرف -->
     <div id="app-rooms" class="app-content">
@@ -1007,15 +1036,39 @@
       <div id="tab-friends" class="tab-pane hidden"><p>قائمة أصدقائك ستظهر هنا...</p></div>
       <div id="tab-blocked" class="tab-pane hidden"><p>الأشخاص الذين تم تجاهلهم...</p></div>
       <div id="tab-options" class="tab-pane hidden"><p>الإعدادات والخيارات...</p></div>
-    <div id="tab-features" class="tab-pane hidden">
-  <div id="featuresContainer" style="padding: 10px;">
-    <!-- المكان فارغ، تقدر تضيف هنا أي مميزات تبيها -->
-    <div class="no-data" style="text-align: center; padding: 40px; color: #94a3b8;">
-      <i class="fas fa-crown" style="font-size: 40px; margin-bottom: 15px; display: block;"></i>
-      المميزات قيد الإضافة قريباً...
-    </div>
-  </div>
-</div>
+      
+      <!-- ========== المميزات - أزرار فقط بدون ألوان ========== -->
+      <div id="tab-features" class="tab-pane hidden">
+        <div class="features-list">
+          
+          <button class="feature-btn" id="featureNameBgBtn">
+            <i class="fas fa-palette"></i>
+            خلفية الاسم
+          </button>
+          
+          <button class="feature-btn" id="featureAnimatedAvatarBtn">
+            <i class="fas fa-film"></i>
+            صورة شخصية متحركة
+          </button>
+          
+          <button class="feature-btn" id="featureNameGlowBtn">
+            <i class="fas fa-magic"></i>
+            توهج خلفية الاسم
+          </button>
+          
+          <button class="feature-btn" id="featureProfileColorsBtn">
+            <i class="fas fa-fill-drip"></i>
+            ألوان البروفايل
+          </button>
+          
+          <button class="feature-btn" id="featureAvatarBorderBtn">
+            <i class="fas fa-border-all"></i>
+            إطار الصورة
+          </button>
+          
+        </div>
+      </div>
+      
       <div id="tab-account" class="tab-pane hidden"><h4>إدارة الحساب</h4><button class="danger-btn">حذف الحساب</button></div>
     </div>
   </div>
@@ -1116,7 +1169,6 @@
       let animationId = null;
       let frame = 0;
       
-      // الديناصور
       let dino = {
         x: 50,
         y: 180,
@@ -1129,30 +1181,22 @@
         jumpPower: -12
       };
       
-      // العوائق (الصبار)
       let obstacles = [];
-      
-      // متغيرات التحكم
       let canJump = true;
       
-      // رسم الديناصور
       function drawDino() {
         ctx.fillStyle = '#2d2d2d';
         ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
-        // عين
         ctx.fillStyle = 'white';
         ctx.fillRect(dino.x + 18, dino.y + 5, 5, 5);
         ctx.fillStyle = 'black';
         ctx.fillRect(dino.x + 19, dino.y + 6, 3, 3);
-        // أرجل
         ctx.fillStyle = '#2d2d2d';
         ctx.fillRect(dino.x + 5, dino.y + dino.height - 5, 5, 8);
         ctx.fillRect(dino.x + 15, dino.y + dino.height - 5, 5, 8);
-        // ذيل
         ctx.fillRect(dino.x - 8, dino.y + 20, 8, 8);
       }
       
-      // رسم الصبار
       function drawObstacle(obs) {
         ctx.fillStyle = '#2d6a2d';
         ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
@@ -1161,7 +1205,6 @@
         ctx.fillRect(obs.x + 12, obs.y - 5, 5, 5);
       }
       
-      // رسم الأرض
       function drawGround() {
         ctx.fillStyle = '#8B7355';
         ctx.fillRect(0, dino.groundY + dino.height, canvas.width, 5);
@@ -1169,12 +1212,10 @@
         ctx.fillRect(0, dino.groundY + dino.height + 5, canvas.width, 3);
       }
       
-      // تحديث الفيزياء
       function updatePhysics() {
         if (dino.isJumping) {
           dino.velocity += dino.gravity;
           dino.y += dino.velocity;
-          
           if (dino.y >= dino.groundY) {
             dino.y = dino.groundY;
             dino.isJumping = false;
@@ -1184,9 +1225,7 @@
         }
       }
       
-      // تحديث العوائق
       function updateObstacles() {
-        // إضافة عائق جديد عشوائياً
         if (frame % 90 === 0 && gameRunning && obstacles.length < 3) {
           obstacles.push({
             x: canvas.width,
@@ -1195,12 +1234,8 @@
             height: 30
           });
         }
-        
-        // تحريك العوائق
         for (let i = 0; i < obstacles.length; i++) {
           obstacles[i].x -= 5;
-          
-          // التحقق من الاصطدام
           if (obstacles[i].x < dino.x + dino.width &&
               obstacles[i].x + obstacles[i].width > dino.x &&
               obstacles[i].y < dino.y + dino.height &&
@@ -1208,8 +1243,6 @@
             gameOver();
             return;
           }
-          
-          // إزالة العوائق التي خرجت من الشاشة وزيادة النقاط
           if (obstacles[i].x + obstacles[i].width < 0) {
             obstacles.splice(i, 1);
             if (gameRunning && score < 99999999) {
@@ -1221,7 +1254,6 @@
         }
       }
       
-      // إنهاء اللعبة
       function gameOver() {
         gameRunning = false;
         if (animationId) {
@@ -1237,7 +1269,6 @@
         ctx.textAlign = 'left';
       }
       
-      // إعادة تعيين اللعبة
       function resetGame() {
         score = 0;
         scoreSpan.textContent = '0';
@@ -1249,41 +1280,28 @@
         canJump = true;
       }
       
-      // حلقة اللعبة الرئيسية
       function gameLoop() {
         if (!gameRunning) return;
-        
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
         drawGround();
         updatePhysics();
         updateObstacles();
-        
         drawDino();
-        for (let obs of obstacles) {
-          drawObstacle(obs);
-        }
-        
-        // عرض النقاط على الكانفس
+        for (let obs of obstacles) { drawObstacle(obs); }
         ctx.fillStyle = '#333';
         ctx.font = '16px Arial';
         ctx.fillText(`Score: ${score}`, canvas.width - 80, 30);
-        
         frame++;
         animationId = requestAnimationFrame(gameLoop);
       }
       
-      // بدء اللعبة
       function startGame() {
-        if (animationId) {
-          cancelAnimationFrame(animationId);
-        }
+        if (animationId) cancelAnimationFrame(animationId);
         resetGame();
         gameRunning = true;
         gameLoop();
       }
       
-      // القفز
       function jump() {
         if (gameRunning && !dino.isJumping && canJump) {
           dino.isJumping = true;
@@ -1292,7 +1310,6 @@
         }
       }
       
-      // الأحداث
       function handleKeydown(e) {
         if (e.code === 'Space' || e.code === 'ArrowUp') {
           e.preventDefault();
@@ -1300,44 +1317,16 @@
         }
       }
       
-      function handleCanvasClick() {
-        jump();
-      }
+      function handleCanvasClick() { jump(); }
+      function openModal() { modal.style.display = 'block'; document.body.style.overflow = 'hidden'; }
+      function closeModal() { modal.style.display = 'none'; document.body.style.overflow = ''; if (animationId) { cancelAnimationFrame(animationId); animationId = null; } gameRunning = false; }
       
-      // فتح النافذة المنبثقة
-      function openModal() {
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-      }
-      
-      // إغلاق النافذة
-      function closeModal() {
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-        if (animationId) {
-          cancelAnimationFrame(animationId);
-          animationId = null;
-        }
-        gameRunning = false;
-      }
-      
-      // ربط الأحداث
       if (startBtn) startBtn.addEventListener('click', startGame);
       if (exitBtn) exitBtn.addEventListener('click', closeModal);
       if (openBtn) openBtn.addEventListener('click', openModal);
-      if (canvas) {
-        canvas.addEventListener('click', handleCanvasClick);
-      }
+      if (canvas) canvas.addEventListener('click', handleCanvasClick);
       document.addEventListener('keydown', handleKeydown);
-      
-      // إغلاق النافذة إذا نقر خارج المحتوى (اختياري)
-      window.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          closeModal();
-        }
-      });
-      
-      // تعيين الحد الأقصى
+      window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
       if (maxScoreSpan) maxScoreSpan.textContent = '99,999,999';
     })();
 
@@ -1508,7 +1497,6 @@
       }
     });
 
-    // دالة جلب قائمة الغرف
     async function loadRoomsList() {
       try {
         const res = await fetch('/room-counts');
@@ -1518,7 +1506,6 @@
           { id: 'algeria', name: '🇩🇿 الجزائر', icon: '🇩🇿', color: '#006233' },
           { id: 'all_countries', name: '🌍 جميع الدول', icon: '🌍', color: '#3b82f6' }
         ];
-        
         const container = document.getElementById('roomsListApp');
         if (container) {
           container.innerHTML = rooms.map(room => `
@@ -1535,28 +1522,18 @@
       } catch (err) {
         console.error('خطأ في جلب الغرف:', err);
         const container = document.getElementById('roomsListApp');
-        if (container) {
-          container.innerHTML = '<div class="no-data">خطأ في تحميل الغرف</div>';
-        }
+        if (container) container.innerHTML = '<div class="no-data">خطأ في تحميل الغرف</div>';
       }
     }
 
-    // دالة الانتقال لغرفة جديدة
     function switchToRoom(roomId) {
       localStorage.setItem('lastRoom', roomId);
       const token = localStorage.getItem('token');
       fetch('/api/save-last-room', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify({ 
-          roomId: roomId, 
-          roomName: roomId === 'general' ? 'الغرفة العامة' : (roomId === 'algeria' ? 'الجزائر' : 'جميع الدول')
-        })
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ roomId: roomId, roomName: roomId === 'general' ? 'الغرفة العامة' : (roomId === 'algeria' ? 'الجزائر' : 'جميع الدول') })
       }).catch(err => console.log('خطأ في حفظ آخر غرفة:', err));
-      
       window.location.href = `chat.html?room=${roomId}`;
     }
   </script>
