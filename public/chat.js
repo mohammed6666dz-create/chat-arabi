@@ -1895,99 +1895,9 @@ setTimeout(() => {
         }
     });
 }, 500);
-// ========== خلفية الاسم - حل نهائي ==========
-setTimeout(() => {
-    const nameBgBtn = document.getElementById('featureNameBgBtn');
-    if (nameBgBtn) {
-        // إزالة أي أحداث قديمة
-        const newBtn = nameBgBtn.cloneNode(true);
-        nameBgBtn.parentNode.replaceChild(newBtn, nameBgBtn);
-        
-        // إضافة الحدث الجديد
-        newBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // حذف اللوحة القديمة إذا وجدت
-            const oldPicker = document.getElementById('nameBgPickerOverlay');
-            if (oldPicker) oldPicker.remove();
-            
-            // إنشاء لوحة الألوان
-            const pickerHtml = `
-                <div id="nameBgPickerOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 100000; display: flex; align-items: center; justify-content: center;">
-                    <div style="background: #1e293b; border-radius: 20px; padding: 25px; width: 350px; text-align: center; border: 2px solid #3b82f6;">
-                        <h4 style="color: white; margin-bottom: 20px; font-size: 1.3rem;">🎨 اختر لون خلفية الاسم</h4>
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
-                            <div onclick="document.getElementById('nameBgPickerOverlay')?.remove(); setNameBgColor('#ef4444')" style="width: 60px; height: 60px; background: #ef4444; border-radius: 12px; cursor: pointer; margin: 0 auto;"></div>
-                            <div onclick="document.getElementById('nameBgPickerOverlay')?.remove(); setNameBgColor('#3b82f6')" style="width: 60px; height: 60px; background: #3b82f6; border-radius: 12px; cursor: pointer; margin: 0 auto;"></div>
-                            <div onclick="document.getElementById('nameBgPickerOverlay')?.remove(); setNameBgColor('#10b981')" style="width: 60px; height: 60px; background: #10b981; border-radius: 12px; cursor: pointer; margin: 0 auto;"></div>
-                            <div onclick="document.getElementById('nameBgPickerOverlay')?.remove(); setNameBgColor('#f59e0b')" style="width: 60px; height: 60px; background: #f59e0b; border-radius: 12px; cursor: pointer; margin: 0 auto;"></div>
-                            <div onclick="document.getElementById('nameBgPickerOverlay')?.remove(); setNameBgColor('#8b5cf6')" style="width: 60px; height: 60px; background: #8b5cf6; border-radius: 12px; cursor: pointer; margin: 0 auto;"></div>
-                            <div onclick="document.getElementById('nameBgPickerOverlay')?.remove(); setNameBgColor('#ec4899')" style="width: 60px; height: 60px; background: #ec4899; border-radius: 12px; cursor: pointer; margin: 0 auto;"></div>
-                            <div onclick="document.getElementById('nameBgPickerOverlay')?.remove(); setNameBgColor('#06b6d4')" style="width: 60px; height: 60px; background: #06b6d4; border-radius: 12px; cursor: pointer; margin: 0 auto;"></div>
-                            <div onclick="document.getElementById('nameBgPickerOverlay')?.remove(); setNameBgColor('#000000')" style="width: 60px; height: 60px; background: #000000; border: 2px solid white; border-radius: 12px; cursor: pointer; margin: 0 auto;"></div>
-                        </div>
-                        <button onclick="document.getElementById('nameBgPickerOverlay')?.remove()" style="background: #ef4444; border: none; padding: 10px 25px; border-radius: 10px; color: white; cursor: pointer; font-size: 1rem;">إغلاق</button>
-                    </div>
-                </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', pickerHtml);
-        });
-        console.log('✅ زر خلفية الاسم تم تفعيله');
-    } else {
-        console.log('❌ زر featureNameBgBtn غير موجود');
-    }
-}, 1000);
-
-// دالة تعيين اللون
-window.setNameBgColor = function(color) {
-    localStorage.setItem('selectedNameBg', color);
-    // تطبيق على جميع أسماء المستخدمين
-    document.querySelectorAll('.message-content strong').forEach(el => {
-        el.style.backgroundColor = color;
-        el.style.padding = '4px 12px';
-        el.style.borderRadius = '20px';
-        el.style.display = 'inline-block';
-    });
-    // تطبيق على الرسائل المستقبلية
-    window.nameBgColor = color;
-};
-
-// تطبيق اللون المحفوظ عند تحميل الصفحة
-setTimeout(() => {
-    const savedColor = localStorage.getItem('selectedNameBg');
-    if (savedColor && savedColor !== 'transparent') {
-        document.querySelectorAll('.message-content strong').forEach(el => {
-            el.style.backgroundColor = savedColor;
-            el.style.padding = '4px 12px';
-            el.style.borderRadius = '20px';
-            el.style.display = 'inline-block';
-        });
-        window.nameBgColor = savedColor;
-    }
-}, 1500);
-
-// مراقبة الرسائل الجديدة
-const observeNameBg = new MutationObserver(() => {
-    if (window.nameBgColor) {
-        document.querySelectorAll('.message-content strong').forEach(el => {
-            if (!el.style.backgroundColor) {
-                el.style.backgroundColor = window.nameBgColor;
-                el.style.padding = '4px 12px';
-                el.style.borderRadius = '20px';
-                el.style.display = 'inline-block';
-            }
-        });
-    }
-});
-setTimeout(() => {
-    const chatWindow = document.getElementById('chatWindow');
-    if (chatWindow) observeNameBg.observe(chatWindow, { childList: true, subtree: true });
-}, 2000);
-// ========== خلفية الاسم - للجميع ==========
+// ========== خلفية الاسم - نظام كامل للجميع ==========
 let selectedNameBg = localStorage.getItem('selectedNameBg') || '';
 
-// تطبيق الخلفية على الأسماء
 function applyNameBackground() {
     document.querySelectorAll('.message-content strong').forEach(el => {
         if (selectedNameBg && selectedNameBg !== 'transparent') {
@@ -2003,7 +1913,6 @@ function applyNameBackground() {
     });
 }
 
-// تفعيل زر خلفية الاسم (بدون صلاحيات)
 setTimeout(() => {
     const nameBtn = document.getElementById('featureNameBgBtn');
     if (nameBtn) {
@@ -2014,14 +1923,14 @@ setTimeout(() => {
             const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#000000'];
             const colorNames = ['🔴 أحمر', '🔵 أزرق', '🟢 أخضر', '🟠 برتقالي', '🟣 بنفسجي', '🌸 زهري', '💎 سماوي', '⚫ أسود'];
             
-            let pickerHtml = `
+            let html = `
                 <div id="nameBgOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:100000;display:flex;align-items:center;justify-content:center;">
                     <div style="background:#1e293b;border-radius:20px;padding:25px;width:380px;text-align:center;border:2px solid #3b82f6;">
                         <h4 style="color:white;margin-bottom:20px;">🎨 اختر لون خلفية الاسم</h4>
                         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;">
                             ${colors.map((color, i) => `
                                 <div onclick="document.getElementById('nameBgOverlay')?.remove(); window.setNameBgColor('${color}')" 
-                                     style="background:${color}; height:50px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; text-shadow:0 0 3px black;">
+                                     style="background:${color}; height:50px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">
                                     ${colorNames[i]}
                                 </div>
                             `).join('')}
@@ -2031,20 +1940,17 @@ setTimeout(() => {
                             </div>
                         </div>
                         <button onclick="document.getElementById('nameBgOverlay')?.remove()" 
-                                style="background:#ef4444; border:none; padding:10px 25px; border-radius:10px; color:white; cursor:pointer; font-size:1rem;">
+                                style="background:#ef4444; border:none; padding:10px 25px; border-radius:10px; color:white; cursor:pointer;">
                             إغلاق
                         </button>
                     </div>
                 </div>
             `;
-            
-            document.body.insertAdjacentHTML('beforeend', pickerHtml);
+            document.body.insertAdjacentHTML('beforeend', html);
         });
-        console.log('✅ زر خلفية الاسم تم تفعيله للجميع');
     }
 }, 1000);
 
-// دالة تعيين اللون
 window.setNameBgColor = function(color) {
     if (color === 'transparent') {
         selectedNameBg = '';
@@ -2056,10 +1962,8 @@ window.setNameBgColor = function(color) {
     applyNameBackground();
 };
 
-// تطبيق اللون المحفوظ عند تحميل الصفحة
 setTimeout(applyNameBackground, 1500);
 
-// مراقبة الرسائل الجديدة
 const nameBgObserver = new MutationObserver(() => applyNameBackground());
 setTimeout(() => {
     const chatWin = document.getElementById('chatWindow');
