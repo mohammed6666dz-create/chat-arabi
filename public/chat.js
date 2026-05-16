@@ -1984,3 +1984,84 @@ setTimeout(() => {
     const chatWindow = document.getElementById('chatWindow');
     if (chatWindow) observeNameBg.observe(chatWindow, { childList: true, subtree: true });
 }, 2000);
+// ========== خلفية الاسم - للجميع ==========
+let selectedNameBg = localStorage.getItem('selectedNameBg') || '';
+
+// تطبيق الخلفية على الأسماء
+function applyNameBackground() {
+    document.querySelectorAll('.message-content strong').forEach(el => {
+        if (selectedNameBg && selectedNameBg !== 'transparent') {
+            el.style.backgroundColor = selectedNameBg;
+            el.style.padding = '4px 12px';
+            el.style.borderRadius = '20px';
+            el.style.display = 'inline-block';
+        } else {
+            el.style.backgroundColor = '';
+            el.style.padding = '';
+            el.style.borderRadius = '';
+        }
+    });
+}
+
+// تفعيل زر خلفية الاسم (بدون صلاحيات)
+setTimeout(() => {
+    const nameBtn = document.getElementById('featureNameBgBtn');
+    if (nameBtn) {
+        const newBtn = nameBtn.cloneNode(true);
+        nameBtn.parentNode.replaceChild(newBtn, nameBtn);
+        
+        newBtn.addEventListener('click', () => {
+            const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#000000'];
+            const colorNames = ['🔴 أحمر', '🔵 أزرق', '🟢 أخضر', '🟠 برتقالي', '🟣 بنفسجي', '🌸 زهري', '💎 سماوي', '⚫ أسود'];
+            
+            let pickerHtml = `
+                <div id="nameBgOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:100000;display:flex;align-items:center;justify-content:center;">
+                    <div style="background:#1e293b;border-radius:20px;padding:25px;width:380px;text-align:center;border:2px solid #3b82f6;">
+                        <h4 style="color:white;margin-bottom:20px;">🎨 اختر لون خلفية الاسم</h4>
+                        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;">
+                            ${colors.map((color, i) => `
+                                <div onclick="document.getElementById('nameBgOverlay')?.remove(); window.setNameBgColor('${color}')" 
+                                     style="background:${color}; height:50px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; text-shadow:0 0 3px black;">
+                                    ${colorNames[i]}
+                                </div>
+                            `).join('')}
+                            <div onclick="document.getElementById('nameBgOverlay')?.remove(); window.setNameBgColor('transparent')" 
+                                 style="background:#334155; height:50px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; border:2px solid white;">
+                                🗑️ إلغاء الخلفية
+                            </div>
+                        </div>
+                        <button onclick="document.getElementById('nameBgOverlay')?.remove()" 
+                                style="background:#ef4444; border:none; padding:10px 25px; border-radius:10px; color:white; cursor:pointer; font-size:1rem;">
+                            إغلاق
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', pickerHtml);
+        });
+        console.log('✅ زر خلفية الاسم تم تفعيله للجميع');
+    }
+}, 1000);
+
+// دالة تعيين اللون
+window.setNameBgColor = function(color) {
+    if (color === 'transparent') {
+        selectedNameBg = '';
+        localStorage.removeItem('selectedNameBg');
+    } else {
+        selectedNameBg = color;
+        localStorage.setItem('selectedNameBg', color);
+    }
+    applyNameBackground();
+};
+
+// تطبيق اللون المحفوظ عند تحميل الصفحة
+setTimeout(applyNameBackground, 1500);
+
+// مراقبة الرسائل الجديدة
+const nameBgObserver = new MutationObserver(() => applyNameBackground());
+setTimeout(() => {
+    const chatWin = document.getElementById('chatWindow');
+    if (chatWin) nameBgObserver.observe(chatWin, { childList: true, subtree: true });
+}, 2000);
