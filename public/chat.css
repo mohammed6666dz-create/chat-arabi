@@ -2315,3 +2315,7 @@ header h1 {
 .my-message .message-content {
     background: linear-gradient(145deg, rgba(30, 45, 65, 0.95), rgba(20, 30, 50, 0.9)) !important;
 }
+/* خلفية الاسم في الرسائل */
+.message-content strong {
+    transition: all 0.3s ease;
+}
