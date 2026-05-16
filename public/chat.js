@@ -1865,24 +1865,41 @@ setTimeout(() => {
         }
     });
 }, 500);
-// ========== خلفية الاسم - نظام كامل للجميع ==========
-let selectedNameBg = localStorage.getItem('selectedNameBg') || '';
+// ========== خلفية الاسم - كل شخص يغير خلفية اسمه فقط ==========
+let myNameBg = localStorage.getItem('myNameBg') || '';
 
-function applyNameBackground() {
-    document.querySelectorAll('.message-content strong').forEach(el => {
-        if (selectedNameBg && selectedNameBg !== 'transparent') {
-            el.style.backgroundColor = selectedNameBg;
-            el.style.padding = '4px 12px';
-            el.style.borderRadius = '20px';
-            el.style.display = 'inline-block';
-        } else {
-            el.style.backgroundColor = '';
-            el.style.padding = '';
-            el.style.borderRadius = '';
+// تطبيق الخلفية على اسم المستخدم الحالي فقط
+function applyMyNameBackground() {
+    const currentUsername = myUsername;
+    if (!currentUsername) return;
+    
+    document.querySelectorAll('.message').forEach(msg => {
+        const usernameEl = msg.querySelector('.message-content strong');
+        const username = usernameEl?.innerText;
+        
+        if (username === currentUsername && myNameBg && myNameBg !== 'transparent') {
+            usernameEl.style.backgroundColor = myNameBg;
+            usernameEl.style.padding = '4px 12px';
+            usernameEl.style.borderRadius = '20px';
+            usernameEl.style.display = 'inline-block';
+        } else if (username !== currentUsername) {
+            // نتحقق إذا كان المستخدم الآخر عنده خلفية محفوظة
+            const otherUserBg = localStorage.getItem(`nameBg_${username}`);
+            if (otherUserBg && otherUserBg !== 'transparent') {
+                usernameEl.style.backgroundColor = otherUserBg;
+                usernameEl.style.padding = '4px 12px';
+                usernameEl.style.borderRadius = '20px';
+                usernameEl.style.display = 'inline-block';
+            } else {
+                usernameEl.style.backgroundColor = '';
+                usernameEl.style.padding = '';
+                usernameEl.style.borderRadius = '';
+            }
         }
     });
 }
 
+// تفعيل زر خلفية الاسم
 setTimeout(() => {
     const nameBtn = document.getElementById('featureNameBgBtn');
     if (nameBtn) {
@@ -1896,15 +1913,15 @@ setTimeout(() => {
             let html = `
                 <div id="nameBgOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:100000;display:flex;align-items:center;justify-content:center;">
                     <div style="background:#1e293b;border-radius:20px;padding:25px;width:380px;text-align:center;border:2px solid #3b82f6;">
-                        <h4 style="color:white;margin-bottom:20px;">🎨 اختر لون خلفية الاسم</h4>
+                        <h4 style="color:white;margin-bottom:20px;">🎨 اختر لون خلفية اسمك</h4>
                         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;">
                             ${colors.map((color, i) => `
-                                <div onclick="document.getElementById('nameBgOverlay')?.remove(); window.setNameBgColor('${color}')" 
+                                <div onclick="document.getElementById('nameBgOverlay')?.remove(); window.setMyNameBgColor('${color}')" 
                                      style="background:${color}; height:50px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">
                                     ${colorNames[i]}
                                 </div>
                             `).join('')}
-                            <div onclick="document.getElementById('nameBgOverlay')?.remove(); window.setNameBgColor('transparent')" 
+                            <div onclick="document.getElementById('nameBgOverlay')?.remove(); window.setMyNameBgColor('transparent')" 
                                  style="background:#334155; height:50px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; border:2px solid white;">
                                 🗑️ إلغاء الخلفية
                             </div>
@@ -1921,23 +1938,60 @@ setTimeout(() => {
     }
 }, 1000);
 
-window.setNameBgColor = function(color) {
+// دالة تعيين لون خلفية الاسم للمستخدم الحالي
+window.setMyNameBgColor = function(color) {
+    const currentUsername = myUsername;
+    if (!currentUsername) return;
+    
     if (color === 'transparent') {
-        selectedNameBg = '';
-        localStorage.removeItem('selectedNameBg');
+        myNameBg = '';
+        localStorage.removeItem('myNameBg');
+        // حفظ في السيرفر
+        fetch('/api/save-name-bg', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ nameBg: '' })
+        }).catch(() => {});
     } else {
-        selectedNameBg = color;
-        localStorage.setItem('selectedNameBg', color);
+        myNameBg = color;
+        localStorage.setItem('myNameBg', color);
+        // حفظ في السيرفر
+        fetch('/api/save-name-bg', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ nameBg: color })
+        }).catch(() => {});
     }
-    applyNameBackground();
+    applyMyNameBackground();
 };
 
-setTimeout(applyNameBackground, 1500);
+// جلب خلفية المستخدمين الآخرين من السيرفر
+async function loadOtherUsersBackground() {
+    try {
+        const res = await fetch('/api/get-users-name-bg', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const users = await res.json();
+        users.forEach(user => {
+            if (user.nameBg && user.nameBg !== '') {
+                localStorage.setItem(`nameBg_${user.username}`, user.nameBg);
+            }
+        });
+        applyMyNameBackground();
+    } catch(e) { console.log(e); }
+}
 
-const nameBgObserver = new MutationObserver(() => applyNameBackground());
+// تطبيق الخلفية المحفوظة
+setTimeout(() => {
+    loadOtherUsersBackground();
+    applyMyNameBackground();
+}, 1500);
+
+// مراقبة الرسائل الجديدة
+const bgObserver = new MutationObserver(() => applyMyNameBackground());
 setTimeout(() => {
     const chatWin = document.getElementById('chatWindow');
-    if (chatWin) nameBgObserver.observe(chatWin, { childList: true, subtree: true });
+    if (chatWin) bgObserver.observe(chatWin, { childList: true, subtree: true });
 }, 2000);
 // ========== إضافة أزرار المميزات ==========
 function addFeaturesButtons() {
