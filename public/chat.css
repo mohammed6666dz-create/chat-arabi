@@ -2241,3 +2241,77 @@ header h1 {
     border-color: #3b82f6 !important;
     transform: translateY(-3px) !important;
 }
+/* ========== تحسين شكل الرسائل العامة (صف واحد) ========== */
+.message {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    max-width: 85% !important;
+    margin-bottom: 12px !important;
+}
+
+/* صورة المستخدم */
+.message img {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    flex-shrink: 0;
+}
+
+/* محتوى الرسالة */
+.message-content {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: baseline !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+}
+
+/* سطر اسم المستخدم والرتبة */
+.username-line {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+/* اسم المستخدم */
+.username-line strong {
+    font-size: 14px !important;
+    color: #3b82f6 !important;
+    cursor: pointer;
+}
+
+/* الرتبة (badge) */
+.username-line .badge {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+}
+
+/* فقاعة الرسالة */
+.message-content p {
+    background: linear-gradient(145deg, rgba(40, 55, 70, 0.85), rgba(25, 35, 50, 0.75)) !important;
+    padding: 6px 12px !important;
+    border-radius: 16px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    color: #f0f4ff !important;
+    margin: 0 !important;
+    display: inline-block !important;
+    max-width: 100% !important;
+    word-wrap: break-word !important;
+}
+
+/* رسالتي أنا */
+.my-message {
+    flex-direction: row-reverse !important;
+}
+
+.my-message .message-content {
+    justify-content: flex-end !important;
+}
+
+.my-message .message-content p {
+    background: linear-gradient(145deg, rgba(30, 45, 65, 0.9), rgba(20, 30, 50, 0.8)) !important;
+}
