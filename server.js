@@ -690,7 +690,26 @@ app.get('/api/get-users-name-bg', verifyToken, async (req, res) => {
         res.status(500).json([]);
     }
 });
+// حفظ إطار الصورة
+app.post('/api/save-avatar-frame', verifyToken, async (req, res) => {
+    const { frame } = req.body;
+    try {
+        await pool.query('UPDATE users SET avatar_frame = $1 WHERE username = $2', [frame, req.user.username]);
+        res.json({ success: true });
+    } catch(err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
+// جلب إطارات المستخدمين
+app.get('/api/get-users-frames', verifyToken, async (req, res) => {
+    try {
+        const { rows } = await pool.query('SELECT username, avatar_frame FROM users WHERE avatar_frame IS NOT NULL AND avatar_frame != \'\'');
+        res.json(rows);
+    } catch(err) {
+        res.status(500).json([]);
+    }
+});
 
 app.post('/api/add-news', verifyToken, async (req, res) => {
   const { title, content } = req.body;
