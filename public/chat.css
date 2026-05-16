@@ -2241,13 +2241,26 @@ header h1 {
     border-color: #3b82f6 !important;
     transform: translateY(-3px) !important;
 }
-/* ========== تحسين شكل الرسائل العامة (صورة + اسم + رمز رتبة + رسالة داخل إطار) ========== */
+/* ========== تثبيت الرسائل كلها في صف واحد على اليمين ========== */
+.chat-main {
+    display: flex !important;
+    flex-direction: row !important;
+}
+
+#chatWindow {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+}
+
+/* جميع الرسائل تكون على اليمين */
 .message {
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
     max-width: 85% !important;
     margin-bottom: 12px !important;
+    align-self: flex-end !important;
 }
 
 /* صورة المستخدم */
@@ -2258,6 +2271,7 @@ header h1 {
     object-fit: cover !important;
     flex-shrink: 0;
     border: 2px solid #3b82f6;
+    order: 2 !important;
 }
 
 /* محتوى الرسالة (الفقاعة) */
@@ -2269,8 +2283,8 @@ header h1 {
     align-items: center !important;
     flex-wrap: wrap !important;
     gap: 8px !important;
-    flex: 1;
     border: 1px solid rgba(100, 180, 255, 0.2);
+    order: 1 !important;
 }
 
 /* اسم المستخدم */
@@ -2281,7 +2295,7 @@ header h1 {
     font-weight: bold;
 }
 
-/* رمز الرتبة (بدون نص) */
+/* رمز الرتبة */
 .rank-icon {
     display: inline-flex !important;
     align-items: center !important;
@@ -2299,11 +2313,6 @@ header h1 {
 }
 
 /* رسالتي أنا */
-.my-message {
-    flex-direction: row-reverse !important;
-}
-
 .my-message .message-content {
     background: linear-gradient(145deg, rgba(30, 45, 65, 0.95), rgba(20, 30, 50, 0.9)) !important;
-    border-bottom-right-radius: 6px !important;
 }
