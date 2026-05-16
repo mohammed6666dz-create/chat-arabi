@@ -2319,61 +2319,61 @@ header h1 {
 .message-content strong {
     transition: all 0.3s ease;
 }
-/* ========== إطارات الصورة المتوهجة والمتحركة ========== */
+/* ========== إطارات الصورة المتوهجة والمتحركة (توهج متوسط) ========== */
 .avatar-frame {
     border-radius: 50%;
     transition: all 0.3s ease;
 }
 
 /* الإطارات الثابتة (ألوان فقط) */
-.frame-red { box-shadow: 0 0 0 3px #ef4444, 0 0 0 6px rgba(239, 68, 68, 0.3); }
-.frame-blue { box-shadow: 0 0 0 3px #3b82f6, 0 0 0 6px rgba(59, 130, 246, 0.3); }
-.frame-green { box-shadow: 0 0 0 3px #10b981, 0 0 0 6px rgba(16, 185, 129, 0.3); }
-.frame-gold { box-shadow: 0 0 0 3px #fbbf24, 0 0 0 6px rgba(251, 191, 36, 0.3); }
-.frame-purple { box-shadow: 0 0 0 3px #8b5cf6, 0 0 0 6px rgba(139, 92, 246, 0.3); }
-.frame-pink { box-shadow: 0 0 0 3px #ec4899, 0 0 0 6px rgba(236, 72, 153, 0.3); }
-.frame-cyan { box-shadow: 0 0 0 3px #06b6d4, 0 0 0 6px rgba(6, 182, 212, 0.3); }
-.frame-white { box-shadow: 0 0 0 3px #ffffff, 0 0 0 6px rgba(255, 255, 255, 0.3); }
+.frame-red { box-shadow: 0 0 0 3px #ef4444, 0 0 0 5px rgba(239, 68, 68, 0.2); }
+.frame-blue { box-shadow: 0 0 0 3px #3b82f6, 0 0 0 5px rgba(59, 130, 246, 0.2); }
+.frame-green { box-shadow: 0 0 0 3px #10b981, 0 0 0 5px rgba(16, 185, 129, 0.2); }
+.frame-gold { box-shadow: 0 0 0 3px #fbbf24, 0 0 0 5px rgba(251, 191, 36, 0.2); }
+.frame-purple { box-shadow: 0 0 0 3px #8b5cf6, 0 0 0 5px rgba(139, 92, 246, 0.2); }
+.frame-pink { box-shadow: 0 0 0 3px #ec4899, 0 0 0 5px rgba(236, 72, 153, 0.2); }
+.frame-cyan { box-shadow: 0 0 0 3px #06b6d4, 0 0 0 5px rgba(6, 182, 212, 0.2); }
+.frame-white { box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px rgba(255, 255, 255, 0.2); }
 
-/* الإطارات المتحركة (متوهجة) */
+/* الإطارات المتحركة (توهج متوسط) */
 @keyframes frameGlow1 {
-    0%,100% { box-shadow: 0 0 0 3px #ef4444, 0 0 10px 5px #ef4444; }
-    50% { box-shadow: 0 0 0 3px #ef4444, 0 0 25px 10px #ef4444, 0 0 35px 15px #ff6666; }
+    0%,100% { box-shadow: 0 0 0 3px #ef4444, 0 0 5px 3px #ef4444; }
+    50% { box-shadow: 0 0 0 3px #ef4444, 0 0 12px 6px #ef4444; }
 }
 @keyframes frameGlow2 {
-    0%,100% { box-shadow: 0 0 0 3px #3b82f6, 0 0 10px 5px #3b82f6; }
-    50% { box-shadow: 0 0 0 3px #3b82f6, 0 0 25px 10px #3b82f6, 0 0 35px 15px #6699ff; }
+    0%,100% { box-shadow: 0 0 0 3px #3b82f6, 0 0 5px 3px #3b82f6; }
+    50% { box-shadow: 0 0 0 3px #3b82f6, 0 0 12px 6px #3b82f6; }
 }
 @keyframes frameGlow3 {
-    0%,100% { box-shadow: 0 0 0 3px #10b981, 0 0 10px 5px #10b981; }
-    50% { box-shadow: 0 0 0 3px #10b981, 0 0 25px 10px #10b981, 0 0 35px 15px #34d399; }
+    0%,100% { box-shadow: 0 0 0 3px #10b981, 0 0 5px 3px #10b981; }
+    50% { box-shadow: 0 0 0 3px #10b981, 0 0 12px 6px #10b981; }
 }
 @keyframes frameGlow4 {
-    0%,100% { box-shadow: 0 0 0 3px #fbbf24, 0 0 10px 5px #fbbf24; }
-    50% { box-shadow: 0 0 0 3px #fbbf24, 0 0 25px 10px #fbbf24, 0 0 35px 15px #fcd34d; }
+    0%,100% { box-shadow: 0 0 0 3px #fbbf24, 0 0 5px 3px #fbbf24; }
+    50% { box-shadow: 0 0 0 3px #fbbf24, 0 0 12px 6px #fbbf24; }
 }
 @keyframes frameGlow5 {
-    0%,100% { box-shadow: 0 0 0 3px #8b5cf6, 0 0 10px 5px #8b5cf6; }
-    50% { box-shadow: 0 0 0 3px #8b5cf6, 0 0 25px 10px #8b5cf6, 0 0 35px 15px #a78bfa; }
+    0%,100% { box-shadow: 0 0 0 3px #8b5cf6, 0 0 5px 3px #8b5cf6; }
+    50% { box-shadow: 0 0 0 3px #8b5cf6, 0 0 12px 6px #8b5cf6; }
 }
 @keyframes frameGlow6 {
-    0%,100% { box-shadow: 0 0 0 3px #ec4899, 0 0 10px 5px #ec4899; }
-    50% { box-shadow: 0 0 0 3px #ec4899, 0 0 25px 10px #ec4899, 0 0 35px 15px #f472b6; }
+    0%,100% { box-shadow: 0 0 0 3px #ec4899, 0 0 5px 3px #ec4899; }
+    50% { box-shadow: 0 0 0 3px #ec4899, 0 0 12px 6px #ec4899; }
 }
 @keyframes frameGlow7 {
-    0%,100% { box-shadow: 0 0 0 3px #06b6d4, 0 0 10px 5px #06b6d4; }
-    50% { box-shadow: 0 0 0 3px #06b6d4, 0 0 25px 10px #06b6d4, 0 0 35px 15px #22d3ee; }
+    0%,100% { box-shadow: 0 0 0 3px #06b6d4, 0 0 5px 3px #06b6d4; }
+    50% { box-shadow: 0 0 0 3px #06b6d4, 0 0 12px 6px #06b6d4; }
 }
 @keyframes frameGlow8 {
-    0%,100% { box-shadow: 0 0 0 3px #ffffff, 0 0 10px 5px #ffffff; }
-    50% { box-shadow: 0 0 0 3px #ffffff, 0 0 25px 10px #ffffff, 0 0 35px 15px #ccccff; }
+    0%,100% { box-shadow: 0 0 0 3px #ffffff, 0 0 5px 3px #ffffff; }
+    50% { box-shadow: 0 0 0 3px #ffffff, 0 0 12px 6px #ffffff; }
 }
 
-.frame-animated-1 { animation: frameGlow1 1.5s ease-in-out infinite; }
-.frame-animated-2 { animation: frameGlow2 1.5s ease-in-out infinite; }
-.frame-animated-3 { animation: frameGlow3 1.5s ease-in-out infinite; }
-.frame-animated-4 { animation: frameGlow4 1.5s ease-in-out infinite; }
-.frame-animated-5 { animation: frameGlow5 1.5s ease-in-out infinite; }
-.frame-animated-6 { animation: frameGlow6 1.5s ease-in-out infinite; }
-.frame-animated-7 { animation: frameGlow7 1.5s ease-in-out infinite; }
-.frame-animated-8 { animation: frameGlow8 1.5s ease-in-out infinite; }
+.frame-animated-1 { animation: frameGlow1 2s ease-in-out infinite; }
+.frame-animated-2 { animation: frameGlow2 2s ease-in-out infinite; }
+.frame-animated-3 { animation: frameGlow3 2s ease-in-out infinite; }
+.frame-animated-4 { animation: frameGlow4 2s ease-in-out infinite; }
+.frame-animated-5 { animation: frameGlow5 2s ease-in-out infinite; }
+.frame-animated-6 { animation: frameGlow6 2s ease-in-out infinite; }
+.frame-animated-7 { animation: frameGlow7 2s ease-in-out infinite; }
+.frame-animated-8 { animation: frameGlow8 2s ease-in-out infinite; }
