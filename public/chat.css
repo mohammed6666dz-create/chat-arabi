@@ -2241,29 +2241,24 @@ header h1 {
     border-color: #3b82f6 !important;
     transform: translateY(-3px) !important;
 }
-/* ========== تثبيت الرسائل كلها في صف واحد على اليمين ========== */
-.chat-main {
-    display: flex !important;
-    flex-direction: row !important;
-}
-
+/* ========== الرسائل: صورة على اليسار + فقاعة على اليمين ========== */
 #chatWindow {
     display: flex !important;
     flex-direction: column !important;
-    align-items: flex-end !important;
+    align-items: flex-start !important;
 }
 
-/* جميع الرسائل تكون على اليمين */
+/* جميع الرسائل */
 .message {
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
     max-width: 85% !important;
     margin-bottom: 12px !important;
-    align-self: flex-end !important;
+    align-self: flex-start !important;
 }
 
-/* صورة المستخدم */
+/* صورة المستخدم (على اليسار) */
 .message img {
     width: 42px !important;
     height: 42px !important;
@@ -2271,7 +2266,7 @@ header h1 {
     object-fit: cover !important;
     flex-shrink: 0;
     border: 2px solid #3b82f6;
-    order: 2 !important;
+    order: 1 !important;
 }
 
 /* محتوى الرسالة (الفقاعة) */
@@ -2284,7 +2279,7 @@ header h1 {
     flex-wrap: wrap !important;
     gap: 8px !important;
     border: 1px solid rgba(100, 180, 255, 0.2);
-    order: 1 !important;
+    order: 2 !important;
 }
 
 /* اسم المستخدم */
@@ -2312,7 +2307,11 @@ header h1 {
     display: inline !important;
 }
 
-/* رسالتي أنا */
+/* رسالتي أنا - نفس الترتيب ما تتغير */
+.my-message {
+    align-self: flex-start !important;
+}
+
 .my-message .message-content {
     background: linear-gradient(145deg, rgba(30, 45, 65, 0.95), rgba(20, 30, 50, 0.9)) !important;
 }
