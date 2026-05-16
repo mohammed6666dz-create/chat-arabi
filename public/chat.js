@@ -1815,3 +1815,29 @@ socket.on('private message', (data) => {
         updateMessageBadge(totalUnreadMsgs);
     }
 });
+// ========== إضافة محتوى المميزات تلقائياً ==========
+setTimeout(() => {
+    const featuresPane = document.getElementById('tab-features');
+    if (featuresPane && featuresPane.innerHTML.trim() === '') {
+        featuresPane.innerHTML = `
+            <div class="features-list" style="display: flex; flex-direction: column; gap: 12px;">
+                <button class="feature-btn" id="featureNameBgBtn" style="background: #1e293b; border: 1px solid #334155; padding: 14px 16px; border-radius: 12px; color: white; cursor: pointer; font-size: 1rem; text-align: right; display: flex; align-items: center; gap: 12px; width: 100%;">
+                    <i class="fas fa-palette"></i> خلفية الاسم
+                </button>
+                <button class="feature-btn" id="featureAnimatedAvatarBtn" style="background: #1e293b; border: 1px solid #334155; padding: 14px 16px; border-radius: 12px; color: white; cursor: pointer; font-size: 1rem; text-align: right; display: flex; align-items: center; gap: 12px; width: 100%;">
+                    <i class="fas fa-film"></i> صورة شخصية متحركة
+                </button>
+                <button class="feature-btn" id="featureNameGlowBtn" style="background: #1e293b; border: 1px solid #334155; padding: 14px 16px; border-radius: 12px; color: white; cursor: pointer; font-size: 1rem; text-align: right; display: flex; align-items: center; gap: 12px; width: 100%;">
+                    <i class="fas fa-magic"></i> توهج خلفية الاسم
+                </button>
+                <button class="feature-btn" id="featureProfileColorsBtn" style="background: #1e293b; border: 1px solid #334155; padding: 14px 16px; border-radius: 12px; color: white; cursor: pointer; font-size: 1rem; text-align: right; display: flex; align-items: center; gap: 12px; width: 100%;">
+                    <i class="fas fa-fill-drip"></i> ألوان البروفايل
+                </button>
+                <button class="feature-btn" id="featureAvatarBorderBtn" style="background: #1e293b; border: 1px solid #334155; padding: 14px 16px; border-radius: 12px; color: white; cursor: pointer; font-size: 1rem; text-align: right; display: flex; align-items: center; gap: 12px; width: 100%;">
+                    <i class="fas fa-border-all"></i> إطار الصورة
+                </button>
+            </div>
+        `;
+        console.log('✅ تم إضافة أزرار المميزات تلقائياً');
+    }
+}, 500);
