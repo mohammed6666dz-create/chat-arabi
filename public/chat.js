@@ -2024,3 +2024,101 @@ function addFeaturesButtons() {
 
 // استدعاء الدالة بعد تحميل الصفحة
 setTimeout(addFeaturesButtons, 500);
+// ========== إطارات الصورة المتوهجة والمتحركة ==========
+let selectedFrame = localStorage.getItem('selectedFrame') || '';
+
+// تطبيق الإطار على الصور
+function applyFrameToAvatars() {
+    const avatars = document.querySelectorAll('.message img, #avatar, #myProfileAvatar, .user-item-simple img, .private-message img, .my-private-message img');
+    avatars.forEach(img => {
+        img.classList.remove('frame-red', 'frame-blue', 'frame-green', 'frame-gold', 'frame-purple', 'frame-pink', 'frame-cyan', 'frame-white');
+        img.classList.remove('frame-animated-1', 'frame-animated-2', 'frame-animated-3', 'frame-animated-4', 'frame-animated-5', 'frame-animated-6', 'frame-animated-7', 'frame-animated-8');
+        if (selectedFrame) {
+            img.classList.add(selectedFrame);
+        }
+    });
+}
+
+// عرض لوحة اختيار الإطارات
+function showFramePicker() {
+    const frames = [
+        { name: 'إطار أحمر', class: 'frame-red', color: '#ef4444', animated: false },
+        { name: 'إطار أزرق', class: 'frame-blue', color: '#3b82f6', animated: false },
+        { name: 'إطار أخضر', class: 'frame-green', color: '#10b981', animated: false },
+        { name: 'إطار ذهبي', class: 'frame-gold', color: '#fbbf24', animated: false },
+        { name: 'إطار بنفسجي', class: 'frame-purple', color: '#8b5cf6', animated: false },
+        { name: 'إطار زهري', class: 'frame-pink', color: '#ec4899', animated: false },
+        { name: 'إطار سماوي', class: 'frame-cyan', color: '#06b6d4', animated: false },
+        { name: 'إطار أبيض', class: 'frame-white', color: '#ffffff', animated: false },
+        { name: '🔥 إطار متوهج أحمر', class: 'frame-animated-1', color: '#ef4444', animated: true },
+        { name: '💙 إطار متوهج أزرق', class: 'frame-animated-2', color: '#3b82f6', animated: true },
+        { name: '💚 إطار متوهج أخضر', class: 'frame-animated-3', color: '#10b981', animated: true },
+        { name: '⭐ إطار متوهج ذهبي', class: 'frame-animated-4', color: '#fbbf24', animated: true },
+        { name: '🟣 إطار متوهج بنفسجي', class: 'frame-animated-5', color: '#8b5cf6', animated: true },
+        { name: '🌸 إطار متوهج زهري', class: 'frame-animated-6', color: '#ec4899', animated: true },
+        { name: '💎 إطار متوهج سماوي', class: 'frame-animated-7', color: '#06b6d4', animated: true },
+        { name: '⚪ إطار متوهج أبيض', class: 'frame-animated-8', color: '#ffffff', animated: true }
+    ];
+    
+    let html = `
+        <div id="framePickerOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:100000;display:flex;align-items:center;justify-content:center;overflow-y:auto;">
+            <div style="background:#1e293b;border-radius:20px;padding:25px;width:500px;max-height:80vh;overflow-y:auto;text-align:center;border:2px solid #3b82f6;">
+                <h4 style="color:white;margin-bottom:20px;">🖼️ اختر إطار الصورة</h4>
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;">
+                    ${frames.map(frame => `
+                        <div onclick="document.getElementById('framePickerOverlay')?.remove(); window.setAvatarFrame('${frame.class}')" 
+                             style="background:#0f172a;padding:12px;border-radius:12px;cursor:pointer;text-align:center;border:1px solid #334155;${frame.animated ? 'animation: ' + (frame.class === 'frame-animated-1' ? 'frameGlow1 1.5s infinite' : frame.class === 'frame-animated-2' ? 'frameGlow2 1.5s infinite' : frame.class === 'frame-animated-3' ? 'frameGlow3 1.5s infinite' : frame.class === 'frame-animated-4' ? 'frameGlow4 1.5s infinite' : frame.class === 'frame-animated-5' ? 'frameGlow5 1.5s infinite' : frame.class === 'frame-animated-6' ? 'frameGlow6 1.5s infinite' : frame.class === 'frame-animated-7' ? 'frameGlow7 1.5s infinite' : 'frameGlow8 1.5s infinite') : ''}">
+                            <div style="width:50px;height:50px;border-radius:50%;background:${frame.color};margin:0 auto 8px auto;${frame.class !== 'frame-red' && frame.class !== 'frame-blue' && frame.class !== 'frame-green' && frame.class !== 'frame-gold' && frame.class !== 'frame-purple' && frame.class !== 'frame-pink' && frame.class !== 'frame-cyan' && frame.class !== 'frame-white' ? 'box-shadow:0 0 15px ' + frame.color : ''}"></div>
+                            <span style="color:white;font-size:12px;">${frame.name}</span>
+                        </div>
+                    `).join('')}
+                    <div onclick="document.getElementById('framePickerOverlay')?.remove(); window.setAvatarFrame('')" 
+                         style="background:#ef4444;padding:12px;border-radius:12px;cursor:pointer;text-align:center;grid-column:span 2;">
+                        <span style="color:white;font-weight:bold;">🗑️ إزالة الإطار</span>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('framePickerOverlay')?.remove()" 
+                        style="background:#ef4444;border:none;padding:10px 25px;border-radius:10px;color:white;cursor:pointer;">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+// دالة تعيين الإطار
+window.setAvatarFrame = function(frameClass) {
+    selectedFrame = frameClass;
+    localStorage.setItem('selectedFrame', selectedFrame);
+    applyFrameToAvatars();
+    
+    // حفظ في السيرفر
+    fetch('/api/save-avatar-frame', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ frame: selectedFrame })
+    }).catch(() => {});
+};
+
+// تفعيل زر إطار الصورة
+setTimeout(() => {
+    const frameBtn = document.getElementById('featureAvatarBorderBtn');
+    if (frameBtn) {
+        const newBtn = frameBtn.cloneNode(true);
+        frameBtn.parentNode.replaceChild(newBtn, frameBtn);
+        newBtn.addEventListener('click', showFramePicker);
+    }
+}, 1000);
+
+// تطبيق الإطار المحفوظ
+setTimeout(() => {
+    applyFrameToAvatars();
+}, 1500);
+
+// مراقبة الصور الجديدة
+const frameObserver = new MutationObserver(() => applyFrameToAvatars());
+setTimeout(() => {
+    const chatWin = document.getElementById('chatWindow');
+    if (chatWin) frameObserver.observe(chatWin, { childList: true, subtree: true });
+}, 2000);
