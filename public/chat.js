@@ -1939,3 +1939,34 @@ setTimeout(() => {
     const chatWin = document.getElementById('chatWindow');
     if (chatWin) nameBgObserver.observe(chatWin, { childList: true, subtree: true });
 }, 2000);
+// ========== إضافة أزرار المميزات ==========
+function addFeaturesButtons() {
+    const featuresPane = document.getElementById('tab-features');
+    if (featuresPane) {
+        featuresPane.innerHTML = `
+            <div class="features-list" style="display: flex; flex-direction: column; gap: 12px;">
+                <button class="feature-btn" id="featureNameBgBtn">
+                    <i class="fas fa-palette"></i> خلفية الاسم
+                </button>
+                <button class="feature-btn" id="featureAnimatedAvatarBtn">
+                    <i class="fas fa-film"></i> صورة شخصية متحركة
+                </button>
+                <button class="feature-btn" id="featureNameGlowBtn">
+                    <i class="fas fa-magic"></i> توهج خلفية الاسم
+                </button>
+                <button class="feature-btn" id="featureProfileColorsBtn">
+                    <i class="fas fa-fill-drip"></i> ألوان البروفايل
+                </button>
+                <button class="feature-btn" id="featureAvatarBorderBtn">
+                    <i class="fas fa-border-all"></i> إطار الصورة
+                </button>
+            </div>
+        `;
+        featuresPane.classList.remove('hidden');
+        featuresPane.classList.add('active');
+        console.log('✅ تم إضافة أزرار المميزات');
+    }
+}
+
+// استدعاء الدالة بعد تحميل الصفحة
+setTimeout(addFeaturesButtons, 500);
