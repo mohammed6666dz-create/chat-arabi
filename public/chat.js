@@ -2024,17 +2024,34 @@ function addFeaturesButtons() {
 
 // استدعاء الدالة بعد تحميل الصفحة
 setTimeout(addFeaturesButtons, 500);
-// ========== إطارات الصورة المتوهجة والمتحركة ==========
-let selectedFrame = localStorage.getItem('selectedFrame') || '';
+// ========== إطارات الصورة (كل شخص يختار إطار لنفسه ويظهر للجميع) ==========
+let mySelectedFrame = localStorage.getItem('mySelectedFrame') || '';
 
-// تطبيق الإطار على الصور
-function applyFrameToAvatars() {
-    const avatars = document.querySelectorAll('.message img, #avatar, #myProfileAvatar, .user-item-simple img, .private-message img, .my-private-message img');
-    avatars.forEach(img => {
+// تطبيق الإطارات على جميع الصور (لكل شخص حسب إطاره)
+function applyAllFrames() {
+    const currentUsername = myUsername;
+    
+    document.querySelectorAll('.message img, #avatar, #myProfileAvatar, .user-item-simple img, .private-message img, .my-private-message img').forEach(img => {
+        // إزالة جميع الإطارات القديمة
         img.classList.remove('frame-red', 'frame-blue', 'frame-green', 'frame-gold', 'frame-purple', 'frame-pink', 'frame-cyan', 'frame-white');
         img.classList.remove('frame-animated-1', 'frame-animated-2', 'frame-animated-3', 'frame-animated-4', 'frame-animated-5', 'frame-animated-6', 'frame-animated-7', 'frame-animated-8');
-        if (selectedFrame) {
-            img.classList.add(selectedFrame);
+        
+        // تحديد اسم المستخدم لهذه الصورة
+        let username = '';
+        const parent = img.closest('.message, .user-item-simple, .private-message, .my-private-message');
+        if (parent) {
+            const nameEl = parent.querySelector('strong, .user-name-simple');
+            if (nameEl) username = nameEl.innerText.trim();
+        }
+        
+        // تطبيق الإطار المناسب
+        if (username === currentUsername && mySelectedFrame) {
+            img.classList.add(mySelectedFrame);
+        } else if (username) {
+            const userFrame = localStorage.getItem(`frame_${username}`);
+            if (userFrame && userFrame !== '') {
+                img.classList.add(userFrame);
+            }
         }
     });
 }
@@ -2063,16 +2080,16 @@ function showFramePicker() {
     let html = `
         <div id="framePickerOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:100000;display:flex;align-items:center;justify-content:center;overflow-y:auto;">
             <div style="background:#1e293b;border-radius:20px;padding:25px;width:500px;max-height:80vh;overflow-y:auto;text-align:center;border:2px solid #3b82f6;">
-                <h4 style="color:white;margin-bottom:20px;">🖼️ اختر إطار الصورة</h4>
+                <h4 style="color:white;margin-bottom:20px;">🖼️ اختر إطار صورتك</h4>
                 <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;">
                     ${frames.map(frame => `
-                        <div onclick="document.getElementById('framePickerOverlay')?.remove(); window.setAvatarFrame('${frame.class}')" 
-                             style="background:#0f172a;padding:12px;border-radius:12px;cursor:pointer;text-align:center;border:1px solid #334155;${frame.animated ? 'animation: ' + (frame.class === 'frame-animated-1' ? 'frameGlow1 1.5s infinite' : frame.class === 'frame-animated-2' ? 'frameGlow2 1.5s infinite' : frame.class === 'frame-animated-3' ? 'frameGlow3 1.5s infinite' : frame.class === 'frame-animated-4' ? 'frameGlow4 1.5s infinite' : frame.class === 'frame-animated-5' ? 'frameGlow5 1.5s infinite' : frame.class === 'frame-animated-6' ? 'frameGlow6 1.5s infinite' : frame.class === 'frame-animated-7' ? 'frameGlow7 1.5s infinite' : 'frameGlow8 1.5s infinite') : ''}">
-                            <div style="width:50px;height:50px;border-radius:50%;background:${frame.color};margin:0 auto 8px auto;${frame.class !== 'frame-red' && frame.class !== 'frame-blue' && frame.class !== 'frame-green' && frame.class !== 'frame-gold' && frame.class !== 'frame-purple' && frame.class !== 'frame-pink' && frame.class !== 'frame-cyan' && frame.class !== 'frame-white' ? 'box-shadow:0 0 15px ' + frame.color : ''}"></div>
+                        <div onclick="document.getElementById('framePickerOverlay')?.remove(); window.setMyAvatarFrame('${frame.class}')" 
+                             style="background:#0f172a;padding:12px;border-radius:12px;cursor:pointer;text-align:center;border:1px solid #334155;">
+                            <div style="width:50px;height:50px;border-radius:50%;background:${frame.color};margin:0 auto 8px auto; ${frame.animated ? 'box-shadow:0 0 10px ' + frame.color : ''}"></div>
                             <span style="color:white;font-size:12px;">${frame.name}</span>
                         </div>
                     `).join('')}
-                    <div onclick="document.getElementById('framePickerOverlay')?.remove(); window.setAvatarFrame('')" 
+                    <div onclick="document.getElementById('framePickerOverlay')?.remove(); window.setMyAvatarFrame('')" 
                          style="background:#ef4444;padding:12px;border-radius:12px;cursor:pointer;text-align:center;grid-column:span 2;">
                         <span style="color:white;font-weight:bold;">🗑️ إزالة الإطار</span>
                     </div>
@@ -2087,19 +2104,35 @@ function showFramePicker() {
     document.body.insertAdjacentHTML('beforeend', html);
 }
 
-// دالة تعيين الإطار
-window.setAvatarFrame = function(frameClass) {
-    selectedFrame = frameClass;
-    localStorage.setItem('selectedFrame', selectedFrame);
-    applyFrameToAvatars();
+// دالة تعيين الإطار للمستخدم الحالي
+window.setMyAvatarFrame = function(frameClass) {
+    mySelectedFrame = frameClass;
+    localStorage.setItem('mySelectedFrame', mySelectedFrame);
+    applyAllFrames();
     
     // حفظ في السيرفر
     fetch('/api/save-avatar-frame', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ frame: selectedFrame })
+        body: JSON.stringify({ frame: mySelectedFrame })
     }).catch(() => {});
 };
+
+// جلب إطارات المستخدمين الآخرين من السيرفر
+async function loadOtherUsersFrames() {
+    try {
+        const res = await fetch('/api/get-users-frames', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const users = await res.json();
+        users.forEach(user => {
+            if (user.avatar_frame && user.avatar_frame !== '') {
+                localStorage.setItem(`frame_${user.username}`, user.avatar_frame);
+            }
+        });
+        applyAllFrames();
+    } catch(e) { console.log(e); }
+}
 
 // تفعيل زر إطار الصورة
 setTimeout(() => {
@@ -2111,13 +2144,14 @@ setTimeout(() => {
     }
 }, 1000);
 
-// تطبيق الإطار المحفوظ
+// تحميل الإطارات وتطبيقها
 setTimeout(() => {
-    applyFrameToAvatars();
+    loadOtherUsersFrames();
+    applyAllFrames();
 }, 1500);
 
 // مراقبة الصور الجديدة
-const frameObserver = new MutationObserver(() => applyFrameToAvatars());
+const frameObserver = new MutationObserver(() => applyAllFrames());
 setTimeout(() => {
     const chatWin = document.getElementById('chatWindow');
     if (chatWin) frameObserver.observe(chatWin, { childList: true, subtree: true });
