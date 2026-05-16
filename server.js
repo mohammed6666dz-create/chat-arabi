@@ -671,6 +671,26 @@ app.get('/api/get-news', async (req, res) => {
     res.status(500).json([]);
   }
 });
+// ========== مسارات خلفية الاسم ==========
+app.post('/api/save-name-bg', verifyToken, async (req, res) => {
+    const { nameBg } = req.body;
+    try {
+        await pool.query('UPDATE users SET name_bg = $1 WHERE username = $2', [nameBg, req.user.username]);
+        res.json({ success: true });
+    } catch(err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/get-users-name-bg', verifyToken, async (req, res) => {
+    try {
+        const { rows } = await pool.query('SELECT username, name_bg FROM users WHERE name_bg IS NOT NULL AND name_bg != \'\'');
+        res.json(rows);
+    } catch(err) {
+        res.status(500).json([]);
+    }
+});
+
 
 app.post('/api/add-news', verifyToken, async (req, res) => {
   const { title, content } = req.body;
