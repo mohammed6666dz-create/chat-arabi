@@ -1848,3 +1848,50 @@ function addFeaturesButtons() {
 
 // تنفيذ الدالة بعد تحميل الصفحة مباشرة
 setTimeout(addFeaturesButtons, 100);
+// ========== تعديل شكل الرتبة إلى أيقونة فقط ==========
+// استبدال دالة getUserBadge لتعرض أيقونة فقط بدل النص
+const originalGetUserBadge = window.getUserBadge;
+window.getUserBadge = function(username, role = 'guest') {
+    const lowerUsername = username.toLowerCase();
+    
+    // أصحاب الموقع
+    if (lowerUsername === 'nour' || lowerUsername === 'mohamed') {
+        return '<span class="rank-icon">👑</span>';
+    }
+    if (lowerUsername === 'mira') {
+        return '<span class="rank-icon">🌹</span>';
+    }
+    
+    // الرتب حسب الدور
+    switch (role.toLowerCase()) {
+        case 'superadmin':
+            return '<span class="rank-icon">⚡</span>';
+        case 'admin':
+            return '<span class="rank-icon">🛡️</span>';
+        case 'premium':
+            return '<span class="rank-icon">💎</span>';
+        case 'vip':
+            return '<span class="rank-icon">⭐</span>';
+        case 'بريميوم':
+            return '<span class="rank-icon">💎</span>';
+        default:
+            return '';
+    }
+};
+
+// تحديث عرض الرسائل الموجودة
+setTimeout(() => {
+    const messages = document.querySelectorAll('.message');
+    messages.forEach(msg => {
+        const badgeSpan = msg.querySelector('.username-line .badge');
+        if (badgeSpan) {
+            const oldBadge = badgeSpan.outerHTML;
+            const username = msg.querySelector('strong')?.innerText || '';
+            const role = 'guest';
+            const newBadge = window.getUserBadge(username, role);
+            if (newBadge) {
+                badgeSpan.outerHTML = newBadge;
+            }
+        }
+    });
+}, 500);
