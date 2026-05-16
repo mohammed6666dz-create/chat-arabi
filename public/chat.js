@@ -1918,12 +1918,11 @@ function applyNameBackground() {
 
 // دالة عرض لوحة الألوان
 function showNameBgPicker() {
-    // حذف اللوحة القديمة إذا وجدت
     const oldPicker = document.getElementById('nameBgPickerOverlay');
     if (oldPicker) oldPicker.remove();
     
     const pickerHtml = `
-        <div id="nameBgPickerOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center;">
+        <div id="nameBgPickerOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; align-items: center; justify-content: center;">
             <div style="background: #1e293b; border-radius: 16px; padding: 20px; width: 320px; text-align: center; border: 1px solid #3b82f6;">
                 <h4 style="color: white; margin-bottom: 15px;">🎨 اختر لون خلفية الاسم</h4>
                 <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 20px;">
@@ -1964,8 +1963,14 @@ function closeNameBgPicker() {
     if (overlay) overlay.remove();
 }
 
-// ربط زر "خلفية الاسم"
-document.getElementById('featureNameBgBtn')?.addEventListener('click', showNameBgPicker);
+// إزالة الحدث القديم وإضافة حدث جديد لزر "خلفية الاسم"
+const nameBgBtn = document.getElementById('featureNameBgBtn');
+if (nameBgBtn) {
+    // إزالة الأحداث القديمة
+    const newBtn = nameBgBtn.cloneNode(true);
+    nameBgBtn.parentNode.replaceChild(newBtn, nameBgBtn);
+    newBtn.addEventListener('click', showNameBgPicker);
+}
 
 // تطبيق الخلفية عند إضافة رسائل جديدة
 const originalAppendMessage = window.appendMessage;
@@ -1979,8 +1984,11 @@ if (originalAppendMessage) {
 // تطبيق الخلفية عند تحميل الصفحة
 setTimeout(applyNameBackground, 1000);
 
-// مراقبة إضافة رسائل جديدة عبر DOM
+// مراقبة إضافة رسائل جديدة
 const observerForMessages = new MutationObserver(() => {
     applyNameBackground();
 });
-observerForMessages.observe(document.getElementById('chatWindow') || document.body, { childList: true, subtree: true });
+const chatWindow = document.getElementById('chatWindow');
+if (chatWindow) {
+    observerForMessages.observe(chatWindow, { childList: true, subtree: true });
+}
