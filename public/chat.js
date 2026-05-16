@@ -1815,10 +1815,10 @@ socket.on('private message', (data) => {
         updateMessageBadge(totalUnreadMsgs);
     }
 });
-// ========== إضافة محتوى المميزات تلقائياً ==========
+// ========== إضافة أزرار المميزات ==========
 setTimeout(() => {
     const featuresPane = document.getElementById('tab-features');
-    if (featuresPane && featuresPane.innerHTML.trim() === '') {
+    if (featuresPane && (!featuresPane.innerHTML || featuresPane.innerHTML.trim() === '' || featuresPane.innerHTML.includes('المميزات قيد الإضافة'))) {
         featuresPane.innerHTML = `
             <div class="features-list" style="display: flex; flex-direction: column; gap: 12px;">
                 <button class="feature-btn" id="featureNameBgBtn" style="background: #1e293b; border: 1px solid #334155; padding: 14px 16px; border-radius: 12px; color: white; cursor: pointer; font-size: 1rem; text-align: right; display: flex; align-items: center; gap: 12px; width: 100%;">
@@ -1838,6 +1838,6 @@ setTimeout(() => {
                 </button>
             </div>
         `;
-        console.log('✅ تم إضافة أزرار المميزات تلقائياً');
+        console.log('✅ تم إضافة أزرار المميزات');
     }
 }, 500);
