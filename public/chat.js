@@ -1815,36 +1815,6 @@ socket.on('private message', (data) => {
         updateMessageBadge(totalUnreadMsgs);
     }
 });
-// ========== إضافة أزرار المميزات يدوياً ==========
-function addFeaturesButtons() {
-    const featuresPane = document.getElementById('tab-features');
-    if (featuresPane) {
-        featuresPane.innerHTML = `
-            <div class="features-list" style="display: flex; flex-direction: column; gap: 12px;">
-                <button class="feature-btn" onclick="alert('خلفية الاسم - قريباً')" style="background: #1e293b; border: 1px solid #334155; padding: 14px 16px; border-radius: 12px; color: white; cursor: pointer; font-size: 1rem; text-align: right; display: flex; align-items: center; gap: 12px; width: 100%;">
-                    <i class="fas fa-palette"></i> خلفية الاسم
-                </button>
-                <button class="feature-btn" onclick="alert('صورة شخصية متحركة - قريباً')" style="background: #1e293b; border: 1px solid #334155; padding: 14px 16px; border-radius: 12px; color: white; cursor: pointer; font-size: 1rem; text-align: right; display: flex; align-items: center; gap: 12px; width: 100%;">
-                    <i class="fas fa-film"></i> صورة شخصية متحركة
-                </button>
-                <button class="feature-btn" onclick="alert('توهج خلفية الاسم - قريباً')" style="background: #1e293b; border: 1px solid #334155; padding: 14px 16px; border-radius: 12px; color: white; cursor: pointer; font-size: 1rem; text-align: right; display: flex; align-items: center; gap: 12px; width: 100%;">
-                    <i class="fas fa-magic"></i> توهج خلفية الاسم
-                </button>
-                <button class="feature-btn" onclick="alert('ألوان البروفايل - قريباً')" style="background: #1e293b; border: 1px solid #334155; padding: 14px 16px; border-radius: 12px; color: white; cursor: pointer; font-size: 1rem; text-align: right; display: flex; align-items: center; gap: 12px; width: 100%;">
-                    <i class="fas fa-fill-drip"></i> ألوان البروفايل
-                </button>
-                <button class="feature-btn" onclick="alert('إطار الصورة - قريباً')" style="background: #1e293b; border: 1px solid #334155; padding: 14px 16px; border-radius: 12px; color: white; cursor: pointer; font-size: 1rem; text-align: right; display: flex; align-items: center; gap: 12px; width: 100%;">
-                    <i class="fas fa-border-all"></i> إطار الصورة
-                </button>
-            </div>
-        `;
-        featuresPane.classList.remove('hidden');
-        featuresPane.classList.add('active');
-        console.log('✅ تم إضافة أزرار المميزات بنجاح');
-    } else {
-        console.log('❌ عنصر tab-features غير موجود');
-    }
-}
 
 // تنفيذ الدالة بعد تحميل الصفحة مباشرة
 setTimeout(addFeaturesButtons, 100);
