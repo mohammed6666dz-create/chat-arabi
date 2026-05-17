@@ -66,7 +66,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// إنشاء الجداول إذا ما كانت موجودة
+// إنشاء الجداول إذا ما كانت موجودة (مع إضافة الأعمدة الجديدة)
 async function initDatabase() {
   try {
     await pool.query(`
@@ -135,6 +135,12 @@ async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_post_comments_post ON post_comments (post_id);
     `);
     console.log('✓ الجداول جاهزة');
+    
+    // إضافة الأعمدة الجديدة إذا لم تكن موجودة
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS name_bg TEXT DEFAULT ''`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_frame TEXT DEFAULT ''`);
+    console.log('✓ تم إضافة أعمدة name_bg و avatar_frame');
+    
   } catch (err) {
     console.error('خطأ في تهيئة الجداول:', err);
   }
@@ -339,6 +345,8 @@ app.get('/profile', verifyToken, async (req, res) => {
     background: user.background,
     profile_song: user.profile_song || '',
     private_bg: user.private_bg || '',
+    name_bg: user.name_bg || '',
+    avatar_frame: user.avatar_frame || '',
     friends: user.friends,
     friend_requests: user.friend_requests || [],
     rank: user.rank || 'ضيف',
@@ -487,7 +495,7 @@ app.post('/api/save-last-room', verifyToken, async (req, res) => {
   }
 });
 
-// ========== مسارات حائط الأصدقاء والأخبار (اختصاراً) ==========
+// ========== مسارات حائط الأصدقاء ==========
 app.post('/api/create-post', verifyToken, async (req, res) => {
   const { content } = req.body;
   const username = req.user.username;
@@ -662,16 +670,7 @@ app.post('/api/mark-notification-read', verifyToken, async (req, res) => {
   }
 });
 
-app.get('/api/get-news', async (req, res) => {
-  try {
-    const { rows } = await pool.query(`SELECT * FROM news ORDER BY created_at DESC LIMIT 50`);
-    res.json(rows);
-  } catch (err) {
-    console.error('خطأ في جلب الأخبار:', err);
-    res.status(500).json([]);
-  }
-});
-// ========== مسارات خلفية الاسم ==========
+// ========== مسارات خلفية الاسم وإطار الصورة ==========
 app.post('/api/save-name-bg', verifyToken, async (req, res) => {
     const { nameBg } = req.body;
     try {
@@ -690,7 +689,7 @@ app.get('/api/get-users-name-bg', verifyToken, async (req, res) => {
         res.status(500).json([]);
     }
 });
-// حفظ إطار الصورة
+
 app.post('/api/save-avatar-frame', verifyToken, async (req, res) => {
     const { frame } = req.body;
     try {
@@ -701,7 +700,6 @@ app.post('/api/save-avatar-frame', verifyToken, async (req, res) => {
     }
 });
 
-// جلب إطارات المستخدمين
 app.get('/api/get-users-frames', verifyToken, async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT username, avatar_frame FROM users WHERE avatar_frame IS NOT NULL AND avatar_frame != \'\'');
@@ -709,6 +707,17 @@ app.get('/api/get-users-frames', verifyToken, async (req, res) => {
     } catch(err) {
         res.status(500).json([]);
     }
+});
+
+// ========== مسارات الأخبار ==========
+app.get('/api/get-news', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`SELECT * FROM news ORDER BY created_at DESC LIMIT 50`);
+    res.json(rows);
+  } catch (err) {
+    console.error('خطأ في جلب الأخبار:', err);
+    res.status(500).json([]);
+  }
 });
 
 app.post('/api/add-news', verifyToken, async (req, res) => {
@@ -1170,4 +1179,3 @@ http.listen(PORT, '0.0.0.0', () => {
   console.log('✅ السيرفر يعمل بنجاح على port ' + PORT);
   console.log('=====================================');
 });
-
