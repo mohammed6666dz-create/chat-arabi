@@ -2167,3 +2167,81 @@ setTimeout(() => {
     const chatWin = document.getElementById('chatWindow');
     if (chatWin) frameObserver.observe(chatWin, { childList: true, subtree: true });
 }, 2000);
+// ========== ألوان البروفايل ==========
+let myProfileColor = localStorage.getItem('myProfileColor') || '';
+
+// تطبيق لون البروفايل
+function applyProfileColor() {
+    const profilePanel = document.getElementById('myProfilePanel');
+    if (!profilePanel) return;
+    
+    if (myProfileColor && myProfileColor !== '' && myProfileColor !== 'transparent') {
+        profilePanel.style.backgroundColor = myProfileColor;
+        profilePanel.style.backgroundImage = 'none';
+    } else {
+        profilePanel.style.backgroundColor = '';
+        profilePanel.style.backgroundImage = '';
+    }
+}
+
+// عرض لوحة الألوان
+function showProfileColors() {
+    const colors = [
+        '#0f172a', '#1e1b4b', '#2d1b69', '#4a044e', '#881337', '#1e293b',
+        '#064e3b', '#451a03', '#3b0764', '#831843', '#0c4a6e', '#14532d',
+        '#4d044e', '#701a75', '#9d174d', '#be123c', '#e11d48', '#f43f5e'
+    ];
+    
+    let html = `
+        <div id="profileColorPicker" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:100000;display:flex;align-items:center;justify-content:center;">
+            <div style="background:#1e293b;border-radius:20px;padding:25px;width:450px;text-align:center;border:2px solid #3b82f6;">
+                <h4 style="color:white;margin-bottom:20px;">🎨 اختر لون خلفية البروفايل</h4>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+                    ${colors.map(color => `
+                        <div onclick="document.getElementById('profileColorPicker')?.remove(); window.saveProfileColor('${color}')" 
+                             style="background:${color};height:55px;border-radius:12px;cursor:pointer;border:2px solid white;"></div>
+                    `).join('')}
+                    <div onclick="document.getElementById('profileColorPicker')?.remove(); window.saveProfileColor('')" 
+                         style="background:#334155;height:55px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;border:2px solid white;">
+                        🗑️ إلغاء
+                    </div>
+                </div>
+                <button onclick="document.getElementById('profileColorPicker')?.remove()" 
+                        style="background:#ef4444;border:none;padding:10px 25px;border-radius:10px;color:white;cursor:pointer;">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+// حفظ لون البروفايل
+window.saveProfileColor = function(color) {
+    myProfileColor = color;
+    localStorage.setItem('myProfileColor', color);
+    applyProfileColor();
+    
+    // حفظ في السيرفر
+    fetch('/api/save-profile-color', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ profileColor: color })
+    }).catch(() => {});
+};
+
+// تفعيل الزر
+setTimeout(() => {
+    const colorBtn = document.getElementById('featureProfileColorsBtn');
+    if (colorBtn) {
+        const newBtn = colorBtn.cloneNode(true);
+        colorBtn.parentNode.replaceChild(newBtn, colorBtn);
+        newBtn.addEventListener('click', showProfileColors);
+        console.log('✅ زر ألوان البروفايل تم تفعيله');
+    } else {
+        console.log('❌ زر featureProfileColorsBtn غير موجود');
+    }
+}, 1000);
+
+// تطبيق اللون المحفوظ
+setTimeout(applyProfileColor, 1500);
