@@ -2378,15 +2378,17 @@ header h1 {
 .frame-animated-7 { animation: frameGlow7 2s ease-in-out infinite; }
 .frame-animated-8 { animation: frameGlow8 2s ease-in-out infinite; }
 
-/* ========== منع إطار الإيموجي ========== */
-.message-content img[style*="width:30px"],
-.message-content img[style*="width:25px"],
-.private-content img[style*="width:30px"],
-.private-content img[style*="width:25px"] {
+/* ========== إزالة الإطار من الإيموجي المتحرك ========== */
+.message-content img[src*="allsmileys"],
+.message-content img[src*=".gif"],
+.private-content img[src*="allsmileys"],
+.private-content img[src*=".gif"] {
     border: none !important;
     outline: none !important;
     box-shadow: none !important;
     background: transparent !important;
     border-radius: 0 !important;
     padding: 0 !important;
+    margin: 0 2px !important;
+    vertical-align: middle !important;
 }
