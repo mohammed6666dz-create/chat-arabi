@@ -2283,3 +2283,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+/* ========== إصلاح الإيموجي ========== */
+.message-content p img,
+.private-content p img {
+    display: inline-block !important;
+    vertical-align: middle !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    width: 28px !important;
+    height: 28px !important;
+    max-width: 28px !important;
+    max-height: 28px !important;
+    object-fit: contain !important;
+}
+
+/* الإيموجي في حقل الكتابة */
+#messageInput img,
+#privateChatInput img {
+    display: inline-block !important;
+    vertical-align: middle !important;
+    width: 22px !important;
+    height: 22px !important;
+    margin: 0 2px !important;
+}
+
+/* إزالة أي إطار من أي صورة في الشات */
+.message img,
+.private-message img {
+    border: none !important;
+    outline: none !important;
+}
