@@ -2283,3 +2283,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+// ========== منع ظهور إطار الصورة على الإيموجي ==========
+setTimeout(() => {
+    // إزالة الإطار من أي صورة إيموجي في الرسائل
+    const removeEmojiFrames = () => {
+        document.querySelectorAll('.message-content img, .private-content img').forEach(img => {
+            // إذا كانت الصورة إيموجي (صغيرة الحجم)
+            if (img.style.width === '30px' || img.style.width === '25px' || img.getAttribute('style')?.includes('width:30px') || img.getAttribute('style')?.includes('width:25px')) {
+                img.style.border = 'none';
+                img.style.outline = 'none';
+                img.style.boxShadow = 'none';
+                img.style.backgroundColor = 'transparent';
+                // إزالة أي إطار من الصورة
+                img.style.borderRadius = '0';
+                img.style.padding = '0';
+            }
+        });
+    };
+    
+    // مراقبة إضافة رسائل جديدة
+    const observer = new MutationObserver(() => {
+        removeEmojiFrames();
+    });
+    
+    const chatWindow = document.getElementById('chatWindow');
+    if (chatWindow) {
+        observer.observe(chatWindow, { childList: true, subtree: true });
+    }
+    
+    removeEmojiFrames();
+    console.log('✅ تم تفعيل منع إطار الإيموجي');
+}, 1000);
