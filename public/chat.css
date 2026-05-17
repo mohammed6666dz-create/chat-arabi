@@ -2377,3 +2377,16 @@ header h1 {
 .frame-animated-6 { animation: frameGlow6 2s ease-in-out infinite; }
 .frame-animated-7 { animation: frameGlow7 2s ease-in-out infinite; }
 .frame-animated-8 { animation: frameGlow8 2s ease-in-out infinite; }
+
+/* ========== منع إطار الإيموجي ========== */
+.message-content img[style*="width:30px"],
+.message-content img[style*="width:25px"],
+.private-content img[style*="width:30px"],
+.private-content img[style*="width:25px"] {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+}
