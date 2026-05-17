@@ -2283,27 +2283,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-// ========== منع ظهور إطار الصورة على الإيموجي ==========
+// ========== إزالة الإطار من الإيموجي المتحرك فقط ==========
 setTimeout(() => {
-    // إزالة الإطار من أي صورة إيموجي في الرسائل
-    const removeEmojiFrames = () => {
-        document.querySelectorAll('.message-content img, .private-content img').forEach(img => {
-            // إذا كانت الصورة إيموجي (صغيرة الحجم)
-            if (img.style.width === '30px' || img.style.width === '25px' || img.getAttribute('style')?.includes('width:30px') || img.getAttribute('style')?.includes('width:25px')) {
+    // دالة لإزالة الإطار من الإيموجي
+    const removeBorderFromEmojis = () => {
+        // البحث عن جميع الإيموجي في الرسائل
+        const allImages = document.querySelectorAll('.message-content img, .private-content img');
+        
+        allImages.forEach(img => {
+            // التحقق إذا كانت الصورة إيموجي متحرك (تحقق من المصدر أو الحجم)
+            const isAnimatedEmoji = img.src && (
+                img.src.includes('allsmileys') ||  // إيموجي متحرك من المصدر
+                img.src.includes('gif') ||          // ملف gif
+                (img.style.width === '30px' && img.style.height === '30px') // صغير الحجم
+            );
+            
+            if (isAnimatedEmoji) {
+                // إزالة جميع الإطارات
                 img.style.border = 'none';
                 img.style.outline = 'none';
                 img.style.boxShadow = 'none';
-                img.style.backgroundColor = 'transparent';
-                // إزالة أي إطار من الصورة
                 img.style.borderRadius = '0';
                 img.style.padding = '0';
+                img.style.backgroundColor = 'transparent';
+                
+                // إزالة أي class إطار
+                img.classList.remove('frame-red', 'frame-blue', 'frame-green', 'frame-gold', 'frame-purple', 'frame-pink', 'frame-cyan', 'frame-white');
+                img.classList.remove('frame-animated-1', 'frame-animated-2', 'frame-animated-3', 'frame-animated-4', 'frame-animated-5', 'frame-animated-6', 'frame-animated-7', 'frame-animated-8');
             }
         });
     };
     
-    // مراقبة إضافة رسائل جديدة
+    // مراقبة الرسائل الجديدة
     const observer = new MutationObserver(() => {
-        removeEmojiFrames();
+        removeBorderFromEmojis();
     });
     
     const chatWindow = document.getElementById('chatWindow');
@@ -2311,6 +2324,8 @@ setTimeout(() => {
         observer.observe(chatWindow, { childList: true, subtree: true });
     }
     
-    removeEmojiFrames();
-    console.log('✅ تم تفعيل منع إطار الإيموجي');
+    // تنفيذ أول مرة
+    removeBorderFromEmojis();
+    
+    console.log('✅ تم تفعيل إزالة الإطار من الإيموجي');
 }, 1000);
