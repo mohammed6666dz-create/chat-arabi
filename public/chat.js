@@ -2245,3 +2245,41 @@ setTimeout(() => {
 
 // تطبيق اللون المحفوظ
 setTimeout(applyProfileColor, 1500);
+// ========== حل بديل للإيموجي ==========
+document.addEventListener('DOMContentLoaded', () => {
+    const emojiBtn = document.getElementById('emojiBtn');
+    const emojiPicker = document.getElementById('emojiPicker');
+    const messageInput = document.getElementById('messageInput');
+    
+    if (emojiBtn && emojiPicker) {
+        emojiBtn.onclick = (e) => {
+            e.preventDefault();
+            if (emojiPicker.style.display === 'none' || emojiPicker.classList.contains('hidden')) {
+                emojiPicker.style.display = 'block';
+                emojiPicker.classList.remove('hidden');
+            } else {
+                emojiPicker.style.display = 'none';
+                emojiPicker.classList.add('hidden');
+            }
+        };
+        
+        emojiPicker.querySelectorAll('.emoji-grid span, .animated-emojis img').forEach(el => {
+            el.style.cursor = 'pointer';
+            el.onclick = (e) => {
+                e.stopPropagation();
+                let emoji = '';
+                if (el.tagName === 'SPAN') {
+                    emoji = el.innerText;
+                } else if (el.tagName === 'IMG') {
+                    emoji = `<img src="${el.src}" style="width:25px; height:25px; vertical-align:middle;">`;
+                }
+                if (messageInput && emoji) {
+                    messageInput.value += emoji;
+                    messageInput.focus();
+                }
+                emojiPicker.style.display = 'none';
+                emojiPicker.classList.add('hidden');
+            };
+        });
+    }
+});
