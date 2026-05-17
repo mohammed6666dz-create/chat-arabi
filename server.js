@@ -139,7 +139,8 @@ async function initDatabase() {
     // إضافة الأعمدة الجديدة إذا لم تكن موجودة
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS name_bg TEXT DEFAULT ''`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_frame TEXT DEFAULT ''`);
-    console.log('✓ تم إضافة أعمدة name_bg و avatar_frame');
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_color TEXT DEFAULT ''`);
+    console.log('✓ تم إضافة أعمدة name_bg, avatar_frame, profile_color');
     
   } catch (err) {
     console.error('خطأ في تهيئة الجداول:', err);
@@ -347,6 +348,7 @@ app.get('/profile', verifyToken, async (req, res) => {
     private_bg: user.private_bg || '',
     name_bg: user.name_bg || '',
     avatar_frame: user.avatar_frame || '',
+    profile_color: user.profile_color || '',
     friends: user.friends,
     friend_requests: user.friend_requests || [],
     rank: user.rank || 'ضيف',
@@ -703,6 +705,26 @@ app.post('/api/save-avatar-frame', verifyToken, async (req, res) => {
 app.get('/api/get-users-frames', verifyToken, async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT username, avatar_frame FROM users WHERE avatar_frame IS NOT NULL AND avatar_frame != \'\'');
+        res.json(rows);
+    } catch(err) {
+        res.status(500).json([]);
+    }
+});
+
+// ========== مسارات ألوان البروفايل ==========
+app.post('/api/save-profile-color', verifyToken, async (req, res) => {
+    const { profileColor } = req.body;
+    try {
+        await pool.query('UPDATE users SET profile_color = $1 WHERE username = $2', [profileColor, req.user.username]);
+        res.json({ success: true });
+    } catch(err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/get-users-profile-colors', verifyToken, async (req, res) => {
+    try {
+        const { rows } = await pool.query('SELECT username, profile_color FROM users WHERE profile_color IS NOT NULL AND profile_color != \'\'');
         res.json(rows);
     } catch(err) {
         res.status(500).json([]);
