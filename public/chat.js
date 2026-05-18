@@ -2329,3 +2329,114 @@ setTimeout(() => {
     
     console.log('✅ تم تفعيل إزالة الإطار من الإيموجي');
 }, 1000);
+// ========== تطبيق الأوامر فوراً بدون إعادة تحميل الصفحة ==========
+
+// 1. استقبال أمر الكتم - يمنع كتابة الرسائل فوراً
+socket.on('mute-update', (data) => {
+    if (data.target === myUsername) {
+        window.isMuted = data.status;
+        if (data.status) {
+            alert("🔇 لقد تم كتمك من قبل الإدارة! لا يمكنك إرسال رسائل.");
+            // تعطيل حقل كتابة الرسالة فوراً
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.disabled = true;
+                messageInput.placeholder = "🔇 أنت مكتوم لا يمكنك الكتابة";
+            }
+            // تعطيل زر الإرسال
+            const sendBtn = document.querySelector('#messageForm button[type="submit"]');
+            if (sendBtn) sendBtn.disabled = true;
+        } else {
+            alert("🔊 تم فك الكتم عنك! يمكنك إرسال الرسائل مرة أخرى.");
+            // تفعيل حقل كتابة الرسالة فوراً
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.disabled = false;
+                messageInput.placeholder = "اكتب رسالتك هنا...";
+            }
+            // تفعيل زر الإرسال
+            const sendBtn = document.querySelector('#messageForm button[type="submit"]');
+            if (sendBtn) sendBtn.disabled = false;
+        }
+    }
+});
+
+// 2. استقبال أمر الحظر - يطرد من الموقع فوراً
+socket.on('execute-ban', (data) => {
+    if (data.target === myUsername) {
+        alert("🚫 لقد تم حظرك من الموقع! سيتم تسجيل الخروج فوراً.");
+        // مسح التوكن والتسجيل خروج
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
+        socket.disconnect();
+        // التوجيه إلى صفحة تسجيل الدخول
+        window.location.href = 'index.html';
+    }
+});
+
+// 3. استقبال أمر الطرد من الغرفة - يخرج من الغرفة فوراً
+socket.on('execute-kick', (data) => {
+    if (data.target === myUsername) {
+        alert(`🚪 لقد تم طردك من الغرفة ${data.room}! سيتم تحويلك إلى صفحة الغرف.`);
+        // التوجيه إلى صفحة الغرف
+        window.location.href = 'rooms.html';
+    }
+});
+
+// 4. التحقق من حالة الكتم عند بدء الدردشة الخاصة
+const originalEmitPrivate = socket.emit;
+socket.emit = function(event, ...args) {
+    if (event === 'private message' && window.isMuted) {
+        alert("🔇 لا يمكنك إرسال رسائل خاصة، أنت مكتوم!");
+        return;
+    }
+    return originalEmitPrivate.apply(this, [event, ...args]);
+};
+
+// 5. تحديث واجهة المستخدم عند استقبال تحديث الرتبة
+socket.on('rank updated', ({ username, rank }) => {
+    if (username === myUsername) {
+        myRole = rank;
+        console.log(`✅ تم تحديث رتبتك إلى: ${rank}`);
+    }
+});
+
+// 6. منع إرسال الرسائل من البداية إذا كان المستخدم مكتوماً
+setInterval(() => {
+    if (window.isMuted) {
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput && !messageInput.disabled) {
+            messageInput.disabled = true;
+            messageInput.placeholder = "🔇 أنت مكتوم لا يمكنك الكتابة";
+        }
+        const privateInput = document.getElementById('privateChatInput');
+        if (privateInput && !privateInput.disabled) {
+            privateInput.disabled = true;
+            privateInput.placeholder = "🔇 مكتوم لا يمكنك الإرسال";
+        }
+    } else {
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput && messageInput.disabled) {
+            messageInput.disabled = false;
+            messageInput.placeholder = "اكتب رسالتك هنا...";
+        }
+        const privateInput = document.getElementById('privateChatInput');
+        if (privateInput && privateInput.disabled) {
+            privateInput.disabled = false;
+            privateInput.placeholder = "اكتب رسالة...";
+        }
+    }
+}, 1000);
+
+// 7. إضافة ستايل للمكتوم
+const muteStyle = document.createElement('style');
+muteStyle.textContent = `
+    input:disabled, textarea:disabled {
+        background: #334155 !important;
+        color: #94a3b8 !important;
+        cursor: not-allowed !important;
+    }
+`;
+document.head.appendChild(muteStyle);
+
+console.log('✅ تم تفعيل نظام الأوامر الفورية');
