@@ -954,32 +954,32 @@ async function openUserProfile(username, role = 'guest', avatar = '') {
         }
     }
    
-    const adminBox = document.getElementById('adminActionsContainer');
-    if (adminBox) {
-        const superAdminRanks = ['superadmin', 'سوبر أدمن', 'Super Admin', 'سوبرادمن', 'صاحب الموقع', 'مالك'];
-        const isSuperAdmin = superAdminRanks.includes(myRole?.toLowerCase());
-        
-        console.log('رتبتي الحالية:', myRole, 'هل أنا سوبر أدمن؟', isSuperAdmin);
-        
-        if (isSuperAdmin && !isMe) {
-            adminBox.style.display = 'block';
-            adminBox.innerHTML = `
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 10px;">
-                    <button onclick="adminAction('kick', '${username}')" style="background: #e67e22; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🚪 طرد</button>
-                    <button onclick="adminAction('mute', '${username}')" style="background: #f1c40f; color: black; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🔇 كتم</button>
-                    <button onclick="adminAction('ban', '${username}')" style="background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🚫 حظر</button>
-                    <button onclick="adminAction('unmute', '${username}')" style="background: #2ecc71; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">✅ فك كتم</button>
-                    <button onclick="adminAction('unban', '${username}')" style="background: #3498db; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🔓 فك حظر</button>
-                    <button onclick="closeOtherUserProfile()" style="grid-column: span 3; background: #555; color: white; border: none; padding: 6px; margin-top: 2px; border-radius: 6px; cursor: pointer; font-size: 11px;">✖ إغلاق</button>
-                </div>
-                <div style="margin-top: 8px; padding: 5px; background: rgba(231, 76, 60, 0.2); border-radius: 6px; text-align: center; font-size: 11px; color: #f1c40f;">
-                    ⚡ أنت سوبر أدمن - يمكنك إدارة المستخدمين
-                </div>
-            `;
-        } else {
-            adminBox.style.display = 'none';
-        }
+  const adminBox = document.getElementById('adminActionsContainer');
+if (adminBox) {
+    // فقط MOHAMED يظهر له الزر
+    const isOwner = (myUsername === 'MOHAMED');
+    
+    console.log('اسم المستخدم الحالي:', myUsername, 'هل أنا المالك؟', isOwner);
+    
+    if (isOwner && !isMe) {
+        adminBox.style.display = 'block';
+        adminBox.innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 10px;">
+                <button onclick="adminAction('kick', '${username}')" style="background: #e67e22; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🚪 طرد</button>
+                <button onclick="adminAction('mute', '${username}')" style="background: #f1c40f; color: black; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🔇 كتم</button>
+                <button onclick="adminAction('ban', '${username}')" style="background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🚫 حظر</button>
+                <button onclick="adminAction('unmute', '${username}')" style="background: #2ecc71; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">✅ فك كتم</button>
+                <button onclick="adminAction('unban', '${username}')" style="background: #3498db; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;">🔓 فك حظر</button>
+                <button onclick="closeOtherUserProfile()" style="grid-column: span 3; background: #555; color: white; border: none; padding: 6px; margin-top: 2px; border-radius: 6px; cursor: pointer; font-size: 11px;">✖ إغلاق</button>
+            </div>
+            <div style="margin-top: 8px; padding: 5px; background: rgba(231, 76, 60, 0.2); border-radius: 6px; text-align: center; font-size: 11px; color: #f1c40f;">
+                ⚡ أنت المالك MOHAMED - يمكنك إدارة المستخدمين
+            </div>
+        `;
+    } else {
+        adminBox.style.display = 'none';
     }
+}
     currentPrivateChat = username;
 }
 
