@@ -88,7 +88,8 @@ async function initDatabase() {
         created_at TIMESTAMPTZ DEFAULT NOW(),
         last_room TEXT DEFAULT 'general',
         last_room_name TEXT DEFAULT 'الغرفة العامة',
-        last_seen TIMESTAMPTZ DEFAULT NOW()
+        last_seen TIMESTAMPTZ DEFAULT NOW(),
+        kicked_rooms JSONB DEFAULT '[]'::jsonb
       );
       CREATE TABLE IF NOT EXISTS private_messages (
         id SERIAL PRIMARY KEY,
@@ -140,7 +141,8 @@ async function initDatabase() {
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS name_bg TEXT DEFAULT ''`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_frame TEXT DEFAULT ''`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_color TEXT DEFAULT ''`);
-    console.log('✓ تم إضافة أعمدة name_bg, avatar_frame, profile_color');
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS kicked_rooms JSONB DEFAULT '[]'::jsonb`);
+    console.log('✓ تم إضافة أعمدة name_bg, avatar_frame, profile_color, kicked_rooms');
     
   } catch (err) {
     console.error('خطأ في تهيئة الجداول:', err);
@@ -206,6 +208,7 @@ async function getUser(username) {
       user.friends = user.friends || [];
       user.friend_requests = user.friend_requests || [];
       user.sent_requests = user.sent_requests || [];
+      user.kicked_rooms = user.kicked_rooms || [];
     }
     return user || null;
   } catch (err) {
@@ -352,7 +355,10 @@ app.get('/profile', verifyToken, async (req, res) => {
     friends: user.friends,
     friend_requests: user.friend_requests || [],
     rank: user.rank || 'ضيف',
-    unread_messages: unreadCount
+    unread_messages: unreadCount,
+    is_muted: user.is_muted || false,
+    is_banned: user.is_banned || false,
+    kicked_rooms: user.kicked_rooms || []
   });
 });
 
@@ -784,75 +790,160 @@ setInterval(() => {
   broadcastOfflineUsers();
 }, 30000);
 
-// ========== Socket.IO ==========
+// ========== Socket.IO مع أوامر الإدارة الكاملة ==========
 io.on('connection', socket => {
   let currentRoom = null;
   let username = null;
 
-  // أوامر المشرف
+  // ========== أوامر المشرف المتقدمة (للمالك MOHAMED فقط) ==========
   socket.on('admin command', async (data) => {
-    const { action, target, token } = data;
+    const { action, target, room, token } = data;
     try {
       const decoded = jwt.verify(token, secret);
-      const user = await getUser(decoded.username);
-      if (user && ['أدمن', 'صاحب الموقع', 'مالك'].includes(user.rank)) {
-        if (action === 'ban') {
+      const adminUser = await getUser(decoded.username);
+      
+      // التحقق من أن المنفذ هو المالك MOHAMED فقط
+      if (adminUser && adminUser.username === 'MOHAMED') {
+        
+        // 1. كتم المستخدم (يمنعه من إرسال الرسائل في العام والخاص)
+        if (action === 'mute') {
+          await pool.query('UPDATE users SET is_muted = true WHERE username = $1', [target]);
+          // إخطار المستخدم المكتم
+          for (const [id, s] of io.sockets.sockets) {
+            if (s.username === target) {
+              s.emit('mute-update', { target: target, status: true });
+              s.emit('system message', `🔇 تم كتمك من قبل الإدارة! لا يمكنك إرسال الرسائل.`);
+            }
+          }
+          io.emit('system message', `🔇 تم كتم العضو ${target}`);
+          console.log(`✅ تم كتم ${target}`);
+        }
+        
+        // 2. فك الكتم
+        else if (action === 'unmute') {
+          await pool.query('UPDATE users SET is_muted = false WHERE username = $1', [target]);
+          for (const [id, s] of io.sockets.sockets) {
+            if (s.username === target) {
+              s.emit('mute-update', { target: target, status: false });
+              s.emit('system message', `🔊 تم فك الكتم عنك! يمكنك إرسال الرسائل مرة أخرى.`);
+            }
+          }
+          io.emit('system message', `🔊 تم فك الكتم عن العضو ${target}`);
+          console.log(`✅ تم فك الكتم عن ${target}`);
+        }
+        
+        // 3. حظر المستخدم (يمنعه من دخول الموقع نهائياً)
+        else if (action === 'ban') {
           await pool.query('UPDATE users SET is_banned = true WHERE username = $1', [target]);
+          // إخطار المحظور وطرده من جميع الغرف
           for (const [id, s] of io.sockets.sockets) {
             if (s.username === target) {
               s.emit('execute-ban', { target: target });
-              s.disconnect();
+              s.emit('system message', `🚫 تم حظرك من الموقع! لا يمكنك الدخول مرة أخرى.`);
+              s.disconnect(true);
             }
           }
+          io.emit('system message', `🚫 تم حظر العضو ${target} من الموقع`);
+          console.log(`✅ تم حظر ${target}`);
         }
-        if (action === 'kick') {
-          for (const [id, s] of io.sockets.sockets) {
-            if (s.username === target) {
-              s.emit('execute-kick', { target: target });
-              s.disconnect();
-            }
-          }
-        }
-        if (action === 'unban') {
+        
+        // 4. فك الحظر
+        else if (action === 'unban') {
           await pool.query('UPDATE users SET is_banned = false WHERE username = $1', [target]);
-          io.emit('system message', `✅ تم فك الحظر عن ${target}`);
+          io.emit('system message', `✅ تم فك الحظر عن العضو ${target} يمكنه الدخول مرة أخرى`);
+          console.log(`✅ تم فك الحظر عن ${target}`);
         }
-        if (action === 'mute') {
-          await pool.query('UPDATE users SET is_muted = true WHERE username = $1', [target]);
+        
+        // 5. طرد من الغرفة (يمنعه من دخول نفس الغرفة فقط)
+        else if (action === 'kick') {
+          // إضافة الغرفة إلى قائمة الغرف المطرود منها
+          const user = await getUser(target);
+          let kickedRooms = user.kicked_rooms || [];
+          if (!kickedRooms.includes(room)) {
+            kickedRooms.push(room);
+            await pool.query('UPDATE users SET kicked_rooms = $1 WHERE username = $2', [JSON.stringify(kickedRooms), target]);
+          }
+          // طرده من الغرفة الحالية
+          for (const [id, s] of io.sockets.sockets) {
+            if (s.username === target && s.currentRoom === room) {
+              s.emit('execute-kick', { target: target, room: room });
+              s.emit('system message', `🚪 تم طردك من الغرفة ${room}`);
+              s.leave(room);
+              // إزالته من قائمة المستخدمين في الغرفة
+              if (roomUsers[room]) {
+                roomUsers[room] = roomUsers[room].filter(u => u.username !== target);
+                io.to(room).emit('update users', roomUsers[room]);
+              }
+              roomCounts[room]--;
+              s.currentRoom = null;
+            }
+          }
+          io.emit('system message', `🚪 تم طرد العضو ${target} من الغرفة ${room}`);
+          console.log(`✅ تم طرد ${target} من الغرفة ${room}`);
         }
-        if (action === 'unmute') {
-          await pool.query('UPDATE users SET is_muted = false WHERE username = $1', [target]);
+        
+        // 6. فك الطرد (يسمح له بدخول الغرفة مرة أخرى)
+        else if (action === 'unkick') {
+          const user = await getUser(target);
+          let kickedRooms = user.kicked_rooms || [];
+          kickedRooms = kickedRooms.filter(r => r !== room);
+          await pool.query('UPDATE users SET kicked_rooms = $1 WHERE username = $2', [JSON.stringify(kickedRooms), target]);
+          io.emit('system message', `✅ تم فك الطرد عن العضو ${target} من الغرفة ${room} يمكنه الدخول مرة أخرى`);
+          console.log(`✅ تم فك الطرد عن ${target} من الغرفة ${room}`);
         }
+        
+        // إرسال نتيجة الأمر
+        socket.emit('admin command result', { success: true, action: action, target: target, message: `تم تنفيذ الأمر ${action} على ${target}` });
+        
+      } else {
+        socket.emit('admin command result', { success: false, action: action, target: target, message: 'غير مصرح لك! فقط المالك MOHAMED يمكنه استخدام الأوامر' });
       }
     } catch (err) {
       console.error('Admin Error:', err);
+      socket.emit('admin command result', { success: false, message: 'خطأ في تنفيذ الأمر' });
     }
   });
 
-  // الانضمام للغرفة
+  // الانضمام للغرفة (مع التحقق من الطرد)
   socket.on('join', async (room, token) => {
     try {
       const decoded = jwt.verify(token, secret);
       username = decoded.username;
       socket.username = username;
+      socket.currentRoom = room;
       
-      if (currentRoom) {
-        socket.leave(currentRoom);
-        roomCounts[currentRoom]--;
-        roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
-        io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
-        io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
-      }
-      currentRoom = room;
-      socket.join(room);
-      roomCounts[room]++;
+      // التحقق من حظر المستخدم
       const user = await getUser(username);
       if (user && user.is_banned) {
         socket.emit('execute-ban', { target: user.username });
-        return socket.disconnect();
+        socket.emit('system message', '🚫 أنت محظور من الموقع! لا يمكنك الدخول.');
+        return socket.disconnect(true);
       }
+      
+      // التحقق من طرده من هذه الغرفة
+      const kickedRooms = user?.kicked_rooms || [];
+      if (kickedRooms.includes(room)) {
+        socket.emit('system message', `🚪 لا يمكنك دخول هذه الغرفة لأنك مطرود منها!`);
+        return socket.disconnect(true);
+      }
+      
+      if (currentRoom) {
+        socket.leave(currentRoom);
+        if (roomCounts[currentRoom]) roomCounts[currentRoom]--;
+        if (roomUsers[currentRoom]) {
+          roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
+          io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
+          io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
+        }
+      }
+      
+      currentRoom = room;
+      socket.join(room);
+      roomCounts[room] = (roomCounts[room] || 0) + 1;
+      
       const avatar = user?.avatar || 'https://via.placeholder.com/40';
       const userRank = user?.rank || 'ضيف';
+      if (!roomUsers[room]) roomUsers[room] = [];
       roomUsers[room].push({ username, avatar, rank: userRank });
       io.to(room).emit('update users', roomUsers[room]);
       io.to(room).emit('system message', `${username} انضم إلى الغرفة`);
@@ -864,6 +955,11 @@ io.on('connection', socket => {
       await pool.query('UPDATE users SET last_room = $1, last_room_name = $2, last_seen = NOW() WHERE username = $3', [room, roomName, username]);
       
       broadcastOfflineUsers();
+      
+      // إرسال حالة الكتم للمستخدم
+      if (user.is_muted) {
+        socket.emit('mute-update', { target: username, status: true });
+      }
       
       const NEW_USER_LIMIT = 5000;
       const OLD_USER_LIMIT = 5000;
@@ -877,6 +973,7 @@ io.on('connection', socket => {
       `, [room, limit]);
       const messagesToSend = messages.reverse();
       socket.emit('load messages', messagesToSend);
+      
     } catch (e) {
       console.log('خطأ في join:', e.message);
     }
@@ -903,15 +1000,18 @@ io.on('connection', socket => {
     }
   });
     
-  // إرسال رسالة
+  // إرسال رسالة (مع التحقق من الكتم)
   socket.on('message', async (msg, token) => {
     try {
       const decoded = jwt.verify(token, secret);
       const user = await getUser(decoded.username);
       if (!user) return;
-      if (user && user.is_muted) {
+      
+      // التحقق من الكتم
+      if (user.is_muted) {
         return socket.emit('system message', '🚫 عذراً، أنت مكتوم ولا يمكنك إرسال رسائل حالياً.');
       }
+      
       const avatar = user.avatar || 'https://via.placeholder.com/40';
       const role = user.rank || 'ضيف';
       
@@ -1141,9 +1241,18 @@ io.on('connection', socket => {
     }
   });
   
+  // إرسال رسالة خاصة مع التحقق من الكتم
   socket.on('private message', async ({ to, msg }) => {
     const from = socket.username;
     if (!from || !to || !msg?.trim() || from === to) return;
+    
+    // التحقق من أن المرسل ليس مكتوماً
+    const sender = await getUser(from);
+    if (sender && sender.is_muted) {
+      socket.emit('system message', '🔇 أنت مكتوم، لا يمكنك إرسال رسائل خاصة!');
+      return;
+    }
+    
     const trimmedMsg = msg.trim();
     try {
       const { rows } = await pool.query(`INSERT INTO private_messages (from_user, to_user, message, created_at) VALUES ($1, $2, $3, NOW()) RETURNING id, created_at`, [from, to, trimmedMsg]);
@@ -1183,15 +1292,18 @@ io.on('connection', socket => {
   
   socket.on('disconnect', async () => {
     if (currentRoom && username) {
-      roomCounts[currentRoom]--;
-      roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
-      io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
-      io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
+      if (roomCounts[currentRoom]) roomCounts[currentRoom]--;
+      if (roomUsers[currentRoom]) {
+        roomUsers[currentRoom] = roomUsers[currentRoom].filter(u => u.username !== username);
+        io.to(currentRoom).emit('update users', roomUsers[currentRoom]);
+        io.to(currentRoom).emit('system message', `${username} غادر الغرفة`);
+      }
       
       await pool.query('UPDATE users SET last_seen = NOW() WHERE username = $1', [username]);
       broadcastOfflineUsers();
     }
     socket.username = null;
+    socket.currentRoom = null;
   });
 });
 
