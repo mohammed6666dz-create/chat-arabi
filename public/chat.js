@@ -35,6 +35,22 @@ let receivedMessagesIds = new Set();
 
 socket.emit('join', room, token);
 
+// استقبل حالة الكتم والحظر عند الدخول
+socket.on('user status', (data) => {
+    if (data.isMuted) {
+        window.isMuted = true;
+        alert("🔇 أنت مكتوم حالياً لا يمكنك إرسال رسائل!");
+    }
+    if (data.isBanned) {
+        alert("🚫 أنت محظور من الموقع!");
+        setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+    }
+    if (data.kickedFromRooms && data.kickedFromRooms.includes(room)) {
+        alert(`🚪 لقد تم طردك من هذه الغرفة!`);
+        setTimeout(() => { window.location.href = 'rooms.html'; }, 2000);
+    }
+});
+
 socket.on('load messages', (messages) => {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.innerHTML = '';
@@ -789,6 +805,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// ========== أوامر الإدارة (للمالك MOHAMED فقط) ==========
 async function openUserProfile(username, role = 'guest', avatar = '') {
     const displayName = document.getElementById('otherUserDisplayName');
     const largeAvatar = document.getElementById('otherUserAvatarLarge');
@@ -864,6 +881,8 @@ async function openUserProfile(username, role = 'guest', avatar = '') {
             };
         }
     }
+    
+    // أزرار الإدارة - تظهر فقط لـ MOHAMED
     const adminBox = document.getElementById('adminActionsContainer');
     if (adminBox) {
         const isOwner = (myUsername === 'MOHAMED');
@@ -871,15 +890,16 @@ async function openUserProfile(username, role = 'guest', avatar = '') {
             adminBox.style.display = 'block';
             adminBox.innerHTML = `
                 <button id="showAdminCommandsBtn" style="background: #ef4444; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold;">
-                    أوامر المشرف
+                    ⚡ أوامر المشرف ⚡
                 </button>
                 <div id="adminCommandsPanel" style="display: none; margin-top: 10px;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <button onclick="adminAction('kick', '${username}')" style="background: #e67e22; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">طرد</button>
-                        <button onclick="adminAction('mute', '${username}')" style="background: #f1c40f; color: black; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">كتم</button>
-                        <button onclick="adminAction('ban', '${username}')" style="background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">حظر</button>
-                        <button onclick="adminAction('unmute', '${username}')" style="background: #2ecc71; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">فك كتم</button>
-                        <button onclick="adminAction('unban', '${username}')" style="background: #3498db; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">فك حظر</button>
+                        <button onclick="adminAction('kick', '${username}', '${room}')" style="background: #e67e22; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">🚪 طرد من الغرفة</button>
+                        <button onclick="adminAction('mute', '${username}', '${room}')" style="background: #f1c40f; color: black; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">🔇 كتم عام</button>
+                        <button onclick="adminAction('ban', '${username}', '${room}')" style="background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">🚫 حظر من الموقع</button>
+                        <button onclick="adminAction('unmute', '${username}', '${room}')" style="background: #2ecc71; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">✅ فك الكتم</button>
+                        <button onclick="adminAction('unban', '${username}', '${room}')" style="background: #3498db; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">🔓 فك الحظر</button>
+                        <button onclick="adminAction('unkick', '${username}', '${room}')" style="background: #9b59b6; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer;">🔄 فك الطرد</button>
                     </div>
                 </div>
             `;
@@ -904,26 +924,71 @@ async function openUserProfile(username, role = 'guest', avatar = '') {
     currentPrivateChat = username;
 }
 
-function adminAction(actionType, targetName) {
-    const actionsNames = { kick: 'طرد', mute: 'كتم', ban: 'حظر', unmute: 'فك الكتم', unban: 'فك الحظر' };
+// دالة تنفيذ أوامر الإدارة
+function adminAction(actionType, targetName, currentRoom) {
+    const actionsNames = { 
+        kick: 'طرد من الغرفة', 
+        mute: 'كتم عام', 
+        ban: 'حظر من الموقع', 
+        unmute: 'فك الكتم', 
+        unban: 'فك الحظر',
+        unkick: 'فك الطرد'
+    };
+    
     let message = '';
     switch(actionType) {
-        case 'kick': message = `هل أنت متأكد من طرد ${targetName} من الغرفة؟`; break;
-        case 'mute': message = `هل أنت متأكد من كتم ${targetName}؟`; break;
-        case 'ban': message = `هل أنت متأكد من حظر ${targetName}؟`; break;
-        case 'unmute': message = `هل أنت متأكد من فك الكتم عن ${targetName}؟`; break;
-        case 'unban': message = `هل أنت متأكد من فك الحظر عن ${targetName}؟`; break;
+        case 'kick': 
+            message = `⚠️ هل أنت متأكد من طرد ${targetName} من الغرفة الحالية؟`;
+            break;
+        case 'mute': 
+            message = `🔇 هل أنت متأكد من كتم ${targetName}؟ (لن يتمكن من إرسال رسائل في العام والخاص)`;
+            break;
+        case 'ban': 
+            message = `🚫 هل أنت متأكد من حظر ${targetName}؟ (لن يتمكن من دخول الموقع مرة أخرى)`;
+            break;
+        case 'unmute': 
+            message = `✅ هل أنت متأكد من فك الكتم عن ${targetName}؟`;
+            break;
+        case 'unban': 
+            message = `🔓 هل أنت متأكد من فك الحظر عن ${targetName}؟`;
+            break;
+        case 'unkick': 
+            message = `🔄 هل أنت متأكد من فك الطرد عن ${targetName}؟ (سيتمكن من دخول الغرفة مرة أخرى)`;
+            break;
     }
+    
     if (confirm(message)) {
         socket.emit('admin command', {
             action: actionType,
             target: targetName,
+            room: currentRoom,
             token: localStorage.getItem('token')
         });
         closeOtherUserProfile();
-        alert(`تم تنفيذ أمر ${actionsNames[actionType]} على ${targetName}`);
+        alert(`✅ تم تنفيذ أمر ${actionsNames[actionType]} على ${targetName}`);
     }
 }
+
+// استقبال نتائج الأوامر من السيرفر
+socket.on('admin command result', (data) => {
+    if (data.success) {
+        if (data.action === 'mute' && data.target === myUsername) {
+            window.isMuted = true;
+            alert("🔇 تم كتمك من قبل الإدارة! لا يمكنك إرسال رسائل.");
+        } else if (data.action === 'unmute' && data.target === myUsername) {
+            window.isMuted = false;
+            alert("🔊 تم فك الكتم عنك! يمكنك إرسال الرسائل مرة أخرى.");
+        } else if (data.action === 'ban' && data.target === myUsername) {
+            alert("🚫 تم حظرك من الموقع! سيتم تسجيل الخروج.");
+            setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+        } else if (data.action === 'kick' && data.target === myUsername) {
+            alert(`🚪 تم طردك من الغرفة!`);
+            setTimeout(() => { window.location.href = 'rooms.html'; }, 2000);
+        }
+    } else {
+        alert(`❌ فشل تنفيذ الأمر: ${data.message}`);
+    }
+});
 
 function startPrivateChat(targetName) {
     const name = targetName || document.getElementById('otherUserDisplayName')?.textContent;
@@ -954,6 +1019,8 @@ socket.on('role updated', ({ username, role }) => {
     if (username === myUsername) myRole = role;
 });
 
+// منع إرسال الرسائل الخاصة إذا كان المستخدم مكتوماً
+const originalEmitPrivate = socket.emit;
 socket.on('private message', ({ id, from, to, msg, avatar, createdAt }) => {
     if (id && receivedMessagesIds.has(id)) return;
     if (id) receivedMessagesIds.add(id);
@@ -967,6 +1034,25 @@ socket.on('private message', ({ id, from, to, msg, avatar, createdAt }) => {
     }
 });
 
+// تعديل حدث إرسال الرسائل الخاصة لمنعها إذا كان مكتوماً
+const privateChatForm = document.getElementById('privateChatForm');
+if (privateChatForm) {
+    privateChatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (window.isMuted) {
+            alert("🔇 لا يمكنك إرسال رسائل خاصة، أنت مكتوم!");
+            return;
+        }
+        const input = document.getElementById('privateChatInput');
+        const msg = input.value.trim();
+        if (msg && currentPrivateChat) {
+            socket.emit('private message', { to: currentPrivateChat, msg });
+            appendPrivateMessage(myUsername, msg, myAvatar, true);
+            input.value = '';
+        }
+    });
+}
+
 socket.on('previous private messages', ({ withUser, messages }) => {
     if (currentPrivateChat !== withUser) return;
     const chat = document.getElementById('privateChatMessages');
@@ -978,17 +1064,6 @@ socket.on('previous private messages', ({ withUser, messages }) => {
             appendPrivateMessage(isMe ? myUsername : m.from, m.msg, isMe ? myAvatar : (m.avatar || 'https://via.placeholder.com/30'), isMe);
         });
         chat.scrollTop = chat.scrollHeight;
-    }
-});
-
-document.getElementById('privateChatForm')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const input = document.getElementById('privateChatInput');
-    const msg = input.value.trim();
-    if (msg && currentPrivateChat) {
-        socket.emit('private message', { to: currentPrivateChat, msg });
-        appendPrivateMessage(myUsername, msg, myAvatar, true);
-        input.value = '';
     }
 });
 
@@ -1213,8 +1288,8 @@ window.isMuted = false;
 socket.on('mute-update', (data) => {
     if (data.target === myUsername) {
         window.isMuted = data.status;
-        if (data.status) alert("تم كتمك من قبل الإدارة.");
-        else alert("تم فك الكتم عنك.");
+        if (data.status) alert("🔇 تم كتمك من قبل الإدارة! لا يمكنك إرسال رسائل.");
+        else alert("🔊 تم فك الكتم عنك! يمكنك إرسال الرسائل مرة أخرى.");
     }
 });
 
@@ -1259,24 +1334,6 @@ socket.on('private conversations list', (conversations) => {
 });
 
 let savedConversations = [];
-socket.on('private message', ({ from, to, msg, avatar }) => {
-    if (from === myUsername) return;
-    let existing = savedConversations.find(c => c.username === from);
-    if (existing) {
-        existing.last_message = msg.substring(0, 40);
-        existing.avatar = avatar;
-    } else {
-        savedConversations.unshift({ username: from, avatar: avatar, last_message: msg.substring(0, 40) });
-    }
-    savedConversations = savedConversations.slice(0, 20);
-    if (currentPrivateChat === from || currentPrivateChat === to) {
-        const isMe = from === myUsername;
-        appendPrivateMessage(isMe ? myUsername : from, msg, isMe ? myAvatar : (avatar || 'https://via.placeholder.com/30'), isMe);
-    } else {
-        totalUnreadMsgs++;
-        updateMessageBadge(totalUnreadMsgs);
-    }
-});
 
 function fixPrivateMessageButton() {
     const sendBtn = document.getElementById('sendPrivateMsgBtn');
@@ -1313,10 +1370,10 @@ const observer = new MutationObserver(function(mutations) {
 const modalObserver = document.getElementById('otherUserProfileModal');
 if (modalObserver) observer.observe(modalObserver, { attributes: true });
 
-const originalOpenUserProfile = window.openUserProfile;
-if (originalOpenUserProfile) {
+const originalOpenUserProfileFunc = window.openUserProfile;
+if (originalOpenUserProfileFunc) {
     window.openUserProfile = async function(username, role, avatar) {
-        await originalOpenUserProfile(username, role, avatar);
+        await originalOpenUserProfileFunc(username, role, avatar);
         setTimeout(fixPrivateMessageButton, 150);
     };
 }
@@ -1384,9 +1441,9 @@ if (publishNewsBtn) publishNewsBtn.addEventListener('click', publishNews);
 
 socket.on('news-updated', () => loadNews());
 
-const originalLoadMyProfile = loadMyProfile;
+const originalLoadMyProfileFunc = loadMyProfile;
 loadMyProfile = async function() {
-    await originalLoadMyProfile();
+    await originalLoadMyProfileFunc();
     showNewsSection();
     if (typeof loadNews === 'function') loadNews();
 };
@@ -1398,8 +1455,8 @@ const newsContentInput = document.getElementById('newsContent');
 if (newsTitleInput) newsTitleInput.addEventListener('keydown', (e) => { if (e.code === 'Space') e.stopPropagation(); });
 if (newsContentInput) newsContentInput.addEventListener('keydown', (e) => { if (e.code === 'Space') e.stopPropagation(); });
 
-const privateChatInput = document.getElementById('privateChatInput');
-if (privateChatInput) privateChatInput.addEventListener('keydown', (e) => { if (e.code === 'Space') e.stopPropagation(); });
+const privateChatInputField = document.getElementById('privateChatInput');
+if (privateChatInputField) privateChatInputField.addEventListener('keydown', (e) => { if (e.code === 'Space') e.stopPropagation(); });
 
 const fixAllSpaces = () => {
     ['messageInput', 'privateChatInput', 'newsTitle', 'newsContent'].forEach(id => {
@@ -1409,219 +1466,4 @@ const fixAllSpaces = () => {
 };
 setTimeout(fixAllSpaces, 1000);
 
-const processedMessages = new Set();
-socket.on('private message', (data) => {
-    const messageKey = `${data.id || data.createdAt}_${data.from}_${data.to}_${data.msg.substring(0, 20)}`;
-    if (processedMessages.has(messageKey)) return;
-    processedMessages.add(messageKey);
-    if (processedMessages.size > 100) {
-        const iterator = processedMessages.values();
-        for (let i = 0; i < 50; i++) processedMessages.delete(iterator.next().value);
-    }
-    if (data.from === myUsername) return;
-    if (currentPrivateChat === data.from || currentPrivateChat === data.to) {
-        const isMe = data.from === myUsername;
-        appendPrivateMessage(isMe ? myUsername : data.from, data.msg, isMe ? myAvatar : (data.avatar || 'https://via.placeholder.com/30'), isMe);
-    } else {
-        totalUnreadMsgs++;
-        updateMessageBadge(totalUnreadMsgs);
-    }
-});
-
-const originalGetUserBadge = window.getUserBadge;
-window.getUserBadge = function(username, role = 'guest') {
-    const lowerUsername = username.toLowerCase();
-    if (lowerUsername === 'nour' || lowerUsername === 'mohamed') return '<span class="rank-icon">👑</span>';
-    if (lowerUsername === 'mira') return '<span class="rank-icon">🌹</span>';
-    switch (role.toLowerCase()) {
-        case 'superadmin': return '<span class="rank-icon">⚡</span>';
-        case 'admin': return '<span class="rank-icon">🛡️</span>';
-        case 'premium': return '<span class="rank-icon">💎</span>';
-        case 'vip': return '<span class="rank-icon">⭐</span>';
-        case 'بريميوم': return '<span class="rank-icon">💎</span>';
-        default: return '';
-    }
-};
-
-let myNameBg = localStorage.getItem('myNameBg') || '';
-
-function applyAllUsersNameBackground() {
-    const currentUsername = myUsername;
-    if (!currentUsername) return;
-    document.querySelectorAll('.message').forEach(msg => {
-        const usernameEl = msg.querySelector('.message-content strong');
-        if (!usernameEl) return;
-        const username = usernameEl.innerText;
-        let bgColor = '';
-        if (username === currentUsername) bgColor = myNameBg;
-        else bgColor = localStorage.getItem(`nameBg_${username}`);
-        if (bgColor && bgColor !== 'transparent' && bgColor !== '') {
-            usernameEl.style.backgroundColor = bgColor;
-            usernameEl.style.padding = '4px 12px';
-            usernameEl.style.borderRadius = '20px';
-            usernameEl.style.display = 'inline-block';
-        } else {
-            usernameEl.style.backgroundColor = '';
-            usernameEl.style.padding = '';
-            usernameEl.style.borderRadius = '';
-        }
-    });
-}
-
-window.setMyNameBgColor = function(color) {
-    const currentUsername = myUsername;
-    if (!currentUsername) return;
-    if (color === 'transparent') {
-        myNameBg = '';
-        localStorage.removeItem('myNameBg');
-        localStorage.removeItem(`nameBg_${currentUsername}`);
-        fetch('/api/save-name-bg', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ nameBg: '' }) }).catch(() => {});
-    } else {
-        myNameBg = color;
-        localStorage.setItem('myNameBg', color);
-        localStorage.setItem(`nameBg_${currentUsername}`, color);
-        fetch('/api/save-name-bg', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ nameBg: color }) }).catch(() => {});
-    }
-    applyAllUsersNameBackground();
-};
-
-async function loadAllUsersBackgrounds() {
-    try {
-        const res = await fetch('/api/get-users-name-bg', { headers: { 'Authorization': 'Bearer ' + token } });
-        if (res.ok) {
-            const users = await res.json();
-            users.forEach(user => { if (user.name_bg && user.name_bg !== '') localStorage.setItem(`nameBg_${user.username}`, user.name_bg); });
-            applyAllUsersNameBackground();
-        }
-    } catch(e) { console.error(e); }
-}
-
-setTimeout(() => { loadAllUsersBackgrounds(); applyAllUsersNameBackground(); }, 1500);
-
-const bgObserver = new MutationObserver(() => applyAllUsersNameBackground());
-setTimeout(() => { const chatWin = document.getElementById('chatWindow'); if (chatWin) bgObserver.observe(chatWin, { childList: true, subtree: true }); }, 2000);
-
-function addFeaturesButtons() {
-    const featuresPane = document.getElementById('tab-features');
-    if (featuresPane) {
-        featuresPane.innerHTML = `
-            <div class="features-list">
-                <button class="feature-btn" id="featureNameBgBtn"><i class="fas fa-palette"></i> خلفية الاسم</button>
-                <button class="feature-btn" id="featureAnimatedAvatarBtn"><i class="fas fa-film"></i> صورة شخصية متحركة</button>
-                <button class="feature-btn" id="featureNameGlowBtn"><i class="fas fa-magic"></i> توهج خلفية الاسم</button>
-                <button class="feature-btn" id="featureProfileColorsBtn"><i class="fas fa-fill-drip"></i> ألوان البروفايل</button>
-                <button class="feature-btn" id="featureAvatarBorderBtn"><i class="fas fa-border-all"></i> إطار الصورة</button>
-            </div>
-        `;
-        featuresPane.classList.remove('hidden');
-        featuresPane.classList.add('active');
-    }
-}
-
-setTimeout(addFeaturesButtons, 500);
-
-let mySelectedFrame = localStorage.getItem('mySelectedFrame') || '';
-
-function applyAllFrames() {
-    const currentUsername = myUsername;
-    document.querySelectorAll('.message img, #avatar, #myProfileAvatar, .user-item-simple img, .private-message img, .my-private-message img').forEach(img => {
-        img.classList.remove('frame-red', 'frame-blue', 'frame-green', 'frame-gold', 'frame-purple', 'frame-pink', 'frame-cyan', 'frame-white');
-        img.classList.remove('frame-animated-1', 'frame-animated-2', 'frame-animated-3', 'frame-animated-4', 'frame-animated-5', 'frame-animated-6', 'frame-animated-7', 'frame-animated-8');
-        let username = '';
-        const parent = img.closest('.message, .user-item-simple, .private-message, .my-private-message');
-        if (parent) {
-            const nameEl = parent.querySelector('strong, .user-name-simple');
-            if (nameEl) username = nameEl.innerText.trim();
-        }
-        if (username === currentUsername && mySelectedFrame) img.classList.add(mySelectedFrame);
-        else if (username) {
-            const userFrame = localStorage.getItem(`frame_${username}`);
-            if (userFrame && userFrame !== '') img.classList.add(userFrame);
-        }
-    });
-}
-
-function showFramePicker() {
-    const frames = [
-        { name: 'إطار أحمر', class: 'frame-red', color: '#ef4444' },
-        { name: 'إطار أزرق', class: 'frame-blue', color: '#3b82f6' },
-        { name: 'إطار أخضر', class: 'frame-green', color: '#10b981' },
-        { name: 'إطار ذهبي', class: 'frame-gold', color: '#fbbf24' },
-        { name: 'إطار بنفسجي', class: 'frame-purple', color: '#8b5cf6' },
-        { name: 'إطار زهري', class: 'frame-pink', color: '#ec4899' },
-        { name: 'إطار سماوي', class: 'frame-cyan', color: '#06b6d4' },
-        { name: 'إطار أبيض', class: 'frame-white', color: '#ffffff' }
-    ];
-    let html = `<div id="framePickerOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:100000;display:flex;align-items:center;justify-content:center;overflow-y:auto;">
-        <div style="background:#1e293b;border-radius:20px;padding:25px;width:400px;text-align:center;">
-            <h4 style="color:white;margin-bottom:20px;">اختر إطار صورتك</h4>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px;">
-                ${frames.map(frame => `<div onclick="document.getElementById('framePickerOverlay')?.remove(); window.setMyAvatarFrame('${frame.class}')" style="background:#0f172a;padding:10px;border-radius:10px;cursor:pointer;text-align:center;"><div style="width:40px;height:40px;border-radius:50%;background:${frame.color};margin:0 auto 8px auto;"></div><span style="color:white;">${frame.name}</span></div>`).join('')}
-                <div onclick="document.getElementById('framePickerOverlay')?.remove(); window.setMyAvatarFrame('')" style="background:#ef4444;padding:10px;border-radius:10px;cursor:pointer;text-align:center;grid-column:span 2;"><span style="color:white;">ازالة الإطار</span></div>
-            </div>
-            <button onclick="document.getElementById('framePickerOverlay')?.remove()" style="background:#ef4444;border:none;padding:8px 20px;border-radius:8px;color:white;cursor:pointer;">اغلاق</button>
-        </div>
-    </div>`;
-    document.body.insertAdjacentHTML('beforeend', html);
-}
-
-window.setMyAvatarFrame = function(frameClass) {
-    mySelectedFrame = frameClass;
-    localStorage.setItem('mySelectedFrame', mySelectedFrame);
-    applyAllFrames();
-    fetch('/api/save-avatar-frame', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ frame: mySelectedFrame }) }).catch(() => {});
-};
-
-async function loadOtherUsersFrames() {
-    try {
-        const res = await fetch('/api/get-users-frames', { headers: { 'Authorization': 'Bearer ' + token } });
-        const users = await res.json();
-        users.forEach(user => { if (user.avatar_frame && user.avatar_frame !== '') localStorage.setItem(`frame_${user.username}`, user.avatar_frame); });
-        applyAllFrames();
-    } catch(e) { console.log(e); }
-}
-
-setTimeout(() => { const frameBtn = document.getElementById('featureAvatarBorderBtn'); if (frameBtn) frameBtn.addEventListener('click', showFramePicker); }, 1000);
-setTimeout(() => { loadOtherUsersFrames(); applyAllFrames(); }, 1500);
-
-const frameObserver = new MutationObserver(() => applyAllFrames());
-setTimeout(() => { const chatWin = document.getElementById('chatWindow'); if (chatWin) frameObserver.observe(chatWin, { childList: true, subtree: true }); }, 2000);
-
-let myProfileColor = localStorage.getItem('myProfileColor') || '';
-
-function applyProfileColor() {
-    const profilePanel = document.getElementById('myProfilePanel');
-    if (!profilePanel) return;
-    if (myProfileColor && myProfileColor !== '' && myProfileColor !== 'transparent') {
-        profilePanel.style.backgroundColor = myProfileColor;
-        profilePanel.style.backgroundImage = 'none';
-    } else {
-        profilePanel.style.backgroundColor = '';
-        profilePanel.style.backgroundImage = '';
-    }
-}
-
-function showProfileColors() {
-    const colors = ['#0f172a', '#1e1b4b', '#2d1b69', '#4a044e', '#881337', '#1e293b', '#064e3b', '#451a03', '#3b0764', '#831843'];
-    let html = `<div id="profileColorPicker" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:100000;display:flex;align-items:center;justify-content:center;">
-        <div style="background:#1e293b;border-radius:20px;padding:25px;width:400px;text-align:center;">
-            <h4 style="color:white;margin-bottom:20px;">اختر لون خلفية البروفايل</h4>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
-                ${colors.map(color => `<div onclick="document.getElementById('profileColorPicker')?.remove(); window.saveProfileColor('${color}')" style="background:${color};height:50px;border-radius:10px;cursor:pointer;"></div>`).join('')}
-                <div onclick="document.getElementById('profileColorPicker')?.remove(); window.saveProfileColor('')" style="background:#334155;height:50px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;">الغاء</div>
-            </div>
-            <button onclick="document.getElementById('profileColorPicker')?.remove()" style="background:#ef4444;border:none;padding:8px 20px;border-radius:8px;color:white;cursor:pointer;">اغلاق</button>
-        </div>
-    </div>`;
-    document.body.insertAdjacentHTML('beforeend', html);
-}
-
-window.saveProfileColor = function(color) {
-    myProfileColor = color;
-    localStorage.setItem('myProfileColor', color);
-    applyProfileColor();
-    fetch('/api/save-profile-color', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ profileColor: color }) }).catch(() => {});
-};
-
-setTimeout(() => { const colorBtn = document.getElementById('featureProfileColorsBtn'); if (colorBtn) colorBtn.addEventListener('click', showProfileColors); }, 1000);
-setTimeout(applyProfileColor, 1500);
+const processedMessagesSet = new Set();
