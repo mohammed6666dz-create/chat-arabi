@@ -1467,3 +1467,67 @@ const fixAllSpaces = () => {
 setTimeout(fixAllSpaces, 1000);
 
 const processedMessagesSet = new Set();
+// ========== تعديل عرض الرتب - إظهار أيقونات فقط بدلاً من النصوص ==========
+window.getUserBadge = function(username, role = 'guest') {
+    const lowerUsername = username.toLowerCase();
+    
+    // أصحاب الموقع - 👑 فقط
+    if (lowerUsername === 'nour' || lowerUsername === 'mohamed') {
+        return '<span class="rank-icon" style="font-size:14px;margin-left:4px;" title="صاحب الموقع">👑</span>';
+    }
+    if (lowerUsername === 'mira') {
+        return '<span class="rank-icon" style="font-size:14px;margin-left:4px;" title="نائبة المدير">🌹</span>';
+    }
+    
+    // باقي الرتب
+    switch (role.toLowerCase()) {
+        case 'superadmin': return '<span class="rank-icon" style="font-size:14px;margin-left:4px;" title="سوبر أدمن">⚡</span>';
+        case 'admin': return '<span class="rank-icon" style="font-size:14px;margin-left:4px;" title="أدمن">🛡️</span>';
+        case 'premium': return '<span class="rank-icon" style="font-size:14px;margin-left:4px;" title="بريميوم">💎</span>';
+        case 'بريميوم': return '<span class="rank-icon" style="font-size:14px;margin-left:4px;" title="بريميوم">💎</span>';
+        case 'vip': return '<span class="rank-icon" style="font-size:14px;margin-left:4px;" title="VIP">⭐</span>';
+        default: return '';
+    }
+};
+
+// تحديث جميع العناصر الموجودة في الصفحة
+function updateAllBadgesToIcons() {
+    // تحديث الرسائل
+    document.querySelectorAll('.message .username-line .badge').forEach(badge => {
+        const msgDiv = badge.closest('.message');
+        if (msgDiv) {
+            const username = msgDiv.querySelector('.message-content strong')?.innerText || '';
+            const img = msgDiv.querySelector('img');
+            let role = 'guest';
+            if (img && img.getAttribute('onclick')) {
+                const match = img.getAttribute('onclick').match(/openUserProfile\('[^']+', '([^']+)'/);
+                if (match) role = match[1];
+            }
+            const newBadge = window.getUserBadge(username, role);
+            if (newBadge) badge.outerHTML = newBadge;
+            else badge.style.display = 'none';
+        }
+    });
+    
+    // تحديث قائمة المتصلين
+    document.querySelectorAll('#usersList .badge, #offlineUsersList .badge').forEach(badge => {
+        const userDiv = badge.closest('.user-item-simple');
+        if (userDiv) {
+            const username = userDiv.querySelector('div div:first-child')?.innerText || '';
+            const newBadge = window.getUserBadge(username, 'guest');
+            if (newBadge) badge.outerHTML = newBadge;
+            else badge.style.display = 'none';
+        }
+    });
+}
+
+// تشغيل التحديث بعد تحميل الصفحة وبعد كل تحديث للقائمة
+setTimeout(updateAllBadgesToIcons, 500);
+setInterval(updateAllBadgesToIcons, 2000);
+
+// مراقبة إضافة رسائل جديدة
+const chatWindow = document.getElementById('chatWindow');
+if (chatWindow) {
+    const observer = new MutationObserver(() => updateAllBadgesToIcons());
+    observer.observe(chatWindow, { childList: true, subtree: true });
+}
