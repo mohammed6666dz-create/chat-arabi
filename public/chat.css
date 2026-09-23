@@ -7,18 +7,22 @@
   padding: 0;
 }
 
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, sans-serif;
   background: #0b141a;
   direction: rtl;
-  height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  color: white;
 }
 
 /* ============================================
-   HEADER (شريط علوي مثل واتساب)
+   HEADER
 ============================================ */
 header {
   background: #075e54;
@@ -48,12 +52,10 @@ header h1 {
 
 .header-icons {
   display: flex;
-  gap: 6px;
-  position: relative;
+  gap: 4px;
   align-items: center;
 }
 
-/* أزرار الهيدر (دائرية) */
 .icon-btn {
   background: transparent;
   color: white;
@@ -68,22 +70,17 @@ header h1 {
   align-items: center;
   justify-content: center;
   position: relative;
+  flex-shrink: 0;
 }
 
 .icon-btn:hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
-.icon-btn .apps-text,
-.icon-btn .level-text {
-  display: none;
-}
-
-/* Badge (نقطة الإشعارات) */
 .badge {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: -2px;
+  right: -2px;
   background: #ff3b30;
   color: white;
   border-radius: 50%;
@@ -96,7 +93,6 @@ header h1 {
   font-weight: bold;
 }
 
-/* صورة البروفايل */
 #profileBtn img {
   width: 38px;
   height: 38px;
@@ -112,7 +108,7 @@ header h1 {
 }
 
 /* ============================================
-   BACK TO ROOMS BUTTON (زر العودة إلى الغرف)
+   زر العودة إلى الغرف
 ============================================ */
 #backToRoomsBtn {
   display: inline-flex;
@@ -136,17 +132,11 @@ header h1 {
 
 #backToRoomsBtn i {
   font-size: 0.9rem;
-  color: #075e54;
 }
 
 #backToRoomsBtn:hover {
   background: #f0f0f0;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-#backToRoomsBtn:active {
-  transform: translateY(0);
 }
 
 /* ============================================
@@ -162,39 +152,44 @@ header h1 {
 }
 
 /* ============================================
-   CHAT WINDOW (منطقة الرسائل)
+   CHAT WINDOW
 ============================================ */
 #chatWindow {
   flex: 1;
-  padding: 20px 60px;
+  padding: 20px 40px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 4px;
   position: relative;
+  align-items: flex-start !important;
 }
 
-/* خلفية شفافة خفيفة فوق صورة الخلفية */
 #chatWindow::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(11, 20, 26, 0.35);
+  background: rgba(11, 20, 26, 0.4);
   z-index: -1;
   pointer-events: none;
 }
 
 /* ============================================
-   MESSAGES (فقاعات الرسائل)
+   MESSAGES (كلها على اليمين - موحدة)
 ============================================ */
 .message {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  max-width: 65%;
-  align-self: flex-start;
-  margin-bottom: 6px;
-  position: relative;
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 8px !important;
+  max-width: 65% !important;
+  align-self: flex-start !important;
+  flex-direction: row !important;
+  margin-bottom: 6px !important;
+}
+
+.my-message {
+  align-self: flex-start !important;
+  flex-direction: row !important;
 }
 
 .message img {
@@ -206,78 +201,68 @@ header h1 {
   cursor: pointer;
 }
 
-.message-content {
-  background: #ffffff;
-  color: #111b21;
-  padding: 8px 12px 6px 12px;
-  border-radius: 10px;
-  border-top-right-radius: 2px;
-  max-width: 100%;
+/* ============================================
+   فقاعات الرسائل - لون داكن أنيق
+============================================ */
+.message .message-content,
+.my-message .message-content {
+  background: linear-gradient(145deg, #1f3a3a, #1a2f2f) !important;
+  color: #e8f5f3 !important;
+  border: 1px solid rgba(0, 168, 132, 0.25) !important;
+  border-radius: 12px !important;
+  border-top-right-radius: 2px !important;
+  padding: 8px 14px !important;
+  max-width: 100% !important;
   font-size: 14px;
   line-height: 1.4;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
   position: relative;
   word-wrap: break-word;
 }
 
-/* سهم الفقاعة على اليمين */
-.message-content::before {
+.message .message-content::before,
+.my-message .message-content::before {
   content: '';
   position: absolute;
   top: 0;
-  right: -8px;
+  right: -8px !important;
+  left: auto !important;
   width: 0;
   height: 0;
   border-style: solid;
   border-width: 0 8px 8px 0;
-  border-color: transparent #ffffff transparent transparent;
+  border-color: transparent #1f3a3a transparent transparent !important;
 }
 
-/* اسم المستخدم */
-.message-content strong {
+.message .message-content strong,
+.my-message .message-content strong {
   display: block;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: #075e54;
-  margin-bottom: 2px;
+  color: #00d4a0 !important;
+  margin-bottom: 3px;
   cursor: pointer;
 }
 
-.message-content p {
+.message .message-content p,
+.my-message .message-content p {
   margin: 0;
   font-size: 14px;
+  color: #e8f5f3 !important;
   word-wrap: break-word;
 }
 
-/* رمز الرتبة (أيقونة فقط) */
+.message .message-content:hover,
+.my-message .message-content:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(0, 168, 132, 0.25) !important;
+  border-color: rgba(0, 168, 132, 0.5) !important;
+}
+
 .rank-icon {
   display: inline-block;
   font-size: 13px;
   margin-left: 4px;
-}
-
-/* رسالتي أنا (على اليسار - مثل واتساب) */
-.my-message {
-  align-self: flex-end;
-  flex-direction: row-reverse;
-}
-
-.my-message .message-content {
-  background: #d9fdd3;
-  border-top-right-radius: 10px;
-  border-top-left-radius: 2px;
-  color: #111b21;
-}
-
-.my-message .message-content::before {
-  right: auto;
-  left: -8px;
-  border-width: 0 0 8px 8px;
-  border-color: transparent transparent transparent #d9fdd3;
-}
-
-.my-message .message-content strong {
-  color: #075e54;
 }
 
 /* ============================================
@@ -285,67 +270,105 @@ header h1 {
 ============================================ */
 .system-message {
   align-self: center;
-  background: rgba(255, 255, 255, 0.9);
-  color: #54656f;
-  padding: 5px 12px;
-  border-radius: 8px;
+  background: rgba(0, 168, 132, 0.9);
+  color: white;
+  padding: 5px 14px;
+  border-radius: 12px;
   font-size: 12px;
   margin: 8px auto;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   max-width: 80%;
   text-align: center;
+  font-weight: 500;
 }
 
 /* ============================================
-   USERS PANEL (لوحة المتصلين على اليمين)
+   USERS PANEL (منظم - قسمين)
 ============================================ */
 #usersPanel {
   width: 300px;
-  background: #111b21;
-  border-right: 1px solid #2a3942;
-  overflow-y: auto;
+  height: 100%;
+  display: flex !important;
+  flex-direction: column !important;
+  background: #0a1f1c;
+  border-right: 1px solid #1a5e54;
+  overflow: hidden !important;
   flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
 }
 
+/* كل قسم */
+.users-section {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  min-height: 0;
+}
+
+/* قسم المتصلين - 55% */
+.online-section {
+  flex: 0 0 55% !important;
+  border-bottom: 2px solid #1a5e54 !important;
+}
+
+/* قسم غير المتصلين - 45% */
+.offline-section {
+  flex: 0 0 45% !important;
+  background: #08201c !important;
+  margin-top: 0 !important;
+  border-top: none !important;
+  padding-top: 0 !important;
+}
+
+/* رؤوس الأقسام */
 .users-header-simple {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 15px;
-  background: #202c33;
-  border-bottom: 1px solid #2a3942;
-  position: sticky;
-  top: 0;
-  z-index: 5;
+  padding: 10px 14px;
+  background: #0d4a42;
+  border-bottom: 1px solid #1a5e54;
+  flex-shrink: 0;
+  height: 44px;
+}
+
+.offline-section .users-header-simple {
+  background: #08201c;
 }
 
 .users-header-simple h3 {
   margin: 0;
-  font-size: 14px;
-  color: #e9edef;
+  font-size: 13px;
+  color: #b8f0e5;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 600;
+  gap: 6px;
+  font-weight: 700;
 }
 
 .users-header-simple h3 i {
-  color: #00a884;
+  color: #00d4a0;
+  font-size: 13px;
+}
+
+.offline-section .users-header-simple h3 {
+  color: #6b8f89;
+}
+
+.offline-section .users-header-simple h3 i {
+  color: #6b8f89;
 }
 
 .users-controls {
   display: flex;
-  gap: 5px;
+  gap: 4px;
 }
 
 .icon-btn-small {
   background: transparent;
   border: none;
   color: #8696a0;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 6px;
   cursor: pointer;
   display: flex;
@@ -355,95 +378,108 @@ header h1 {
 }
 
 .icon-btn-small:hover {
-  background: #2a3942;
+  background: rgba(255, 255, 255, 0.1);
   color: white;
 }
 
+/* قوائم المستخدمين */
 .users-list-simple {
-  padding: 8px;
-  flex: 1;
-  overflow-y: auto;
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 6px !important;
+  background: transparent !important;
+  min-height: 0 !important;
+}
+
+.users-list-simple::-webkit-scrollbar {
+  width: 5px;
+}
+
+.users-list-simple::-webkit-scrollbar-track {
+  background: #0a1f1c;
+}
+
+.users-list-simple::-webkit-scrollbar-thumb {
+  background: #1a5e54;
+  border-radius: 5px;
+}
+
+.users-list-simple::-webkit-scrollbar-thumb:hover {
+  background: #00d4a0;
 }
 
 /* عنصر المستخدم */
 .user-item-simple {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  margin-bottom: 4px;
-  cursor: pointer;
-  transition: background 0.2s;
-  border: 1px solid transparent;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 8px 10px !important;
+  margin-bottom: 4px !important;
+  background: #0f2a26 !important;
+  border-radius: 8px !important;
+  border: 1px solid transparent !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  min-height: 56px;
 }
 
 .user-item-simple:hover {
-  background: #202c33;
+  background: #1a3d37 !important;
+  border-color: #00d4a0 !important;
+  transform: translateX(-3px) !important;
 }
 
 .user-item-simple img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 2px solid #00d4a0 !important;
+  flex-shrink: 0 !important;
 }
 
-.user-info-simple {
-  flex: 1;
-  min-width: 0;
-}
-
-.user-name-simple {
-  font-weight: 600;
-  font-size: 14px;
-  color: #e9edef;
-  display: block;
+.user-item-simple > div > div:first-child {
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.user-rank-simple {
-  font-size: 0.7rem;
-  display: inline-block;
-  margin-top: 2px;
+.user-item-simple > div > div:nth-child(2) {
+  margin-top: 2px !important;
+  font-size: 11px;
 }
 
-/* ============================================
-   OFFLINE USERS
-============================================ */
-.offline-section {
-  border-top: 1px solid #2a3942;
-  background: #0b141a;
-}
-
-.offline-section .users-header-simple {
-  background: #0b141a;
-}
-
-.offline-section .users-header-simple h3 i {
-  color: #8696a0;
-}
-
+/* غير المتصلين */
 .offline-user {
-  opacity: 0.6;
+  background: #0a1f1c !important;
+  opacity: 0.85;
 }
 
-.offline-user .user-name-simple {
-  color: #8696a0;
+.offline-user:hover {
+  opacity: 1 !important;
+  background: #142e29 !important;
+}
+
+.offline-user img {
+  border-color: #64748b !important;
+  filter: grayscale(0.5) !important;
+}
+
+.offline-user > div > div:first-child {
+  color: #94a3b8 !important;
 }
 
 /* ============================================
-   MESSAGE FORM (شريط الكتابة في الأسفل)
+   MESSAGE FORM (شريط الكتابة)
 ============================================ */
 #messageForm {
   display: flex;
   padding: 8px 16px;
   background: #202c33;
   gap: 8px;
-  z-index: 10;
   align-items: center;
   flex-shrink: 0;
   border-top: 1px solid #2a3942;
@@ -497,7 +533,7 @@ header h1 {
 }
 
 /* ============================================
-   BADGES (رتب المستخدمين)
+   BADGES
 ============================================ */
 .badge {
   display: inline-block;
@@ -551,14 +587,12 @@ header h1 {
 .profile-header h3 {
   margin: 0;
   font-size: 16px;
-  font-weight: 500;
 }
 
 .close-panel {
   cursor: pointer;
   font-size: 24px;
   color: #ccc;
-  transition: color 0.2s;
   line-height: 1;
 }
 
@@ -566,7 +600,6 @@ header h1 {
   color: white;
 }
 
-/* Cover Photo */
 .profile-cover-section {
   position: relative;
   height: 150px;
@@ -608,7 +641,6 @@ header h1 {
   gap: 6px;
 }
 
-/* Avatar */
 .profile-main-content {
   padding: 0 20px;
   margin-top: -50px;
@@ -651,7 +683,6 @@ header h1 {
 .user-meta h4 {
   margin: 12px 0 4px;
   font-size: 1.4rem;
-  font-weight: 600;
 }
 
 .user-status {
@@ -660,7 +691,6 @@ header h1 {
   margin-bottom: 10px;
 }
 
-/* Upload Song Button */
 .upload-song-btn {
   background: linear-gradient(135deg, #8b5cf6, #6d28d9);
   border: none;
@@ -676,22 +706,14 @@ header h1 {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.3s;
-}
-
-.upload-song-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(139, 92, 246, 0.4);
 }
 
 .song-status {
   font-size: 11px;
   color: #10b981;
-  margin-top: 5px;
   text-align: center;
 }
 
-/* Tabs */
 .modern-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -728,7 +750,6 @@ header h1 {
   color: white;
 }
 
-/* Tab Content */
 .tab-content {
   padding: 20px;
 }
@@ -765,7 +786,6 @@ header h1 {
   font-size: 0.75rem;
 }
 
-/* Features */
 .features-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -797,7 +817,6 @@ header h1 {
 .feature-btn:hover {
   background: #334155;
   border-color: #00a884;
-  transform: translateY(-2px);
 }
 
 /* ============================================
@@ -845,6 +864,7 @@ header h1 {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  align-items: flex-start;
 }
 
 #privateChatForm {
@@ -864,7 +884,6 @@ header h1 {
   color: white;
   font-size: 13px;
   outline: none;
-  font-family: inherit;
 }
 
 #privateChatForm button {
@@ -878,7 +897,6 @@ header h1 {
   flex-shrink: 0;
 }
 
-/* Private Message Bubbles */
 .private-message,
 .my-private-message {
   display: flex !important;
@@ -886,15 +904,8 @@ header h1 {
   gap: 6px !important;
   max-width: 85% !important;
   margin-bottom: 6px !important;
-}
-
-.private-message {
   align-self: flex-start !important;
-}
-
-.my-private-message {
-  align-self: flex-end !important;
-  flex-direction: row-reverse !important;
+  flex-direction: row !important;
 }
 
 .private-message img,
@@ -903,7 +914,6 @@ header h1 {
   height: 28px !important;
   border-radius: 50% !important;
   object-fit: cover !important;
-  flex-shrink: 0 !important;
 }
 
 .private-content {
@@ -912,28 +922,16 @@ header h1 {
   font-size: 13px !important;
   line-height: 1.4 !important;
   max-width: calc(100% - 36px) !important;
-  word-wrap: break-word !important;
-}
-
-.private-message .private-content {
-  background: #202c33 !important;
-  color: #e9edef !important;
-}
-
-.my-private-message .private-content {
-  background: #005c4b !important;
-  color: #e9edef !important;
+  background: linear-gradient(145deg, #1f3a3a, #1a2f2f) !important;
+  color: #e8f5f3 !important;
+  border: 1px solid rgba(0, 168, 132, 0.25) !important;
 }
 
 .private-content strong {
   display: block !important;
   font-size: 11px !important;
-  color: #00a884 !important;
+  color: #00d4a0 !important;
   margin-bottom: 2px !important;
-}
-
-.my-private-message .private-content strong {
-  color: #8696a0 !important;
 }
 
 .private-content p {
@@ -980,16 +978,8 @@ header h1 {
   font-family: inherit;
 }
 
-.private-bg-picker button:hover {
-  background: #017561;
-}
-
 .private-bg-picker .reset-bg {
   background: #ef4444;
-}
-
-.private-bg-picker .reset-bg:hover {
-  background: #dc2626;
 }
 
 /* ============================================
@@ -1134,8 +1124,6 @@ header h1 {
 }
 
 .app-btn i {
-  width: 22px;
-  font-size: 1.1rem;
   color: #00a884;
 }
 
@@ -1150,7 +1138,6 @@ header h1 {
   display: block;
 }
 
-/* Posts */
 .post-input-area textarea {
   width: 100%;
   background: #202c33;
@@ -1238,7 +1225,6 @@ header h1 {
   color: #ef4444;
 }
 
-/* News */
 .news-list {
   max-height: 400px;
   overflow-y: auto;
@@ -1262,7 +1248,7 @@ header h1 {
 }
 
 /* ============================================
-   ROOMS LIST APP
+   ROOMS LIST
 ============================================ */
 .rooms-list-app {
   display: flex;
@@ -1324,12 +1310,8 @@ header h1 {
   font-family: inherit;
 }
 
-.room-join-btn:hover {
-  background: #017561;
-}
-
 /* ============================================
-   OTHER USER PROFILE MODAL
+   OTHER USER PROFILE
 ============================================ */
 .other-profile-modal {
   position: fixed;
@@ -1349,7 +1331,6 @@ header h1 {
   border-radius: 12px;
   overflow: hidden;
   color: white;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -1366,7 +1347,6 @@ header h1 {
   border: 4px solid #111b21;
   object-fit: cover;
   margin-top: -50px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
 .profile-header-info {
@@ -1382,7 +1362,6 @@ header h1 {
 .status-text {
   color: #8696a0;
   font-size: 0.85rem;
-  margin: 0;
 }
 
 .profile-actions {
@@ -1400,13 +1379,8 @@ header h1 {
   border-radius: 20px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
   font-size: 12px;
   font-family: inherit;
-}
-
-.action-btn:hover {
-  transform: translateY(-2px);
 }
 
 .msg-btn { background: #00a884; color: white; }
@@ -1445,7 +1419,7 @@ header h1 {
 }
 
 /* ============================================
-   SHOP & LEVEL PANELS
+   SHOP & LEVEL
 ============================================ */
 .shop-panel {
   position: fixed;
@@ -1509,11 +1483,6 @@ header h1 {
   font-size: 12px;
 }
 
-.buy-btn:hover {
-  background: #017561;
-}
-
-/* Level Panel */
 .level-panel {
   position: fixed;
   inset: 0;
@@ -1545,7 +1514,6 @@ header h1 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 50px rgba(251, 191, 36, 0.4);
 }
 
 .current-level {
@@ -1564,7 +1532,6 @@ header h1 {
 .progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #fbbf24, #f59e0b);
-  transition: width 0.8s ease;
 }
 
 /* ============================================
@@ -1629,7 +1596,6 @@ header h1 {
   object-fit: contain;
   cursor: pointer;
   transition: transform 0.2s;
-  border-radius: 4px;
 }
 
 .emoji-grid img:hover {
@@ -1638,10 +1604,6 @@ header h1 {
 
 .animated-emojis {
   grid-template-columns: repeat(5, 1fr);
-}
-
-.animated-emojis img {
-  height: 40px;
 }
 
 /* ============================================
@@ -1698,7 +1660,7 @@ header h1 {
 .frame-animated-7 { animation: frameGlow7 2s ease-in-out infinite; }
 .frame-animated-8 { animation: frameGlow8 2s ease-in-out infinite; }
 
-/* Remove frames from animated emojis */
+/* إزالة الإطار من الإيموجي */
 .message-content img[src*="allsmileys"],
 .message-content img[src*=".gif"],
 .private-content img[src*="allsmileys"],
@@ -1727,369 +1689,243 @@ header h1 {
 }
 
 /* ============================================
-   RESPONSIVE (للجوال)
+   📱 RESPONSIVE - للهاتف (768px وأقل)
 ============================================ */
 @media (max-width: 768px) {
+
   header {
     padding: 6px 10px;
-    height: 50px;
+    height: 52px;
   }
-  
+
   header h1 {
     font-size: 15px;
   }
-  
+
+  .header-left {
+    gap: 8px;
+  }
+
+  .header-icons {
+    gap: 2px;
+  }
+
   .icon-btn {
     width: 32px;
     height: 32px;
     font-size: 0.85rem;
   }
-  
+
   #profileBtn img {
     width: 34px;
     height: 34px;
   }
-  
-  #backToRoomsBtn {
-    padding: 6px 12px;
-    font-size: 0.75rem;
-    height: 32px;
-  }
-  
-  .header-icons {
-    gap: 2px;
-  }
-  
-  /* في الجوال نخفي بعض الأزرار لتوفير المساحة */
+
+  /* إخفاء الأزرار غير الضرورية في الجوال */
+  .header-icons .icon-btn:nth-child(3),
   .header-icons .icon-btn:nth-child(4),
   .header-icons .icon-btn:nth-child(5),
   .header-icons .icon-btn:nth-child(6) {
     display: none;
   }
-  
+
+  #backToRoomsBtn {
+    padding: 6px 10px;
+    font-size: 0.7rem;
+    height: 30px;
+  }
+
+  #backToRoomsBtn span {
+    display: none;
+  }
+
+  /* الشات الرئيسي - ترتيب عمودي */
   .chat-main {
     flex-direction: column;
   }
-  
+
   #chatWindow {
-    padding: 10px 15px;
+    padding: 12px 15px;
     order: 1;
     flex: 1;
+    min-height: 0;
   }
-  
+
   .message {
-    max-width: 85%;
+    max-width: 85% !important;
   }
-  
+
+  .message img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .message .message-content,
+  .my-message .message-content {
+    padding: 6px 10px !important;
+    font-size: 13px !important;
+  }
+
+  .message .message-content p,
+  .my-message .message-content p {
+    font-size: 13px !important;
+  }
+
+  .message .message-content strong,
+  .my-message .message-content strong {
+    font-size: 11px !important;
+  }
+
+  /* لوحة المستخدمين - الأسفل */
   #usersPanel {
     width: 100%;
-    max-height: 200px;
-    order: 2;
+    height: auto;
+    max-height: 220px;
+    flex-direction: column;
     border-right: none;
-    border-top: 1px solid #2a3942;
+    border-top: 1px solid #1a5e54;
+    order: 2;
   }
-  
+
+  .online-section {
+    flex: 0 0 auto;
+    max-height: 50%;
+  }
+
+  .offline-section {
+    flex: 1;
+    min-height: 0;
+  }
+
   .users-list-simple {
     display: flex;
     flex-direction: row;
     overflow-x: auto;
+    overflow-y: hidden;
     gap: 8px;
     padding: 8px;
   }
-  
+
   .user-item-simple {
     flex-direction: column;
     min-width: 70px;
     text-align: center;
     margin-bottom: 0;
+    min-height: auto;
+    padding: 6px;
   }
-  
+
   .user-item-simple img {
     width: 44px;
     height: 44px;
   }
-  
-  .user-name-simple {
-    font-size: 11px;
+
+  .user-item-simple > div > div:first-child {
+    font-size: 11px !important;
   }
-  
+
+  .user-item-simple > div > div:nth-child(2) {
+    font-size: 9px !important;
+  }
+
+  /* شريط الكتابة */
+  #messageForm {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  #messageInput {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  #messageForm button {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  /* البروفايل */
   #myProfilePanel {
     width: 95%;
+    max-height: 95vh;
   }
-  
+
   .profile-info-grid,
   .features-list {
     grid-template-columns: 1fr;
   }
-  
+
+  /* الشات الخاص */
   .private-chat-panel {
     width: calc(100vw - 20px);
+    height: 60vh;
     right: 10px;
     bottom: 10px;
-    height: 60vh;
   }
-   /* ============================================
-   ✅ إصلاح 1: كل الرسائل على اليمين (سواء رسائلي أو رسائل الآخرين)
-============================================ */
-#chatWindow {
-  align-items: flex-start !important;
-}
 
-.message {
-  align-self: flex-start !important;
-  flex-direction: row !important;
-}
+  /* اللوحات الأخرى */
+  .apps-panel,
+  .conversations-panel,
+  .friend-requests-panel,
+  .reports-panel {
+    width: calc(100vw - 20px);
+    right: 10px;
+    left: 10px;
+  }
 
-/* رسائلي أنا أيضاً على اليمين */
-.my-message {
-  align-self: flex-start !important;
-  flex-direction: row !important;
-}
+  .emoji-picker {
+    width: calc(100vw - 20px);
+    right: 10px;
+    bottom: 70px;
+  }
 
-/* ============================================
-   ✅ إصلاح 2: فقاعات داكنة جميلة بدل الأبيض
-============================================ */
-.message .message-content {
-  background: linear-gradient(145deg, #1f3a3a, #1a2f2f) !important;
-  color: #e8f5f3 !important;
-  border: 1px solid rgba(0, 168, 132, 0.25) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
-  padding: 8px 14px !important;
-}
-
-.message .message-content::before {
-  border-color: transparent #1f3a3a transparent transparent !important;
-  right: -8px !important;
-  left: auto !important;
-}
-
-.message .message-content strong {
-  color: #00d4a0 !important;
-  font-size: 12.5px !important;
-}
-
-.message .message-content p {
-  color: #e8f5f3 !important;
-  font-size: 14px !important;
-}
-
-/* رسائلي أنا أيضاً نفس اللون */
-.my-message .message-content {
-  background: linear-gradient(145deg, #1f3a3a, #1a2f2f) !important;
-  color: #e8f5f3 !important;
-  border: 1px solid rgba(0, 168, 132, 0.25) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
-}
-
-.my-message .message-content::before {
-  border-color: transparent #1f3a3a transparent transparent !important;
-  right: -8px !important;
-  left: auto !important;
-}
-
-.my-message .message-content strong {
-  color: #00d4a0 !important;
-}
-
-.my-message .message-content p {
-  color: #e8f5f3 !important;
-}
-
-/* تحسين فقاعة الرسالة عند المرور */
-.message .message-content:hover,
-.my-message .message-content:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(0, 168, 132, 0.25) !important;
-  border-color: rgba(0, 168, 132, 0.5) !important;
+  .emoji-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
 }
 
 /* ============================================
-   ✅ إصلاح 3: لوحة المتصلين منظمة بشكل واضح
+   📱 RESPONSIVE - للهاتف الصغير (400px وأقل)
 ============================================ */
-#usersPanel {
-  display: flex !important;
-  flex-direction: column !important;
-  height: 100% !important;
-  overflow: hidden !important;
-}
+@media (max-width: 400px) {
+  .icon-btn {
+    width: 30px;
+    height: 30px;
+  }
 
-/* قسم المتصلين - ثابت في الأعلى */
-.users-header-simple {
-  flex-shrink: 0 !important;
-  background: #0d4a42 !important;
-  padding: 10px 14px !important;
-  border-bottom: 1px solid #1a5e54 !important;
-}
+  #profileBtn img {
+    width: 30px;
+    height: 30px;
+  }
 
-.users-header-simple h3 {
-  color: #b8f0e5 !important;
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.5px !important;
-}
+  header h1 {
+    font-size: 13px;
+  }
 
-.users-header-simple h3 i {
-  color: #00d4a0 !important;
-}
+  .user-item-simple {
+    min-width: 60px;
+  }
 
-/* قائمة المتصلين - مرنة */
-.users-list-simple {
-  flex: 1 !important;
-  overflow-y: auto !important;
-  padding: 6px !important;
-  background: #0a1f1c !important;
-  min-height: 80px !important;
-}
-
-/* قسم غير المتصلين - أسفل القائمة */
-.offline-section {
-  flex-shrink: 0 !important;
-  max-height: 50% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  border-top: 2px solid #1a5e54 !important;
-  background: #08201c !important;
-}
-
-.offline-section .users-header-simple {
-  background: #08201c !important;
-  border-bottom: 1px solid #1a5e54 !important;
-}
-
-.offline-section .users-header-simple h3 {
-  color: #6b8f89 !important;
-}
-
-.offline-section .users-header-simple h3 i {
-  color: #6b8f89 !important;
-}
-
-/* قائمة غير المتصلين */
-#offlineUsersList {
-  flex: 1 !important;
-  overflow-y: auto !important;
-  padding: 6px !important;
-}
-
-/* عنصر المستخدم - منظم وواضح */
-.user-item-simple {
-  display: flex !important;
-  align-items: center !important;
-  gap: 10px !important;
-  padding: 8px 10px !important;
-  margin-bottom: 4px !important;
-  background: #0f2a26 !important;
-  border-radius: 8px !important;
-  border: 1px solid transparent !important;
-  cursor: pointer !important;
-  transition: all 0.2s !important;
-}
-
-.user-item-simple:hover {
-  background: #1a3d37 !important;
-  border-color: #00d4a0 !important;
-  transform: translateX(-3px) !important;
-}
-
-.user-item-simple img {
-  width: 38px !important;
-  height: 38px !important;
-  border-radius: 50% !important;
-  object-fit: cover !important;
-  border: 2px solid #00d4a0 !important;
-  flex-shrink: 0 !important;
-}
-
-.user-item-simple > div > div:first-child {
-  font-weight: 600 !important;
-  color: #ffffff !important;
-  font-size: 13px !important;
-}
-
-.user-item-simple > div > div:nth-child(2) {
-  margin-top: 2px !important;
-}
-
-/* ألوان المشرفين (لم تكون باهتة) */
-.user-item-simple .badge.owner { background: #ef4444 !important; color: #fff !important; }
-.user-item-simple .badge.superadmin { background: #8b5cf6 !important; color: #fff !important; }
-.user-item-simple .badge.admin { background: #3b82f6 !important; color: #fff !important; }
-.user-item-simple .badge.premium { background: #10b981 !important; color: #fff !important; }
-.user-item-simple .badge.vip { background: #f59e0b !important; color: #000 !important; }
-.user-item-simple .badge.guest { background: #475569 !important; color: #cbd5e1 !important; }
-
-/* عنصر غير المتصل - مظهر مميز */
-.offline-user {
-  opacity: 0.75 !important;
-  background: #0a1f1c !important;
-}
-
-.offline-user:hover {
-  opacity: 1 !important;
-}
-
-.offline-user img {
-  border-color: #64748b !important;
-  filter: grayscale(0.4) !important;
-}
-
-.offline-user > div > div:first-child {
-  color: #94a3b8 !important;
-}
-
-/* شريط تمرير أنيق */
-.users-list-simple::-webkit-scrollbar,
-#offlineUsersList::-webkit-scrollbar {
-  width: 5px !important;
-}
-
-.users-list-simple::-webkit-scrollbar-thumb,
-#offlineUsersList::-webkit-scrollbar-thumb {
-  background: #1a5e54 !important;
-  border-radius: 5px !important;
-}
-
-.users-list-simple::-webkit-scrollbar-thumb:hover,
-#offlineUsersList::-webkit-scrollbar-thumb:hover {
-  background: #00d4a0 !important;
+  .user-item-simple img {
+    width: 36px;
+    height: 36px;
+  }
 }
 
 /* ============================================
-   ✅ إصلاح إضافي: فقاعات الرسائل الخاصة أيضاً
+   💻 RESPONSIVE - للشاشات الكبيرة (1200px+)
 ============================================ */
-.private-message,
-.my-private-message {
-  align-self: flex-start !important;
-  flex-direction: row !important;
-}
+@media (min-width: 1200px) {
+  #usersPanel {
+    width: 340px;
+  }
 
-.private-message .private-content,
-.my-private-message .private-content {
-  background: linear-gradient(145deg, #1f3a3a, #1a2f2f) !important;
-  color: #e8f5f3 !important;
-  border: 1px solid rgba(0, 168, 132, 0.25) !important;
-  border-radius: 12px !important;
-}
+  #chatWindow {
+    padding: 25px 60px;
+  }
 
-.private-content strong {
-  color: #00d4a0 !important;
-}
-
-.private-content p {
-  color: #e8f5f3 !important;
-}
-
-/* ============================================
-   ✅ إصلاح رابع: أزرار الهيدر تبان أحسن
-============================================ */
-.header-icons .icon-btn {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-radius: 50% !important;
-}
-
-.header-icons .icon-btn:hover {
-  background: rgba(0, 212, 160, 0.3) !important;
-}
+  .message {
+    max-width: 55% !important;
+  }
 }
