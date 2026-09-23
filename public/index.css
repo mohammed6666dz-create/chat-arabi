@@ -1,3 +1,4 @@
+/* ========== BASE STYLES (Your original CSS) ========== */
 body {
   background-image: url('https://i.pinimg.com/1200x/7c/96/18/7c961840986e5bd668567dc71fba0075.jpg');
   background-size: cover;
@@ -13,27 +14,27 @@ body {
 }
 
 .container {
-  /* التأثير الزجاجي الأساسي */
-  background: rgba(255, 255, 255, 0.05); 
-  backdrop-filter: blur(15px); /* تغبيش الخلفية خلف الكنتينر */
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
-  
-  padding: 40px;
+  padding: 0; /* Changed to 0 to allow the split design */
   border-radius: 20px;
   text-align: center;
-  width: 350px;
-  
-  /* حدود زجاجية خفيفة وتوهج */
+  width: 800px; /* Increased width for the split layout */
+  height: 550px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37),
               0 0 15px rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
 }
 
 h2 {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   font-weight: 300;
   letter-spacing: 2px;
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  font-size: 1.5rem;
 }
 
 input {
@@ -42,12 +43,11 @@ input {
   padding: 12px;
   border: none;
   border-radius: 10px;
-  /* مدخلات نصف شفافة */
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
   outline: none;
   transition: 0.3s;
-  box-sizing: border-box; /* لضمان عدم خروج المدخلات عن الحواف */
+  box-sizing: border-box;
 }
 
 input::placeholder {
@@ -65,7 +65,6 @@ button {
   padding: 12px;
   border: none;
   border-radius: 10px;
-  /* زر بتدرج لوني متوهج */
   background: linear-gradient(45deg, #ff00cc, #3333ff);
   color: white;
   font-weight: bold;
@@ -92,22 +91,306 @@ a {
 a:hover {
   color: #fff;
   text-shadow: 0 0 8px #fff;
-}.back-btn {
-    width: 100%;
-    margin-top: 18px;
-    padding: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.07);
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
+}
+
+.back-btn {
+  width: 100%;
+  margin-top: 18px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .back-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.45);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+/* ========== AUTH SLIDER STYLES (Matching the image) ========== */
+
+/* The main wrapper for the two panels */
+.auth-wrapper {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Shared styles for both panels */
+.auth-panel {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+  box-sizing: border-box;
+  transition: all 0.5s ease-in-out;
+}
+
+/* --- LEFT PANEL (Welcome/Info) --- */
+.left-panel {
+  background: linear-gradient(135deg, #8b5cf6, #d946ef);
+  color: white;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+  box-sizing: border-box;
+  transition: all 0.5s ease-in-out;
+}
+
+.left-panel .logo-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 40px;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.left-panel h1 {
+  font-size: 2rem;
+  margin: 0 0 10px;
+  font-weight: 700;
+}
+
+.left-panel p {
+  font-size: 0.9rem;
+  margin: 0 0 30px;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+/* The toggle buttons inside the left panel (LOGIN / SIGN UP) */
+.toggle-tabs {
+  display: flex;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 5px;
+  border-radius: 30px;
+  margin-top: 20px;
+}
+
+.toggle-tabs button {
+  padding: 10px 25px;
+  border: none;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  width: auto;
+  margin: 0;
+}
+
+.toggle-tabs button.active {
+  background: white;
+  color: #8b5cf6;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* --- RIGHT PANEL (Form) --- */
+.right-panel {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  color: white;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+  box-sizing: border-box;
+  transition: all 0.5s ease-in-out;
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.right-panel h2 {
+  margin-bottom: 20px;
+  font-weight: 300;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  font-size: 1.5rem;
+}
+
+/* Form styling */
+.right-panel form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 100%;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* Hide scrollbar for chrome/safari */
+.right-panel form::-webkit-scrollbar {
+  width: 4px;
+}
+.right-panel form::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.right-panel input,
+.right-panel select {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  outline: none;
+  transition: 0.3s;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.right-panel input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.right-panel input:focus,
+.right-panel select:focus {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Fix for select dropdown arrow */
+.right-panel select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: left 12px center;
+  background-size: 10px;
+  padding-left: 30px;
+}
+
+.right-panel select option {
+  background: #1e293b;
+  color: white;
+}
+
+/* Remember Me checkbox */
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 5px 0;
+  text-align: right;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  accent-color: #d946ef;
+}
+
+/* Main Action Button */
+.right-panel button[type="submit"] {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(45deg, #ff00cc, #3333ff);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.4s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  font-size: 1rem;
+}
+
+.right-panel button[type="submit"]:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 20px rgba(186, 1, 255, 0.6);
+  filter: brightness(1.1);
+}
+
+/* Avatar Upload for Sign Up */
+.avatar-upload-container {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.avatar-preview {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.avatar-upload-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  display: block;
+  margin-top: 5px;
+}
+
+/* Link styling (forgot password etc) */
+.right-panel a {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: 0.3s;
+  display: block;
+  margin-top: 10px;
+}
+
+.right-panel a:hover {
+  color: #fff;
+  text-shadow: 0 0 8px #fff;
+}
+
+/* ========== SLIDING LOGIC ========== */
+
+/* When the signup class is active, the left panel slides out to reveal the right panel */
+.auth-wrapper.show-signup .left-panel {
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.auth-wrapper.show-signup .right-panel {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
 }
