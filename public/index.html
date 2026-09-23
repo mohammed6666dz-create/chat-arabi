@@ -4,186 +4,108 @@
   <meta charset="UTF-8">
   <title>Moh Chat | دردشة عربية بدون تسجيل</title>
   <link rel="stylesheet" href="index.css">
-  <!-- الإضافة الوحيدة: لينك لملف favicon.ico.png -->
   <link rel="icon" href="/favicon.ico.png" type="image/png">
   <meta name="description" content="Moh Chat موقع دردشة عربية بدون تسجيل، تواصل مع مستخدمين عرب بسهولة وأمان. شات عربي مجاني وسريع.">
-  
-  <!-- Minimal structural CSS for the slider (No visual styling applied) -->
-  <style>
-    .auth-container {
-      position: relative;
-      width: 100%;
-      max-width: 500px; /* Adjust as needed for your design */
-      margin: 0 auto;
-      overflow: hidden;
-      /* Background and shadows will be handled by your CSS */
-    }
-
-    .auth-slider {
-      display: flex;
-      width: 200%; /* Two panels side by side */
-      transition: transform 0.5s ease-in-out;
-    }
-
-    .auth-form {
-      width: 50%;
-      box-sizing: border-box;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      /* No visual styling here */
-    }
-
-    /* RTL specific sliding logic */
-    .auth-slider.show-signup {
-      transform: translateX(50%);
-    }
-
-    /* Form inner alignment */
-    .auth-form form {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .auth-form input, .auth-form select {
-      width: 100%;
-      padding: 10px;
-      box-sizing: border-box;
-    }
-
-    .auth-toggle-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      text-decoration: underline;
-      margin-top: 10px;
-    }
-
-    .avatar-upload-container {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    .avatar-preview {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: #ccc;
-      object-fit: cover;
-      display: block;
-      margin: 0 auto;
-    }
-  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="container">
-    <!-- Header with Logo (Kept exactly as original) -->
-    <div style="text-align: center; margin-bottom: 20px;">
-      <img src="/favicon.ico.png" alt="Logo" style="width: 80px; height: 80px; border-radius: 10px; margin-bottom: 10px;">
-      <h1 style="margin: 0;">chat moh</h1>
-    </div>
-
-    <!-- Original Welcome Text -->
-    <p style="margin-top: 15px; color: #333; font-size: 14px; text-align: center;">
-      مرحباً بك في شات عربي! أنشئ حسابك بسهولة...
-    </p>
-
-    <!-- ========== NEW AUTH SLIDER SECTION ========== -->
-    <div class="auth-container" id="authContainer">
-      <div class="auth-slider" id="authSlider">
-
-        <!-- Login Panel -->
-        <div class="auth-form" id="loginPanel">
-          <form id="loginForm">
-            <h2>LOGIN</h2>
-            <input type="text" id="username" placeholder="اسم المستخدم" required>
-            <input type="password" id="password" placeholder="كلمة المرور" required>
-            <label style="text-align: right; display: block;">
-              <input type="checkbox" id="remember"> تذكرني
-            </label>
-            <button type="submit">تسجيل الدخول</button>
-            
-            <!-- Toggle to Sign Up -->
-            <button type="button" class="auth-toggle-btn" id="goToRegister">
-              ليس لديك حساب؟ تسجيل جديد
-            </button>
-          </form>
-        </div>
-
-        <!-- Register Panel -->
-        <div class="auth-form" id="registerPanel">
-          <form id="registerForm">
-            <h2>SIGN UP</h2>
-            
-            <!-- Avatar Upload (New element matching the image) -->
-            <div class="avatar-upload-container">
-              <label for="regAvatar" style="cursor: pointer;">
-                <img id="regAvatarPreview" class="avatar-preview" src="https://via.placeholder.com/80" alt="Avatar">
-                <div style="font-size: 12px; margin-top: 5px;">إضافة صورة +</div>
-              </label>
-              <input type="file" id="regAvatar" accept="image/*" style="display: none;">
-            </div>
-
-            <input type="text" id="regUsername" placeholder="اسم المستخدم" required>
-            <input type="password" id="regPassword" placeholder="كلمة المرور" required>
-            
-            <!-- Email Field (New element matching the image) -->
-            <input type="email" id="regEmail" placeholder="البريد الإلكتروني" required>
-            
-            <!-- Country Select (New element matching the image) -->
-            <select id="regCountry" required>
-              <option value="" disabled selected>اختر البلد</option>
-              <option value="Algeria">🇩🇿 الجزائر</option>
-              <option value="Morocco">🇲🇦 المغرب</option>
-              <option value="Tunisia">🇹🇳 تونس</option>
-              <option value="Egypt">🇪🇬 مصر</option>
-              <option value="Saudi Arabia">🇸🇦 السعودية</option>
-              <option value="UAE">🇦🇪 الإمارات</option>
-              <option value="France">🇫🇷 فرنسا</option>
-              <option value="USA">🇺🇸 أمريكا</option>
-            </select>
-
-            <button type="submit">تسجيل</button>
-            
-            <!-- Toggle back to Login -->
-            <button type="button" class="auth-toggle-btn" id="goToLogin">
-              لديك حساب بالفعل؟ تسجيل الدخول
-            </button>
-
-            <!-- Original explanatory text -->
-            <p style="margin-top: 15px; color: #333; font-size: 14px; text-align: center;">
-              مرحباً بك في شات عربي! أنشئ حسابك بسهولة لتتمكن من الدخول والمحادثة مع الآخرين. تسجيلك يساعدنا على تقديم تجربة أفضل وآمنة للجميع.
-            </p>
-          </form>
-        </div>
-
+    
+    <!-- ========== LEFT PANEL ========== -->
+    <div class="left-panel">
+      <div class="logo-icon">
+        <i class="fas fa-comments"></i>
+      </div>
+      <h1>chat moh</h1>
+      <p>مرحباً بك في شات عربي!<br>أنشئ حسابك بسهولة...</p>
+      
+      <div class="toggle-tabs">
+        <button type="button" id="tabLogin" class="active">LOGIN</button>
+        <button type="button" id="tabSignup">SIGN UP</button>
       </div>
     </div>
-    <!-- ========== END AUTH SLIDER SECTION ========== -->
 
+    <!-- ========== RIGHT PANEL ========== -->
+    <div class="right-panel" id="formPanel">
+      
+      <!-- Login Form -->
+      <form id="loginForm">
+        <h2>LOGIN</h2>
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="remember">
+          <label for="remember">Remember Me</label>
+        </div>
+
+        <button type="submit">SIGN IN</button>
+        <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+      </form>
+
+      <!-- Sign Up Form -->
+      <form id="registerForm" style="display: none;">
+        <h2>SIGN UP</h2>
+        
+        <div class="avatar-upload-container">
+          <label for="regAvatar" class="avatar-upload-label">
+            <img id="regAvatarPreview" class="avatar-preview" src="https://via.placeholder.com/80" alt="Avatar">
+            <div style="margin-top: 5px;">Upload Avatar +</div>
+          </label>
+          <input type="file" id="regAvatar" accept="image/*" style="display: none;">
+        </div>
+
+        <input type="text" id="regUsername" placeholder="Username" required>
+        <input type="password" id="regPassword" placeholder="Password" required>
+        <input type="email" id="regEmail" placeholder="Email" required>
+        
+        <select id="regCountry" required>
+          <option value="" disabled selected>Country</option>
+          <option value="Algeria">🇩🇿 Algeria</option>
+          <option value="Morocco">🇲🇦 Morocco</option>
+          <option value="Tunisia">🇹🇳 Tunisia</option>
+          <option value="Egypt">🇪🇬 Egypt</option>
+          <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
+          <option value="UAE">🇦🇪 UAE</option>
+          <option value="France">🇫🇷 France</option>
+          <option value="USA">🇺🇸 USA</option>
+        </select>
+
+        <button type="submit">CREATE ACCOUNT</button>
+      </form>
+
+    </div>
   </div>
 
   <script>
-    // ========== Slider Logic ==========
-    const slider = document.getElementById('authSlider');
-    const goToRegister = document.getElementById('goToRegister');
-    const goToLogin = document.getElementById('goToLogin');
+    const container = document.querySelector('.container');
+    const tabLogin = document.getElementById('tabLogin');
+    const tabSignup = document.getElementById('tabSignup');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
 
-    goToRegister.addEventListener('click', () => {
-      slider.classList.add('show-signup');
-    });
+    function showLogin() {
+      container.classList.remove('show-signup');
+      tabLogin.classList.add('active');
+      tabSignup.classList.remove('active');
+      loginForm.style.display = 'block';
+      registerForm.style.display = 'none';
+    }
 
-    goToLogin.addEventListener('click', () => {
-      slider.classList.remove('show-signup');
-    });
+    function showSignup() {
+      container.classList.add('show-signup');
+      tabLogin.classList.remove('active');
+      tabSignup.classList.add('active');
+      loginForm.style.display = 'none';
+      registerForm.style.display = 'block';
+    }
 
-    // ========== Avatar Preview Logic ==========
+    tabLogin.addEventListener('click', showLogin);
+    tabSignup.addEventListener('click', showSignup);
+
+    // Avatar Preview
     const regAvatarInput = document.getElementById('regAvatar');
     const regAvatarPreview = document.getElementById('regAvatarPreview');
-
     regAvatarInput.addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (file) {
