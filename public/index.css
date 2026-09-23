@@ -1,4 +1,4 @@
-/* ========== BASE STYLES (Your original CSS) ========== */
+/* ========== BASE STYLES ========== */
 body {
   background-image: url('https://i.pinimg.com/1200x/7c/96/18/7c961840986e5bd668567dc71fba0075.jpg');
   background-size: cover;
@@ -17,131 +17,27 @@ body {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
-  padding: 0; /* Changed to 0 to allow the split design */
   border-radius: 20px;
-  text-align: center;
-  width: 800px; /* Increased width for the split layout */
+  width: 850px;
   height: 550px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37),
               0 0 15px rgba(255, 255, 255, 0.05);
   position: relative;
   overflow: hidden;
-}
-
-h2 {
-  margin-bottom: 20px;
-  font-weight: 300;
-  letter-spacing: 2px;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-  font-size: 1.5rem;
-}
-
-input {
-  width: 100%;
-  margin: 12px 0;
-  padding: 12px;
-  border: none;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  outline: none;
-  transition: 0.3s;
-  box-sizing: border-box;
-}
-
-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-input:focus {
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-}
-
-button {
-  width: 100%;
-  margin-top: 20px;
-  padding: 12px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(45deg, #ff00cc, #3333ff);
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.4s;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 0 20px rgba(186, 1, 255, 0.6);
-  filter: brightness(1.1);
-}
-
-a {
-  color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
-  font-size: 0.9em;
-  display: block;
-  margin-top: 15px;
-  transition: 0.3s;
-}
-
-a:hover {
-  color: #fff;
-  text-shadow: 0 0 8px #fff;
-}
-
-.back-btn {
-  width: 100%;
-  margin-top: 18px;
-  padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.07);
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.back-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.45);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px);
-}
-
-/* ========== AUTH SLIDER STYLES (Matching the image) ========== */
-
-/* The main wrapper for the two panels */
-.auth-wrapper {
   display: flex;
-  width: 100%;
-  height: 100%;
-  position: relative;
 }
 
-/* Shared styles for both panels */
-.auth-panel {
+/* ========== LEFT PANEL ========== */
+.left-panel {
   width: 50%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 30px;
-  box-sizing: border-box;
-  transition: all 0.5s ease-in-out;
-}
-
-/* --- LEFT PANEL (Welcome/Info) --- */
-.left-panel {
   background: linear-gradient(135deg, #8b5cf6, #d946ef);
   color: white;
   text-align: center;
-  position: relative;
+  position: absolute;
+  top: 0;
+  right: 0;
   z-index: 2;
   display: flex;
   flex-direction: column;
@@ -149,10 +45,11 @@ a:hover {
   align-items: center;
   padding: 30px;
   box-sizing: border-box;
-  transition: all 0.5s ease-in-out;
+  transition: all 0.6s ease-in-out;
+  border-radius: 20px 0 0 20px;
 }
 
-.left-panel .logo-icon {
+.logo-icon {
   width: 80px;
   height: 80px;
   background: rgba(255, 255, 255, 0.2);
@@ -160,7 +57,7 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 20px;
+  margin-bottom: 20px;
   font-size: 40px;
   color: white;
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -179,10 +76,9 @@ a:hover {
   line-height: 1.6;
 }
 
-/* The toggle buttons inside the left panel (LOGIN / SIGN UP) */
 .toggle-tabs {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   background: rgba(255, 255, 255, 0.15);
   padding: 5px;
   border-radius: 30px;
@@ -198,7 +94,7 @@ a:hover {
   transition: all 0.3s;
   background: transparent;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   width: auto;
   margin: 0;
 }
@@ -209,15 +105,11 @@ a:hover {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* --- RIGHT PANEL (Form) --- */
+/* ========== RIGHT PANEL ========== */
 .right-panel {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  color: white;
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0;
   width: 50%;
   height: 100%;
   display: flex;
@@ -226,10 +118,8 @@ a:hover {
   align-items: center;
   padding: 30px;
   box-sizing: border-box;
-  transition: all 0.5s ease-in-out;
-  transform: translateX(100%);
-  opacity: 0;
-  pointer-events: none;
+  transition: all 0.6s ease-in-out;
+  z-index: 1;
 }
 
 .right-panel h2 {
@@ -237,21 +127,20 @@ a:hover {
   font-weight: 300;
   letter-spacing: 2px;
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-  font-size: 1.5rem;
+  font-size: 1.4rem;
+  color: white;
 }
 
-/* Form styling */
 .right-panel form {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   max-height: 100%;
   overflow-y: auto;
   padding-right: 5px;
 }
 
-/* Hide scrollbar for chrome/safari */
 .right-panel form::-webkit-scrollbar {
   width: 4px;
 }
@@ -273,6 +162,7 @@ a:hover {
   box-sizing: border-box;
   font-family: inherit;
   font-size: 0.9rem;
+  margin: 0;
 }
 
 .right-panel input::placeholder {
@@ -285,7 +175,6 @@ a:hover {
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
 
-/* Fix for select dropdown arrow */
 .right-panel select {
   appearance: none;
   -webkit-appearance: none;
@@ -301,7 +190,6 @@ a:hover {
   color: white;
 }
 
-/* Remember Me checkbox */
 .checkbox-wrapper {
   display: flex;
   align-items: center;
@@ -318,7 +206,6 @@ a:hover {
   accent-color: #d946ef;
 }
 
-/* Main Action Button */
 .right-panel button[type="submit"] {
   width: 100%;
   margin-top: 10px;
@@ -331,7 +218,7 @@ a:hover {
   cursor: pointer;
   transition: 0.4s;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .right-panel button[type="submit"]:hover {
@@ -340,10 +227,9 @@ a:hover {
   filter: brightness(1.1);
 }
 
-/* Avatar Upload for Sign Up */
 .avatar-upload-container {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 
 .avatar-preview {
@@ -365,7 +251,6 @@ a:hover {
   margin-top: 5px;
 }
 
-/* Link styling (forgot password etc) */
 .right-panel a {
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
@@ -373,6 +258,7 @@ a:hover {
   transition: 0.3s;
   display: block;
   margin-top: 10px;
+  text-align: center;
 }
 
 .right-panel a:hover {
@@ -382,15 +268,13 @@ a:hover {
 
 /* ========== SLIDING LOGIC ========== */
 
-/* When the signup class is active, the left panel slides out to reveal the right panel */
-.auth-wrapper.show-signup .left-panel {
+/* عند تفعيل تسجيل جديد: اللوحة البنفسجية تنزلق لليسار */
+.container.show-signup .left-panel {
   transform: translateX(-100%);
-  opacity: 0;
-  pointer-events: none;
+  border-radius: 0 20px 20px 0;
 }
 
-.auth-wrapper.show-signup .right-panel {
-  transform: translateX(0);
-  opacity: 1;
-  pointer-events: auto;
+/* النموذج ينزلق من اليسار إلى اليمين */
+.container.show-signup .right-panel {
+  left: 50%;
 }
