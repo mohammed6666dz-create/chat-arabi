@@ -1929,3 +1929,206 @@ header h1 {
     max-width: 55% !important;
   }
 }
+/* ============================================
+   ✅ FIX - إصلاح الترتيب النهائي
+============================================ */
+
+/* الحاوية الرئيسية: عمودية (هيدر → شات → form) */
+body {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+
+/* منطقة الشات: صف أفقي (شات | متصلين) */
+.chat-main {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* الشات على اليسار - يأخذ المساحة الكبيرة */
+#chatWindow {
+  flex: 1 !important;
+  order: 1 !important;
+  min-width: 0 !important;
+  padding: 20px 30px !important;
+  overflow-y: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  align-items: flex-start !important;
+  position: relative !important;
+}
+
+/* خلفية خفيفة فوق الصورة */
+#chatWindow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 20, 26, 0.4);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* لوحة المتصلين على اليمين */
+#usersPanel {
+  width: 300px !important;
+  flex: 0 0 300px !important;
+  order: 2 !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: #0a1f1c !important;
+  border-right: none !important;
+  border-left: 1px solid #1a5e54 !important;
+  overflow: hidden !important;
+}
+
+/* قسم المتصلين (فوق) */
+.users-section {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
+}
+
+.online-section {
+  flex: 0 0 55% !important;
+  border-bottom: 2px solid #1a5e54 !important;
+}
+
+.offline-section {
+  flex: 0 0 45% !important;
+  background: #08201c !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
+}
+
+.users-list-simple {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  min-height: 0 !important;
+  padding: 6px !important;
+}
+
+.users-header-simple {
+  flex-shrink: 0 !important;
+  height: 44px !important;
+  padding: 10px 14px !important;
+  background: #0d4a42 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+.offline-section .users-header-simple {
+  background: #08201c !important;
+}
+
+/* شريط الكتابة في الأسفل */
+#messageForm {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  padding: 8px 16px !important;
+  background: #202c33 !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+/* ============================================
+   📱 للهاتف (768px وأقل)
+============================================ */
+@media (max-width: 768px) {
+
+  /* الحاوية الرئيسية تصبح عمودية */
+  .chat-main {
+    flex-direction: column !important;
+  }
+
+  /* الشات فوق */
+  #chatWindow {
+    order: 1 !important;
+    flex: 1 !important;
+    padding: 10px 12px !important;
+    min-height: 0 !important;
+  }
+
+  /* لوحة المتصلين تحت */
+  #usersPanel {
+    order: 2 !important;
+    width: 100% !important;
+    flex: 0 0 200px !important;
+    max-height: 200px !important;
+    border-left: none !important;
+    border-top: 2px solid #1a5e54 !important;
+  }
+
+  .online-section {
+    flex: 0 0 50% !important;
+  }
+
+  .offline-section {
+    flex: 1 !important;
+  }
+
+  /* المستخدمون أفقياً في الجوال */
+  .users-list-simple {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    gap: 6px !important;
+    padding: 6px !important;
+  }
+
+  .user-item-simple {
+    flex-direction: column !important;
+    min-width: 65px !important;
+    padding: 6px !important;
+    margin-bottom: 0 !important;
+    text-align: center !important;
+  }
+
+  .user-item-simple img {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .user-item-simple > div > div:first-child {
+    font-size: 10px !important;
+  }
+
+  .user-item-simple > div > div:nth-child(2) {
+    font-size: 9px !important;
+  }
+
+  #messageForm {
+    padding: 6px 10px !important;
+  }
+
+  #messageInput {
+    font-size: 13px !important;
+  }
+
+  #messageForm button {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 16px !important;
+  }
+
+  .message {
+    max-width: 85% !important;
+  }
+
+  .message img {
+    width: 28px !important;
+    height: 28px !important;
+  }
+}
