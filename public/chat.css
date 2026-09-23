@@ -1828,4 +1828,268 @@ header h1 {
     bottom: 10px;
     height: 60vh;
   }
+   /* ============================================
+   ✅ إصلاح 1: كل الرسائل على اليمين (سواء رسائلي أو رسائل الآخرين)
+============================================ */
+#chatWindow {
+  align-items: flex-start !important;
+}
+
+.message {
+  align-self: flex-start !important;
+  flex-direction: row !important;
+}
+
+/* رسائلي أنا أيضاً على اليمين */
+.my-message {
+  align-self: flex-start !important;
+  flex-direction: row !important;
+}
+
+/* ============================================
+   ✅ إصلاح 2: فقاعات داكنة جميلة بدل الأبيض
+============================================ */
+.message .message-content {
+  background: linear-gradient(145deg, #1f3a3a, #1a2f2f) !important;
+  color: #e8f5f3 !important;
+  border: 1px solid rgba(0, 168, 132, 0.25) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  padding: 8px 14px !important;
+}
+
+.message .message-content::before {
+  border-color: transparent #1f3a3a transparent transparent !important;
+  right: -8px !important;
+  left: auto !important;
+}
+
+.message .message-content strong {
+  color: #00d4a0 !important;
+  font-size: 12.5px !important;
+}
+
+.message .message-content p {
+  color: #e8f5f3 !important;
+  font-size: 14px !important;
+}
+
+/* رسائلي أنا أيضاً نفس اللون */
+.my-message .message-content {
+  background: linear-gradient(145deg, #1f3a3a, #1a2f2f) !important;
+  color: #e8f5f3 !important;
+  border: 1px solid rgba(0, 168, 132, 0.25) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.my-message .message-content::before {
+  border-color: transparent #1f3a3a transparent transparent !important;
+  right: -8px !important;
+  left: auto !important;
+}
+
+.my-message .message-content strong {
+  color: #00d4a0 !important;
+}
+
+.my-message .message-content p {
+  color: #e8f5f3 !important;
+}
+
+/* تحسين فقاعة الرسالة عند المرور */
+.message .message-content:hover,
+.my-message .message-content:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(0, 168, 132, 0.25) !important;
+  border-color: rgba(0, 168, 132, 0.5) !important;
+}
+
+/* ============================================
+   ✅ إصلاح 3: لوحة المتصلين منظمة بشكل واضح
+============================================ */
+#usersPanel {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+/* قسم المتصلين - ثابت في الأعلى */
+.users-header-simple {
+  flex-shrink: 0 !important;
+  background: #0d4a42 !important;
+  padding: 10px 14px !important;
+  border-bottom: 1px solid #1a5e54 !important;
+}
+
+.users-header-simple h3 {
+  color: #b8f0e5 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.users-header-simple h3 i {
+  color: #00d4a0 !important;
+}
+
+/* قائمة المتصلين - مرنة */
+.users-list-simple {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 6px !important;
+  background: #0a1f1c !important;
+  min-height: 80px !important;
+}
+
+/* قسم غير المتصلين - أسفل القائمة */
+.offline-section {
+  flex-shrink: 0 !important;
+  max-height: 50% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border-top: 2px solid #1a5e54 !important;
+  background: #08201c !important;
+}
+
+.offline-section .users-header-simple {
+  background: #08201c !important;
+  border-bottom: 1px solid #1a5e54 !important;
+}
+
+.offline-section .users-header-simple h3 {
+  color: #6b8f89 !important;
+}
+
+.offline-section .users-header-simple h3 i {
+  color: #6b8f89 !important;
+}
+
+/* قائمة غير المتصلين */
+#offlineUsersList {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 6px !important;
+}
+
+/* عنصر المستخدم - منظم وواضح */
+.user-item-simple {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 8px 10px !important;
+  margin-bottom: 4px !important;
+  background: #0f2a26 !important;
+  border-radius: 8px !important;
+  border: 1px solid transparent !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+}
+
+.user-item-simple:hover {
+  background: #1a3d37 !important;
+  border-color: #00d4a0 !important;
+  transform: translateX(-3px) !important;
+}
+
+.user-item-simple img {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 2px solid #00d4a0 !important;
+  flex-shrink: 0 !important;
+}
+
+.user-item-simple > div > div:first-child {
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+}
+
+.user-item-simple > div > div:nth-child(2) {
+  margin-top: 2px !important;
+}
+
+/* ألوان المشرفين (لم تكون باهتة) */
+.user-item-simple .badge.owner { background: #ef4444 !important; color: #fff !important; }
+.user-item-simple .badge.superadmin { background: #8b5cf6 !important; color: #fff !important; }
+.user-item-simple .badge.admin { background: #3b82f6 !important; color: #fff !important; }
+.user-item-simple .badge.premium { background: #10b981 !important; color: #fff !important; }
+.user-item-simple .badge.vip { background: #f59e0b !important; color: #000 !important; }
+.user-item-simple .badge.guest { background: #475569 !important; color: #cbd5e1 !important; }
+
+/* عنصر غير المتصل - مظهر مميز */
+.offline-user {
+  opacity: 0.75 !important;
+  background: #0a1f1c !important;
+}
+
+.offline-user:hover {
+  opacity: 1 !important;
+}
+
+.offline-user img {
+  border-color: #64748b !important;
+  filter: grayscale(0.4) !important;
+}
+
+.offline-user > div > div:first-child {
+  color: #94a3b8 !important;
+}
+
+/* شريط تمرير أنيق */
+.users-list-simple::-webkit-scrollbar,
+#offlineUsersList::-webkit-scrollbar {
+  width: 5px !important;
+}
+
+.users-list-simple::-webkit-scrollbar-thumb,
+#offlineUsersList::-webkit-scrollbar-thumb {
+  background: #1a5e54 !important;
+  border-radius: 5px !important;
+}
+
+.users-list-simple::-webkit-scrollbar-thumb:hover,
+#offlineUsersList::-webkit-scrollbar-thumb:hover {
+  background: #00d4a0 !important;
+}
+
+/* ============================================
+   ✅ إصلاح إضافي: فقاعات الرسائل الخاصة أيضاً
+============================================ */
+.private-message,
+.my-private-message {
+  align-self: flex-start !important;
+  flex-direction: row !important;
+}
+
+.private-message .private-content,
+.my-private-message .private-content {
+  background: linear-gradient(145deg, #1f3a3a, #1a2f2f) !important;
+  color: #e8f5f3 !important;
+  border: 1px solid rgba(0, 168, 132, 0.25) !important;
+  border-radius: 12px !important;
+}
+
+.private-content strong {
+  color: #00d4a0 !important;
+}
+
+.private-content p {
+  color: #e8f5f3 !important;
+}
+
+/* ============================================
+   ✅ إصلاح رابع: أزرار الهيدر تبان أحسن
+============================================ */
+.header-icons .icon-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-radius: 50% !important;
+}
+
+.header-icons .icon-btn:hover {
+  background: rgba(0, 212, 160, 0.3) !important;
+}
 }
