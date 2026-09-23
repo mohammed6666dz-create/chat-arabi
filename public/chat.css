@@ -2040,29 +2040,75 @@ header {
   }
 }
 /* ============================================
-   ✅ تمديد قسم "غير المتصلين" حتى الأسفل
+   ✅ FIX: تمديد كامل لقسم غير المتصلين حتى الأسفل
 ============================================ */
 
-/* قسم المتصلين: يبقى بحجمه الطبيعي حسب العدد (لا يمتد) */
-.online-section {
-  flex: 0 0 auto !important;      /* لا يتمدد ولا يتقلص */
-  max-height: 40% !important;     /* بحد أقصى 40% من اللوحة */
-  min-height: 120px !important;   /* بحد أدنى 120px */
-  border-bottom: 2px solid #1a5e54 !important;
+/* 1. تأكد أن html و body بارتفاع كامل */
+html, body {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
 }
 
-/* قسم غير المتصلين: يمتد حتى يملأ كل المساحة المتبقية */
-.offline-section {
-  flex: 1 1 auto !important;      /* يتمدد ليملأ الفراغ */
-  min-height: 0 !important;       /* للسماح بالتمدد الصحيح */
+/* 2. body: عمودي، يأخذ الشاشة كاملة */
+body {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* 3. chat-main: يأخذ المساحة المتبقية بين الهيدر وشريط الكتابة */
+.chat-main {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: row !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: hidden !important;
+}
+
+/* 4. #usersPanel: ارتفاع 100% من chat-main */
+#usersPanel {
+  height: 100% !important;
+  max-height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
 }
 
-/* قائمة غير المتصلين: تمرير داخلي عند الحاجة */
+/* 5. قسم المتصلين: حجم تلقائي حسب المحتوى */
+.online-section {
+  flex: 0 0 auto !important;
+  max-height: 40% !important;
+  min-height: 60px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border-bottom: 2px solid #1a5e54 !important;
+}
+
+.online-section .users-list-simple {
+  overflow-y: auto !important;
+  max-height: 100% !important;
+}
+
+/* 6. قسم غير المتصلين: يأخذ كل المساحة المتبقية */
+.offline-section {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  background: #08201c !important;
+}
+
+/* 7. قائمة غير المتصلين: تمرير داخلي */
 .offline-section .users-list-simple {
   flex: 1 1 auto !important;
   overflow-y: auto !important;
   min-height: 0 !important;
+}
+
+/* 8. لكي لا يغطي شريط الكتابة على آخر اللوحة */
+#usersPanel {
+  padding-bottom: 60px !important;
 }
