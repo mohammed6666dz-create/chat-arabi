@@ -2039,3 +2039,30 @@ header {
     font-size: 15px !important;
   }
 }
+/* ============================================
+   ✅ تمديد قسم "غير المتصلين" حتى الأسفل
+============================================ */
+
+/* قسم المتصلين: يبقى بحجمه الطبيعي حسب العدد (لا يمتد) */
+.online-section {
+  flex: 0 0 auto !important;      /* لا يتمدد ولا يتقلص */
+  max-height: 40% !important;     /* بحد أقصى 40% من اللوحة */
+  min-height: 120px !important;   /* بحد أدنى 120px */
+  border-bottom: 2px solid #1a5e54 !important;
+}
+
+/* قسم غير المتصلين: يمتد حتى يملأ كل المساحة المتبقية */
+.offline-section {
+  flex: 1 1 auto !important;      /* يتمدد ليملأ الفراغ */
+  min-height: 0 !important;       /* للسماح بالتمدد الصحيح */
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+/* قائمة غير المتصلين: تمرير داخلي عند الحاجة */
+.offline-section .users-list-simple {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  min-height: 0 !important;
+}
