@@ -1782,3 +1782,260 @@ header h1 {
     grid-template-columns: repeat(6, 1fr) !important;
   }
 }
+/* ============================================
+   ✅ إصلاح نهائي - تخطيط الشات
+============================================ */
+
+/* 1. body = عمودي: هيدر → شات → form */
+body {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* 2. الهيدر ثابت في الأعلى */
+header {
+  flex: 0 0 56px !important;
+  width: 100% !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 8px 16px !important;
+  background: #075e54 !important;
+  z-index: 100 !important;
+}
+
+/* 3. منطقة الشات = صف أفقي: [usersPanel على اليمين] + [chatWindow على اليسار] */
+.chat-main {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  background: url('https://i.pinimg.com/736x/10/06/42/100642ad3755b11321d6238450bd1e7d.jpg') center/cover no-repeat !important;
+  position: relative !important;
+}
+
+/* 4. لوحة المتصلين على اليمين بصرياً (order 2 في RTL) */
+#usersPanel {
+  order: 2 !important;
+  width: 280px !important;
+  flex: 0 0 280px !important;
+  height: 100% !important;
+  background: #0a1f1c !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  border-left: 1px solid #1a5e54 !important;
+  border-right: none !important;
+  margin: 0 !important;
+}
+
+/* 5. منطقة الرسائل على اليسار بصرياً */
+#chatWindow {
+  order: 1 !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  overflow-y: auto !important;
+  padding: 16px 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  align-items: flex-start !important;
+  background: transparent !important;
+  position: relative !important;
+}
+
+#chatWindow::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: rgba(11, 20, 26, 0.4) !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+#chatWindow > * {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* 6. الأقسام داخل usersPanel (منظمة) */
+.users-section {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
+}
+
+.online-section {
+  flex: 0 0 50% !important;
+  border-bottom: 2px solid #1a5e54 !important;
+}
+
+.offline-section {
+  flex: 1 1 50% !important;
+  background: #08201c !important;
+}
+
+.users-header-simple {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 10px 14px !important;
+  height: 44px !important;
+  background: #0d4a42 !important;
+}
+
+.offline-section .users-header-simple {
+  background: #08201c !important;
+}
+
+.users-list-simple {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  min-height: 0 !important;
+  padding: 6px !important;
+}
+
+/* 7. شريط الكتابة = في الأسفل تحت كل شيء (خارج chat-main) */
+#messageForm {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  flex: 0 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 16px !important;
+  background: #202c33 !important;
+  border-top: 1px solid #2a3942 !important;
+  z-index: 100 !important;
+  margin: 0 !important;
+}
+
+/* 8. لكيلا يغطي شريط الكتابة على آخر الرسائل */
+#chatWindow {
+  padding-bottom: 80px !important;
+}
+
+/* 9. حجم إدخال الرسالة */
+#messageInput {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding: 10px 16px !important;
+  background: #2a3942 !important;
+  border: none !important;
+  border-radius: 20px !important;
+  color: white !important;
+  font-size: 14px !important;
+  outline: none !important;
+}
+
+/* 10. أزرار شريط الكتابة */
+#messageForm button {
+  flex: 0 0 auto !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: transparent !important;
+  color: #8696a0 !important;
+  cursor: pointer !important;
+  font-size: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+#messageForm button[type="submit"] {
+  background: #00a884 !important;
+  color: white !important;
+}
+
+#messageForm button:hover {
+  background: #2a3942 !important;
+  color: white !important;
+}
+
+#messageForm button[type="submit"]:hover {
+  background: #017561 !important;
+}
+
+/* 11. لوحة المتصلين على اليسار في الشاشات الصغيرة */
+@media (max-width: 768px) {
+
+  .chat-main {
+    flex-direction: column !important;
+  }
+
+  #chatWindow {
+    order: 1 !important;
+    flex: 1 !important;
+    padding: 10px !important;
+    padding-bottom: 70px !important;
+    min-height: 0 !important;
+  }
+
+  #usersPanel {
+    order: 2 !important;
+    width: 100% !important;
+    flex: 0 0 180px !important;
+    max-height: 180px !important;
+    border-left: none !important;
+    border-top: 2px solid #1a5e54 !important;
+  }
+
+  .users-list-simple {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    gap: 6px !important;
+    padding: 6px !important;
+  }
+
+  .user-item-simple {
+    flex-direction: column !important;
+    min-width: 65px !important;
+    padding: 6px !important;
+    margin-bottom: 0 !important;
+    text-align: center !important;
+    min-height: auto !important;
+  }
+
+  .user-item-simple img {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .user-item-simple > div > div:first-child {
+    font-size: 10px !important;
+  }
+
+  .user-item-simple > div > div:nth-child(2) {
+    font-size: 9px !important;
+  }
+
+  #messageForm {
+    padding: 6px 10px !important;
+  }
+
+  #messageInput {
+    font-size: 13px !important;
+  }
+
+  #messageForm button {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 15px !important;
+  }
+}
