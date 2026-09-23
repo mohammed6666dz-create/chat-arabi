@@ -1125,10 +1125,10 @@ function appendPrivateMessage(username, msg, avatar, isMe) {
     chat.scrollTop = chat.scrollHeight;
 }
 
-document.getElementById('logoutBtn')?.addEventListener('click', () => {
-    if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
+// زر العودة إلى الغرف (بدل تسجيل الخروج)
+// ملاحظة: التوكن يبقى محفوظاً حتى يتمكن المستخدم من الدخول مباشرة للغرفة
+document.getElementById('backToRoomsBtn')?.addEventListener('click', () => {
+    if (confirm('هل تريد العودة إلى صفحة الغرف؟')) {
         socket.disconnect();
         window.location.href = 'rooms.html';
     }
