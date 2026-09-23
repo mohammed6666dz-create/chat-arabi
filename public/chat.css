@@ -2392,3 +2392,83 @@ header h1 {
     margin: 0 2px !important;
     vertical-align: middle !important;
 }
+/* ========== زر العودة إلى قائمة الغرف ========== */
+#backToRoomsBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(240, 240, 240, 0.75));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #4a5568;
+  font-weight: bold;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 2px solid rgba(200, 200, 200, 0.6);
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* تأثير لمعان عند المرور */
+#backToRoomsBtn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  transition: left 0.5s ease;
+}
+
+#backToRoomsBtn:hover::before {
+  left: 100%;
+}
+
+/* تأثير عند المرور بالمؤشر */
+#backToRoomsBtn:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(250, 250, 250, 0.85));
+  border-color: rgba(180, 180, 180, 0.8);
+  color: #2d3748;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* تأثير عند الضغط */
+#backToRoomsBtn:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    inset 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* الأيقونة */
+#backToRoomsBtn i {
+  font-size: 1.2rem;
+  color: #718096;
+  transition: color 0.3s ease;
+}
+
+#backToRoomsBtn:hover i {
+  color: #4a5568;
+}
+
+/* النص */
+#backToRoomsBtn span,
+#backToRoomsBtn {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
