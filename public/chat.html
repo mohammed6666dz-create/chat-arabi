@@ -1,1562 +1,1831 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>الشات - شات عربي</title>
-  <link rel="icon" href="/favicon.ico.png" type="image/png">
-  <link rel="apple-touch-icon" href="/favicon.ico.png">
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "Moh Chat",
-    "url": "https://chat-arabi-1.onrender.com",
-    "publisher": {
-      "@type": "Organization",
-      "logo": "https://chat-arabi-1.onrender.com/favicon.ico.png"
-    }
+/* ============================================
+   RESET & BASE
+============================================ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  background: #0b141a;
+  direction: rtl;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ============================================
+   HEADER (شريط علوي مثل واتساب)
+============================================ */
+header {
+  background: #075e54;
+  color: white;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.header-icons {
+  display: flex;
+  gap: 6px;
+  position: relative;
+  align-items: center;
+}
+
+/* أزرار الهيدر (دائرية) */
+.icon-btn {
+  background: transparent;
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.icon-btn .apps-text,
+.icon-btn .level-text {
+  display: none;
+}
+
+/* Badge (نقطة الإشعارات) */
+.badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #ff3b30;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 5px;
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  line-height: 12px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* صورة البروفايل */
+#profileBtn img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: border-color 0.3s;
+  object-fit: cover;
+}
+
+#profileBtn img:hover {
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* ============================================
+   BACK TO ROOMS BUTTON (زر العودة إلى الغرف)
+============================================ */
+#backToRoomsBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #ffffff;
+  color: #075e54;
+  font-weight: 700;
+  font-size: 0.85rem;
+  font-family: inherit;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  height: 36px;
+  white-space: nowrap;
+}
+
+#backToRoomsBtn i {
+  font-size: 0.9rem;
+  color: #075e54;
+}
+
+#backToRoomsBtn:hover {
+  background: #f0f0f0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+#backToRoomsBtn:active {
+  transform: translateY(0);
+}
+
+/* ============================================
+   CHAT MAIN AREA
+============================================ */
+.chat-main {
+  flex: 1;
+  display: flex;
+  background: url('https://i.pinimg.com/736x/10/06/42/100642ad3755b11321d6238450bd1e7d.jpg') center/cover no-repeat;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ============================================
+   CHAT WINDOW (منطقة الرسائل)
+============================================ */
+#chatWindow {
+  flex: 1;
+  padding: 20px 60px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+/* خلفية شفافة خفيفة فوق صورة الخلفية */
+#chatWindow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 20, 26, 0.35);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ============================================
+   MESSAGES (فقاعات الرسائل)
+============================================ */
+.message {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 65%;
+  align-self: flex-start;
+  margin-bottom: 6px;
+  position: relative;
+}
+
+.message img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.message-content {
+  background: #ffffff;
+  color: #111b21;
+  padding: 8px 12px 6px 12px;
+  border-radius: 10px;
+  border-top-right-radius: 2px;
+  max-width: 100%;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  position: relative;
+  word-wrap: break-word;
+}
+
+/* سهم الفقاعة على اليمين */
+.message-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -8px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 8px 8px 0;
+  border-color: transparent #ffffff transparent transparent;
+}
+
+/* اسم المستخدم */
+.message-content strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #075e54;
+  margin-bottom: 2px;
+  cursor: pointer;
+}
+
+.message-content p {
+  margin: 0;
+  font-size: 14px;
+  word-wrap: break-word;
+}
+
+/* رمز الرتبة (أيقونة فقط) */
+.rank-icon {
+  display: inline-block;
+  font-size: 13px;
+  margin-left: 4px;
+}
+
+/* رسالتي أنا (على اليسار - مثل واتساب) */
+.my-message {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.my-message .message-content {
+  background: #d9fdd3;
+  border-top-right-radius: 10px;
+  border-top-left-radius: 2px;
+  color: #111b21;
+}
+
+.my-message .message-content::before {
+  right: auto;
+  left: -8px;
+  border-width: 0 0 8px 8px;
+  border-color: transparent transparent transparent #d9fdd3;
+}
+
+.my-message .message-content strong {
+  color: #075e54;
+}
+
+/* ============================================
+   SYSTEM MESSAGES
+============================================ */
+.system-message {
+  align-self: center;
+  background: rgba(255, 255, 255, 0.9);
+  color: #54656f;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin: 8px auto;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  max-width: 80%;
+  text-align: center;
+}
+
+/* ============================================
+   USERS PANEL (لوحة المتصلين على اليمين)
+============================================ */
+#usersPanel {
+  width: 300px;
+  background: #111b21;
+  border-right: 1px solid #2a3942;
+  overflow-y: auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.users-header-simple {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: #202c33;
+  border-bottom: 1px solid #2a3942;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.users-header-simple h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #e9edef;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.users-header-simple h3 i {
+  color: #00a884;
+}
+
+.users-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.icon-btn-small {
+  background: transparent;
+  border: none;
+  color: #8696a0;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.icon-btn-small:hover {
+  background: #2a3942;
+  color: white;
+}
+
+.users-list-simple {
+  padding: 8px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* عنصر المستخدم */
+.user-item-simple {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: 1px solid transparent;
+}
+
+.user-item-simple:hover {
+  background: #202c33;
+}
+
+.user-item-simple img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.user-info-simple {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name-simple {
+  font-weight: 600;
+  font-size: 14px;
+  color: #e9edef;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-rank-simple {
+  font-size: 0.7rem;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+/* ============================================
+   OFFLINE USERS
+============================================ */
+.offline-section {
+  border-top: 1px solid #2a3942;
+  background: #0b141a;
+}
+
+.offline-section .users-header-simple {
+  background: #0b141a;
+}
+
+.offline-section .users-header-simple h3 i {
+  color: #8696a0;
+}
+
+.offline-user {
+  opacity: 0.6;
+}
+
+.offline-user .user-name-simple {
+  color: #8696a0;
+}
+
+/* ============================================
+   MESSAGE FORM (شريط الكتابة في الأسفل)
+============================================ */
+#messageForm {
+  display: flex;
+  padding: 8px 16px;
+  background: #202c33;
+  gap: 8px;
+  z-index: 10;
+  align-items: center;
+  flex-shrink: 0;
+  border-top: 1px solid #2a3942;
+}
+
+#messageInput {
+  flex: 1;
+  padding: 10px 16px;
+  background: #2a3942;
+  border: none;
+  border-radius: 20px;
+  color: white;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+}
+
+#messageInput::placeholder {
+  color: #8696a0;
+}
+
+#messageForm button {
+  background: transparent;
+  color: #8696a0;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#messageForm button:hover {
+  background: #2a3942;
+  color: white;
+}
+
+#messageForm button[type="submit"] {
+  background: #00a884;
+  color: white;
+  font-size: 16px;
+}
+
+#messageForm button[type="submit"]:hover {
+  background: #017561;
+}
+
+/* ============================================
+   BADGES (رتب المستخدمين)
+============================================ */
+.badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.badge.owner { background: #ef4444; color: white; }
+.badge.superadmin { background: #8b5cf6; color: white; }
+.badge.admin { background: #3b82f6; color: white; }
+.badge.premium { background: #10b981; color: white; }
+.badge.vip { background: #f59e0b; color: black; }
+.badge.guest { background: #475569; color: #cbd5e1; }
+
+/* ============================================
+   PROFILE PANEL
+============================================ */
+.profile-panel,
+#myProfilePanel {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: linear-gradient(145deg, #0f172a, #1e293b);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  border: 1px solid #334155;
+  color: white;
+  z-index: 2000;
+}
+
+.profile-header {
+  padding: 15px 20px;
+  background: #075e54;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-radius: 12px 12px 0 0;
+}
+
+.profile-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.close-panel {
+  cursor: pointer;
+  font-size: 24px;
+  color: #ccc;
+  transition: color 0.2s;
+  line-height: 1;
+}
+
+.close-panel:hover {
+  color: white;
+}
+
+/* Cover Photo */
+.profile-cover-section {
+  position: relative;
+  height: 150px;
+  background: #0f172a;
+  overflow: hidden;
+}
+
+.cover-photo {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+}
+
+.cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.profile-cover-section:hover .cover-overlay {
+  opacity: 1;
+}
+
+.change-cover-btn {
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Avatar */
+.profile-main-content {
+  padding: 0 20px;
+  margin-top: -50px;
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+#myProfileAvatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 4px solid #1e293b;
+  object-fit: cover;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.edit-avatar {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #00a884;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid #1e293b;
+  font-size: 12px;
+}
+
+.user-meta h4 {
+  margin: 12px 0 4px;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.user-status {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+/* Upload Song Button */
+.upload-song-btn {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 20px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin: 10px 0;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.upload-song-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(139, 92, 246, 0.4);
+}
+
+.song-status {
+  font-size: 11px;
+  color: #10b981;
+  margin-top: 5px;
+  text-align: center;
+}
+
+/* Tabs */
+.modern-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  padding: 15px 20px 10px;
+  border-bottom: 1px solid #334155;
+}
+
+.m-tab {
+  background: rgba(30, 41, 59, 0.8);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  color: #cbd5e1;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.8rem;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.m-tab:hover {
+  background: #334155;
+}
+
+.m-tab.active {
+  background: #00a884;
+  color: white;
+}
+
+.m-tab.highlight {
+  background: linear-gradient(90deg, #8b5cf6, #d946ef);
+  color: white;
+}
+
+/* Tab Content */
+.tab-content {
+  padding: 20px;
+}
+
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+.tab-pane.hidden {
+  display: none;
+}
+
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.info-item {
+  background: rgba(30, 41, 59, 0.6);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.info-item .label {
+  color: #94a3b8;
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.75rem;
+}
+
+/* Features */
+.features-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.feature-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  padding: 12px 8px;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  font-size: 0.8rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.feature-btn i {
+  font-size: 1.3rem;
+}
+
+.feature-btn:hover {
+  background: #334155;
+  border-color: #00a884;
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   PRIVATE CHAT
+============================================ */
+.private-chat-panel {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 340px;
+  height: 420px;
+  background: #111b21;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+  border: 1px solid #2a3942;
+  overflow: hidden;
+  z-index: 1000;
+  flex-direction: column;
+}
+
+.private-header {
+  background: #202c33;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.private-header h3 {
+  margin: 0;
+  font-size: 15px;
+  color: #e9edef;
+}
+
+.private-messages {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  background-color: #0b141a;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#privateChatForm {
+  display: flex;
+  padding: 8px 10px;
+  background: #202c33;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+#privateChatInput {
+  flex: 1;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 20px;
+  background: #2a3942;
+  color: white;
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+}
+
+#privateChatForm button {
+  background: #00a884;
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Private Message Bubbles */
+.private-message,
+.my-private-message {
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 6px !important;
+  max-width: 85% !important;
+  margin-bottom: 6px !important;
+}
+
+.private-message {
+  align-self: flex-start !important;
+}
+
+.my-private-message {
+  align-self: flex-end !important;
+  flex-direction: row-reverse !important;
+}
+
+.private-message img,
+.my-private-message img {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  flex-shrink: 0 !important;
+}
+
+.private-content {
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  max-width: calc(100% - 36px) !important;
+  word-wrap: break-word !important;
+}
+
+.private-message .private-content {
+  background: #202c33 !important;
+  color: #e9edef !important;
+}
+
+.my-private-message .private-content {
+  background: #005c4b !important;
+  color: #e9edef !important;
+}
+
+.private-content strong {
+  display: block !important;
+  font-size: 11px !important;
+  color: #00a884 !important;
+  margin-bottom: 2px !important;
+}
+
+.my-private-message .private-content strong {
+  color: #8696a0 !important;
+}
+
+.private-content p {
+  margin: 0 !important;
+  font-size: 13px !important;
+}
+
+/* Private Background Picker */
+.private-bg-picker {
+  position: absolute;
+  bottom: 60px;
+  right: 10px;
+  width: 200px;
+  background: #202c33;
+  border-radius: 10px;
+  padding: 12px;
+  z-index: 1100;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+  border: 1px solid #2a3942;
+  display: none;
+}
+
+.private-bg-picker.show {
+  display: block;
+}
+
+.private-bg-picker h4 {
+  color: white;
+  font-size: 12px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.private-bg-picker button {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 6px;
+  background: #00a884;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.private-bg-picker button:hover {
+  background: #017561;
+}
+
+.private-bg-picker .reset-bg {
+  background: #ef4444;
+}
+
+.private-bg-picker .reset-bg:hover {
+  background: #dc2626;
+}
+
+/* ============================================
+   PANELS (Conversations, Requests, Reports)
+============================================ */
+.conversations-panel,
+.friend-requests-panel,
+.reports-panel {
+  position: fixed;
+  top: 65px;
+  right: 20px;
+  width: 320px;
+  max-height: 80vh;
+  background: #111b21;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 15px;
+  color: white;
+  display: none;
+  border: 1px solid #2a3942;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #2a3942;
+  padding-bottom: 10px;
+}
+
+.panel-header h3 {
+  margin: 0;
+  font-size: 15px;
+  color: #e9edef;
+}
+
+.conversation-item,
+.request-item,
+.report-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  background: #202c33;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.conversation-item:hover,
+.request-item:hover,
+.report-item:hover {
+  background: #2a3942;
+}
+
+.conversation-item img,
+.request-item img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.action-btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.accept-btn { background: #00a884; color: white; }
+.reject-btn { background: #ef4444; color: white; }
+
+/* ============================================
+   APPS PANEL
+============================================ */
+.apps-panel {
+  position: fixed;
+  top: 65px;
+  left: 20px;
+  width: 380px;
+  max-height: 85vh;
+  background: #111b21;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 15px;
+  color: white;
+  display: none;
+  border: 1px solid #2a3942;
+}
+
+.apps-panel .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #2a3942;
+  padding-bottom: 10px;
+}
+
+.apps-panel .panel-header h3 {
+  margin: 0;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.apps-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.app-btn {
+  background: #202c33;
+  border: 1px solid #2a3942;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.app-btn:hover {
+  background: #2a3942;
+  border-color: #00a884;
+}
+
+.app-btn i {
+  width: 22px;
+  font-size: 1.1rem;
+  color: #00a884;
+}
+
+.app-content {
+  display: none;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #2a3942;
+}
+
+.app-content.active {
+  display: block;
+}
+
+/* Posts */
+.post-input-area textarea {
+  width: 100%;
+  background: #202c33;
+  border: 1px solid #2a3942;
+  border-radius: 8px;
+  padding: 10px;
+  color: white;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.post-btn {
+  background: #00a884;
+  margin-top: 8px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  width: 100%;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+.posts-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 15px;
+}
+
+.post-item {
+  background: #202c33;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.post-header img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.post-username {
+  font-weight: 600;
+  color: #00a884;
+  font-size: 13px;
+}
+
+.post-time {
+  font-size: 10px;
+  color: #8696a0;
+  margin-right: auto;
+}
+
+.post-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #2a3942;
+}
+
+.like-btn {
+  background: none;
+  border: none;
+  color: #8696a0;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: inherit;
+}
+
+.like-btn.liked {
+  color: #ef4444;
+}
+
+/* News */
+.news-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.news-item {
+  padding: 12px;
+  border-bottom: 1px solid #2a3942;
+  cursor: pointer;
+}
+
+.news-item:hover {
+  background: #202c33;
+}
+
+.news-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: #fbbf24;
+  margin-bottom: 6px;
+}
+
+/* ============================================
+   ROOMS LIST APP
+============================================ */
+.rooms-list-app {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.room-item-app {
+  background: #202c33;
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid #2a3942;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.room-item-app:hover {
+  background: #2a3942;
+  border-color: #00a884;
+}
+
+.room-icon-app {
+  width: 44px;
+  height: 44px;
+  background: #111b21;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.room-info-app {
+  flex: 1;
+}
+
+.room-name-app {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.room-count-app {
+  font-size: 11px;
+  color: #8696a0;
+}
+
+.room-join-btn {
+  background: #00a884;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: inherit;
+}
+
+.room-join-btn:hover {
+  background: #017561;
+}
+
+/* ============================================
+   OTHER USER PROFILE MODAL
+============================================ */
+.other-profile-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.other-profile-modal .modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 460px;
+  background: #111b21;
+  border-radius: 12px;
+  overflow: hidden;
+  color: white;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.other-profile-modal .profile-cover {
+  height: 120px;
+  background: linear-gradient(135deg, #075e54, #128c7e);
+}
+
+.large-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 4px solid #111b21;
+  object-fit: cover;
+  margin-top: -50px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+.profile-header-info {
+  text-align: center;
+  padding: 0 20px 15px;
+}
+
+.user-info-text h2 {
+  margin: 8px 0 4px;
+  font-size: 1.4rem;
+}
+
+.status-text {
+  color: #8696a0;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #2a3942;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+}
+
+.msg-btn { background: #00a884; color: white; }
+.friend-btn { background: #10b981; color: white; }
+.report-btn { background: #ef4444; color: white; }
+
+.profile-details {
+  padding: 15px 20px 20px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #2a3942;
+  font-size: 0.85rem;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-item span:first-child {
+  color: #8696a0;
+}
+
+.close-modal {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 28px;
+  color: white;
+  cursor: pointer;
+  z-index: 10;
+  line-height: 1;
+}
+
+/* ============================================
+   SHOP & LEVEL PANELS
+============================================ */
+.shop-panel {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(10px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.shop-panel .shop-body {
+  padding: 2rem;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: #111b21;
+  border-radius: 12px;
+  border: 1px solid #2a3942;
+  width: 90%;
+  max-width: 400px;
+}
+
+.shop-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.shop-item {
+  background: #202c33;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.price {
+  color: #fbbf24;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.buy-btn {
+  background: #00a884;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.buy-btn:hover {
+  background: #017561;
+}
+
+/* Level Panel */
+.level-panel {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(14px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.level-panel-content {
+  width: 90%;
+  max-width: 400px;
+  background: #111b21;
+  border-radius: 12px;
+  padding: 2rem;
+  border: 1px solid #2a3942;
+  color: white;
+}
+
+.level-circle {
+  width: 140px;
+  height: 140px;
+  margin: 1.5rem auto;
+  border-radius: 50%;
+  background: conic-gradient(#fbbf24 0% 70%, #1e293b 70%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 50px rgba(251, 191, 36, 0.4);
+}
+
+.current-level {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #fbbf24;
+}
+
+.progress-bar {
+  height: 12px;
+  background: #2a3942;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  transition: width 0.8s ease;
+}
+
+/* ============================================
+   EMOJI PICKER
+============================================ */
+.emoji-picker {
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  width: 340px;
+  max-height: 320px;
+  background: #202c33;
+  border-radius: 10px;
+  border: 1px solid #2a3942;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.emoji-picker.hidden {
+  display: none;
+}
+
+.emoji-tabs {
+  display: flex;
+  background: #111b21;
+  border-bottom: 1px solid #2a3942;
+}
+
+.emoji-tab {
+  flex: 1;
+  padding: 10px;
+  background: none;
+  border: none;
+  color: #8696a0;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.emoji-tab.active {
+  color: #00a884;
+  border-bottom: 2px solid #00a884;
+}
+
+.emoji-content {
+  padding: 10px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+  padding: 4px;
+}
+
+.emoji-grid img {
+  width: 100%;
+  height: 30px;
+  object-fit: contain;
+  cursor: pointer;
+  transition: transform 0.2s;
+  border-radius: 4px;
+}
+
+.emoji-grid img:hover {
+  transform: scale(1.3);
+}
+
+.animated-emojis {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.animated-emojis img {
+  height: 40px;
+}
+
+/* ============================================
+   AVATAR FRAMES
+============================================ */
+.frame-red { box-shadow: 0 0 0 2px #ef4444; }
+.frame-blue { box-shadow: 0 0 0 2px #3b82f6; }
+.frame-green { box-shadow: 0 0 0 2px #10b981; }
+.frame-gold { box-shadow: 0 0 0 2px #fbbf24; }
+.frame-purple { box-shadow: 0 0 0 2px #8b5cf6; }
+.frame-pink { box-shadow: 0 0 0 2px #ec4899; }
+.frame-cyan { box-shadow: 0 0 0 2px #06b6d4; }
+.frame-white { box-shadow: 0 0 0 2px #ffffff; }
+
+@keyframes frameGlow1 {
+  0%,100% { box-shadow: 0 0 0 2px #ef4444, 0 0 8px #ef4444; }
+  50% { box-shadow: 0 0 0 2px #ef4444, 0 0 16px #ef4444; }
+}
+@keyframes frameGlow2 {
+  0%,100% { box-shadow: 0 0 0 2px #3b82f6, 0 0 8px #3b82f6; }
+  50% { box-shadow: 0 0 0 2px #3b82f6, 0 0 16px #3b82f6; }
+}
+@keyframes frameGlow3 {
+  0%,100% { box-shadow: 0 0 0 2px #10b981, 0 0 8px #10b981; }
+  50% { box-shadow: 0 0 0 2px #10b981, 0 0 16px #10b981; }
+}
+@keyframes frameGlow4 {
+  0%,100% { box-shadow: 0 0 0 2px #fbbf24, 0 0 8px #fbbf24; }
+  50% { box-shadow: 0 0 0 2px #fbbf24, 0 0 16px #fbbf24; }
+}
+@keyframes frameGlow5 {
+  0%,100% { box-shadow: 0 0 0 2px #8b5cf6, 0 0 8px #8b5cf6; }
+  50% { box-shadow: 0 0 0 2px #8b5cf6, 0 0 16px #8b5cf6; }
+}
+@keyframes frameGlow6 {
+  0%,100% { box-shadow: 0 0 0 2px #ec4899, 0 0 8px #ec4899; }
+  50% { box-shadow: 0 0 0 2px #ec4899, 0 0 16px #ec4899; }
+}
+@keyframes frameGlow7 {
+  0%,100% { box-shadow: 0 0 0 2px #06b6d4, 0 0 8px #06b6d4; }
+  50% { box-shadow: 0 0 0 2px #06b6d4, 0 0 16px #06b6d4; }
+}
+@keyframes frameGlow8 {
+  0%,100% { box-shadow: 0 0 0 2px #ffffff, 0 0 8px #ffffff; }
+  50% { box-shadow: 0 0 0 2px #ffffff, 0 0 16px #ffffff; }
+}
+
+.frame-animated-1 { animation: frameGlow1 2s ease-in-out infinite; }
+.frame-animated-2 { animation: frameGlow2 2s ease-in-out infinite; }
+.frame-animated-3 { animation: frameGlow3 2s ease-in-out infinite; }
+.frame-animated-4 { animation: frameGlow4 2s ease-in-out infinite; }
+.frame-animated-5 { animation: frameGlow5 2s ease-in-out infinite; }
+.frame-animated-6 { animation: frameGlow6 2s ease-in-out infinite; }
+.frame-animated-7 { animation: frameGlow7 2s ease-in-out infinite; }
+.frame-animated-8 { animation: frameGlow8 2s ease-in-out infinite; }
+
+/* Remove frames from animated emojis */
+.message-content img[src*="allsmileys"],
+.message-content img[src*=".gif"],
+.private-content img[src*="allsmileys"],
+.private-content img[src*=".gif"] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  vertical-align: middle !important;
+}
+
+/* ============================================
+   UTILITIES
+============================================ */
+.hidden {
+  display: none !important;
+}
+
+.no-data {
+  text-align: center;
+  padding: 30px;
+  color: #8696a0;
+  font-size: 13px;
+}
+
+/* ============================================
+   RESPONSIVE (للجوال)
+============================================ */
+@media (max-width: 768px) {
+  header {
+    padding: 6px 10px;
+    height: 50px;
   }
-  </script>
-  <link rel="stylesheet" href="chat.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="/socket.io/socket.io.js"></script>
-  <style>
-    .conversations-panel, .friend-requests-panel, .reports-panel {
-      position: fixed;
-      top: 60px;
-      right: 20px;
-      width: 320px;
-      max-height: 80vh;
-      background: #1e293b;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      z-index: 1000;
-      overflow-y: auto;
-      padding: 15px;
-      color: white;
-      display: none;
-    }
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-      border-bottom: 1px solid #334155;
-      padding-bottom: 10px;
-    }
-    .panel-header h3 { margin: 0; font-size: 1.2rem; }
-    .close-panel { cursor: pointer; font-size: 1.5rem; }
-    .conversation-item, .request-item, .report-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      background: #0f172a;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .conversation-item:hover, .request-item:hover, .report-item:hover {
-      background: #1e40af;
-    }
-    .conversation-item img, .request-item img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-    }
-    .action-btn-small {
-      padding: 6px 12px;
-      font-size: 0.85rem;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-    }
-    .accept-btn { background: #10b981; color: white; }
-    .reject-btn { background: #ef4444; color: white; }
-    .report-item .reporter { font-weight: bold; color: #fbbf24; }
-
-    #myProfilePanel {
-      width: 460px;
-      max-height: 85vh;
-      overflow-y: auto;
-      background: #0f172a;
-      border-radius: 16px;
-      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
-      color: white;
-      position: fixed;
-      top: 70px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2000;
-      display: none;
-      border: 1px solid #334155;
-    }
-    .profile-header {
-      padding: 15px 20px;
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      border-bottom: 1px solid #334155;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .profile-header h3 { margin: 0; font-size: 1.4rem; }
-    .profile-cover-section {
-      position: relative;
-      height: 200px;
-    }
-    .cover-photo {
-      width: 100%;
-      height: 100%;
-      background-size: cover;
-      background-position: center;
-    }
-    .cover-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .profile-cover-section:hover .cover-overlay { opacity: 1; }
-    .change-cover-btn {
-      background: rgba(0,0,0,0.6);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 30px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .profile-main-content {
-      padding: 0 25px;
-      margin-top: -70px;
-      position: relative;
-      z-index: 2;
-      text-align: center;
-    }
-    #myProfileAvatar {
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      border: 5px solid #0f172a;
-      object-fit: cover;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-    }
-    .edit-avatar {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      background: #3b82f6;
-      color: white;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      border: 3px solid #0f172a;
-    }
-    .user-meta h4 {
-      margin: 15px 0 8px;
-      font-size: 1.7rem;
-    }
-    .user-status {
-      color: #94a3b8;
-      font-size: 1rem;
-    }
-    .modern-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
-      padding: 20px 25px 10px;
-      border-bottom: 1px solid #334155;
-    }
-    .m-tab {
-      background: #1e293b;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 30px;
-      color: #cbd5e1;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.3s;
-    }
-    .m-tab:hover { background: #334155; }
-    .m-tab.active {
-      background: #3b82f6;
-      color: white;
-    }
-    .m-tab.highlight {
-      background: linear-gradient(90deg, #8b5cf6, #d946ef);
-      color: white;
-    }
-    .tab-content {
-      padding: 25px;
-    }
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
-    .profile-info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-    }
-    .info-item {
-      background: #1e293b;
-      padding: 12px 16px;
-      border-radius: 10px;
-    }
-    .info-item .label {
-      color: #94a3b8;
-      font-size: 0.9rem;
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    #usersPanel {
-      width: 280px;
-      background: #0f172a;
-      border-radius: 12px;
-      border: 1px solid #334155;
-      overflow: hidden;
-      margin-right: 10px;
-    }
-    .users-header-simple {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 15px;
-      background: #1e293b;
-      border-bottom: 1px solid #334155;
-    }
-    .users-header-simple h3 {
-      margin: 0;
-      font-size: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .users-header-simple h3 i {
-      color: #3b82f6;
-    }
-    .users-controls {
-      display: flex;
-      gap: 5px;
-    }
-    .icon-btn-small {
-      background: #334155;
-      border: none;
-      color: white;
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
-    }
-    .icon-btn-small:hover {
-      background: #475569;
-    }
-    .users-list-simple {
-      max-height: calc(100vh - 200px);
-      overflow-y: auto;
-      padding: 8px;
-    }
-    .user-item-simple {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      margin-bottom: 6px;
-      background: #1e293b;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 1px solid transparent;
-    }
-    .user-item-simple:hover {
-      background: #334155;
-      border-color: #3b82f6;
-      transform: translateX(-3px);
-    }
-    .user-item-simple img {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-    .user-info-simple {
-      flex: 1;
-      min-width: 0;
-    }
-    .user-name-simple {
-      font-weight: bold;
-      font-size: 0.95rem;
-      display: block;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .user-rank-simple {
-      font-size: 0.7rem;
-      display: inline-block;
-      margin-top: 3px;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-size: 0.7rem;
-      font-weight: bold;
-    }
-    .badge.owner { background: #ef4444; color: white; }
-    .badge.superadmin { background: #8b5cf6; color: white; }
-    .badge.admin { background: #3b82f6; color: white; }
-    .badge.premium { background: #10b981; color: white; }
-    .badge.vip { background: #f59e0b; color: black; }
-    .badge.guest { background: #475569; color: #cbd5e1; }
-
-    /* زر رفع الأغنية */
-    .upload-song-btn {
-      background: linear-gradient(135deg, #8b5cf6, #d946ef);
-      border: none;
-      padding: 12px 20px;
-      border-radius: 40px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      width: 100%;
-      margin: 10px 0;
-      font-size: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-    .upload-song-btn:hover {
-      transform: scale(1.02);
-      opacity: 0.9;
-    }
-    .song-status {
-      font-size: 12px;
-      color: #10b981;
-      margin-top: 5px;
-      text-align: center;
-    }
-
-    /* أنماط غير المتصلين */
-    .offline-section {
-      margin-top: 15px;
-      border-top: 1px solid #334155;
-      padding-top: 10px;
-    }
-    .offline-section .users-header-simple h3 i {
-      color: #64748b;
-    }
-    .offline-user {
-      opacity: 0.7;
-    }
-    .offline-user .user-name-simple {
-      color: #94a3b8;
-    }
-    .offline-user .last-room {
-      font-size: 10px;
-      color: #64748b;
-      margin-top: 2px;
-    }
-
-    /* ========== اللوحة الجانبية للتطبيقات ========== */
-    .apps-panel {
-      position: fixed;
-      top: 60px;
-      left: 20px;
-      width: 380px;
-      max-height: 85vh;
-      background: #1e293b;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      z-index: 1000;
-      overflow-y: auto;
-      padding: 15px;
-      color: white;
-      display: none;
-      border: 1px solid #334155;
-    }
-    .apps-panel .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-      border-bottom: 1px solid #334155;
-      padding-bottom: 10px;
-    }
-    .apps-panel .panel-header h3 {
-      margin: 0;
-      font-size: 1.2rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .apps-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .app-btn {
-      background: #0f172a;
-      border: 1px solid #334155;
-      padding: 12px 16px;
-      border-radius: 10px;
-      color: white;
-      cursor: pointer;
-      font-size: 1rem;
-      text-align: right;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.3s;
-    }
-    .app-btn:hover {
-      background: #334155;
-      border-color: #3b82f6;
-      transform: translateX(-5px);
-    }
-    .app-btn i {
-      width: 24px;
-      font-size: 1.2rem;
-    }
-    .app-content {
-      display: none;
-      margin-top: 15px;
-      padding-top: 15px;
-      border-top: 1px solid #334155;
-    }
-    .app-content.active {
-      display: block;
-    }
-    .post-input-area textarea {
-      width: 100%;
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 12px;
-      color: white;
-      resize: vertical;
-      font-family: inherit;
-    }
-    .post-btn {
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      margin-top: 10px;
-      padding: 10px;
-      border: none;
-      border-radius: 30px;
-      color: white;
-      cursor: pointer;
-      width: 100%;
-    }
-    .posts-list {
-      max-height: 300px;
-      overflow-y: auto;
-      margin-top: 15px;
-    }
-    .post-item {
-      background: #0f172a;
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 12px;
-    }
-    .post-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-    .post-header img {
-      width: 35px;
-      height: 35px;
-      border-radius: 50%;
-    }
-    .post-username {
-      font-weight: bold;
-      color: #3b82f6;
-    }
-    .post-time {
-      font-size: 10px;
-      color: #94a3b8;
-      margin-right: auto;
-    }
-    .post-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid #334155;
-    }
-    .like-btn {
-      background: none;
-      border: none;
-      color: #94a3b8;
-      cursor: pointer;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .like-btn.liked {
-      color: #ef4444;
-    }
-    .like-btn:hover {
-      color: #3b82f6;
-    }
-    .news-list {
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    .news-item {
-      padding: 10px;
-      border-bottom: 1px solid #334155;
-      cursor: pointer;
-    }
-    .news-item:hover {
-      background: #334155;
-    }
-    .news-title {
-      font-weight: bold;
-      font-size: 13px;
-    }
-    .no-data {
-      text-align: center;
-      padding: 30px;
-      color: #94a3b8;
-    }
-
-    /* ========== قائمة الغرف في التطبيقات ========== */
-    .rooms-list-app {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-    .room-item-app {
-      background: #0f172a;
-      border-radius: 12px;
-      padding: 15px;
-      cursor: pointer;
-      transition: all 0.3s;
-      border: 1px solid #334155;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .room-item-app:hover {
-      background: #1e293b;
-      border-color: #3b82f6;
-      transform: translateX(-5px);
-    }
-    .room-icon-app {
-      width: 48px;
-      height: 48px;
-      background: #1e293b;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
-    }
-    .room-info-app {
-      flex: 1;
-    }
-    .room-name-app {
-      font-weight: bold;
-      font-size: 1rem;
-      margin-bottom: 4px;
-    }
-    .room-count-app {
-      font-size: 0.75rem;
-      color: #94a3b8;
-    }
-    .room-join-btn {
-      background: #3b82f6;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 20px;
-      color: white;
-      cursor: pointer;
-      font-size: 0.75rem;
-    }
-    .room-join-btn:hover {
-      background: #2563eb;
-    }
-
-    /* خلفية الدردشة الخاصة */
-    .private-bg-picker {
-      position: absolute;
-      bottom: 70px;
-      right: 20px;
-      width: 200px;
-      background: #1e293b;
-      border-radius: 12px;
-      padding: 12px;
-      z-index: 1100;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-      border: 1px solid #3b82f6;
-      display: none;
-    }
-    .private-bg-picker.show {
-      display: block;
-    }
-    .private-bg-picker h4 {
-      color: white;
-      font-size: 12px;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    .private-bg-picker button {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 8px;
-      background: #3b82f6;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
-      font-size: 12px;
-    }
-    .private-bg-picker button:hover {
-      background: #2563eb;
-    }
-    .private-bg-picker .reset-bg {
-      background: #ef4444;
-    }
-    .private-bg-picker .reset-bg:hover {
-      background: #dc2626;
-    }
-
-    /* خلفية منطقة الرسائل الخاصة */
-    #privateChatMessages {
-      background-size: cover !important;
-      background-position: center !important;
-      background-repeat: no-repeat !important;
-      transition: background-image 0.3s ease;
-      background-color: #1a2a3a;
-    }
-
-    /* ========== لعبة الديناصور - ستايلات جديدة ========== */
-    .dino-game-modal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 900px;
-      background: #1e1e1e;
-      border-radius: 20px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-      z-index: 3000;
-      display: none;
-      border: 2px solid #3b82f6;
-      direction: ltr;
-    }
-    .dino-game-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 20px;
-      background: #0f172a;
-      border-radius: 20px 20px 0 0;
-      border-bottom: 1px solid #334155;
-    }
-    .dino-game-header h3 {
-      margin: 0;
-      color: white;
-      font-size: 1.3rem;
-    }
-    .dino-game-header h3 i {
-      color: #fbbf24;
-      margin-left: 8px;
-    }
-    .dino-game-controls {
-      display: flex;
-      gap: 10px;
-    }
-    .dino-start-btn {
-      background: #10b981;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 30px;
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .dino-start-btn:hover {
-      background: #059669;
-    }
-    .dino-exit-btn {
-      background: #ef4444;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 30px;
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .dino-exit-btn:hover {
-      background: #dc2626;
-    }
-    .dino-game-container {
-      background: #f7f7f7;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      border-radius: 0 0 20px 20px;
-    }
-    canvas {
-      border: 2px solid #333;
-      background: white;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .dino-score {
-      text-align: center;
-      margin-top: 10px;
-      font-size: 18px;
-      color: #333;
-      font-weight: bold;
-    }
-    .dino-score span {
-      color: #3b82f6;
-      font-size: 24px;
-    }
-
-    /* ========== ستايلات المميزات ========== */
-    .features-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .feature-btn {
-      background: #1e293b;
-      border: 1px solid #334155;
-      padding: 14px 16px;
-      border-radius: 12px;
-      color: white;
-      cursor: pointer;
-      font-size: 1rem;
-      text-align: right;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.3s;
-      width: 100%;
-    }
-    .feature-btn:hover {
-      background: #334155;
-      border-color: #3b82f6;
-      transform: translateX(-5px);
-    }
-    .feature-btn i {
-      width: 28px;
-      font-size: 1.2rem;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <div class="header-left">
-      <h1>شات عربي</h1>
-      <div class="header-icons">
-        <button class="icon-btn" id="privateMsgBtn" title="الرسائل الخاصة">
-          <i class="fas fa-envelope"></i>
-          <span id="msgBadge" class="badge" style="display:none;">0</span>
-        </button>
-        <button class="icon-btn" id="friendReqBtn" title="طلبات الصداقة">
-          <i class="fas fa-user-plus"></i>
-          <span id="friendReqBadge" class="badge">0</span>
-        </button>
-        <button class="icon-btn" id="notificationsBtn" title="الإشعارات"><i class="fas fa-bell"></i></button>
-        <button class="icon-btn" id="reportsBtn" title="الإبلاغات"><i class="fas fa-flag"></i></button>
-        <button class="icon-btn" id="hideUsersPanelBtn" title="إخفاء المتصلين">
-          <i class="fas fa-eye-slash"></i>
-        </button>
-        <button class="icon-btn" id="showUsersPanelBtn" title="إظهار المتصلين" style="display:none;">
-          <i class="fas fa-users"></i>
-        </button>
-        <button class="icon-btn" id="shopBtn" title="المتجر">
-          <i class="fas fa-shopping-cart"></i>
-        </button>
-        <button class="icon-btn" id="appsBtn" title="التطبيقات">
-          <i class="fas fa-th"></i>
-          <span class="apps-text">تطبيقات</span>
-        </button>
-        <button class="icon-btn" id="myLevelBtn" title="نقاطي ومستواي">
-          <i class="fas fa-star"></i>
-          <span class="level-text">مستواي</span>
-        </button>
-      </div>
-    </div>
-    <div style="display: flex; align-items: center; gap: 15px;">
-      <div id="profileBtn">
-        <img id="avatar" src="https://via.placeholder.com/40" alt="بروفايل">
-      </div>
-      <button id="backToRoomsBtn" class="logout-btn" title="العودة إلى الغرف" onclick="window.location.href='rooms.html';">
-        <i class="fas fa-door-open"></i> العودة إلى الغرف
-      </button>
-    </div>
-  </header>
-
-  <div id="conversationsPanel" class="conversations-panel">
-    <div class="panel-header">
-      <h3>المحادثات الخاصة</h3>
-      <span class="close-panel" onclick="document.getElementById('conversationsPanel').style.display='none'">×</span>
-    </div>
-    <div id="conversationsList"></div>
-  </div>
-
-  <div id="friendRequestsPanel" class="friend-requests-panel">
-    <div class="panel-header">
-      <h3>طلبات الصداقة</h3>
-      <span class="close-panel" onclick="document.getElementById('friendRequestsPanel').style.display='none'">×</span>
-    </div>
-    <div id="friendRequestsList"></div>
-  </div>
-
-  <div id="reportsPanel" class="reports-panel">
-    <div class="panel-header">
-      <h3>الإبلاغات الواردة</h3>
-      <span class="close-panel" onclick="document.getElementById('reportsPanel').style.display='none'">×</span>
-    </div>
-    <div id="reportsList"></div>
-  </div>
-
-  <!-- لوحة التطبيقات -->
-  <div id="appsPanel" class="apps-panel">
-    <div class="panel-header">
-      <h3><i class="fas fa-th"></i> التطبيقات</h3>
-      <span class="close-panel" onclick="document.getElementById('appsPanel').style.display='none'">×</span>
-    </div>
-    
-    <div class="apps-buttons">
-      <button class="app-btn" data-app="wall">
-        <i class="fas fa-users"></i> حائط الأصدقاء
-      </button>
-      <button class="app-btn" data-app="dino">
-        <i class="fas fa-dragon"></i> لعبة الديناصور
-      </button>
-      <button class="app-btn" data-app="news">
-        <i class="fas fa-newspaper"></i> الأخبار
-      </button>
-      <button class="app-btn" data-app="rooms">
-        <i class="fas fa-door-open"></i> قائمة الغرف
-      </button>
-    </div>
-
-    <!-- حائط الأصدقاء -->
-    <div id="app-wall" class="app-content">
-      <div class="post-input-area">
-        <textarea id="postContent" rows="2" placeholder="شارك رأيك أو حدثنا عن يومك..."></textarea>
-        <button id="publishPostBtn" class="post-btn"><i class="fas fa-paper-plane"></i> نشر</button>
-      </div>
-      <div id="postsList" class="posts-list">
-        <div class="no-data">لا توجد منشورات</div>
-      </div>
-    </div>
-
-    <!-- لعبة الديناصور -->
-    <div id="app-dino" class="app-content">
-      <button class="app-btn" id="openDinoGameBtn" style="background: linear-gradient(135deg, #f59e0b, #ef4444); text-align: center; justify-content: center;">
-        <i class="fas fa-gamepad"></i> تشغيل لعبة الديناصور
-      </button>
-    </div>
-
-    <!-- الأخبار -->
-    <div id="app-news" class="app-content">
-      <div id="addNewsSection" style="display: none; margin-bottom: 20px; padding: 15px; background: #0f172a; border-radius: 12px; border: 1px solid #3b82f6;">
-        <h4 style="margin: 0 0 10px 0; color: #fbbf24;"><i class="fas fa-edit"></i> إضافة خبر جديد</h4>
-        <input type="text" id="newsTitle" placeholder="عنوان الخبر..." style="width: 100%; padding: 10px; margin-bottom: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white; box-sizing: border-box;">
-        <textarea id="newsContent" rows="3" placeholder="محتوى الخبر..." style="width: 100%; padding: 10px; margin-bottom: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white; resize: vertical; box-sizing: border-box;"></textarea>
-        <button id="publishNewsBtn" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold;">
-          <i class="fas fa-paper-plane"></i> نشر الخبر
-        </button>
-      </div>
-      <div id="newsList" class="news-list">
-        <div class="no-data">جاري تحميل الأخبار...</div>
-      </div>
-    </div>
-
-    <!-- قائمة الغرف -->
-    <div id="app-rooms" class="app-content">
-      <div id="roomsListApp" class="rooms-list-app">
-        <div class="no-data">جاري تحميل الغرف...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- نافذة لعبة الديناصور المنبثقة -->
-  <div id="dinoGameModal" class="dino-game-modal">
-    <div class="dino-game-header">
-      <h3><i class="fas fa-dragon"></i> لعبة الديناصور</h3>
-      <div class="dino-game-controls">
-        <button id="dinoStartBtn" class="dino-start-btn"><i class="fas fa-play"></i> بدء اللعبة</button>
-        <button id="dinoExitBtn" class="dino-exit-btn"><i class="fas fa-times"></i> خروج</button>
-      </div>
-    </div>
-    <div class="dino-game-container">
-      <canvas id="dinoCanvas" width="800" height="250"></canvas>
-    </div>
-    <div class="dino-score">
-      النقاط: <span id="dinoScore">0</span> / <span id="maxScore">99,999,999</span>
-    </div>
-  </div>
-
-  <div class="chat-main">
-    <div id="chatWindow"></div>
-    
-    <div id="usersPanel">
-      <div class="users-header-simple">
-        <h3><i class="fas fa-users"></i> المتصلون <span id="userCount">0</span></h3>
-        <div class="users-controls">
-          <button id="hideUsersPanelBtn2" class="icon-btn-small" title="إخفاء"><i class="fas fa-chevron-left"></i></button>
-          <button id="showUsersPanelBtn2" class="icon-btn-small" title="إظهار" style="display:none;"><i class="fas fa-chevron-right"></i></button>
-        </div>
-      </div>
-      <div id="usersList" class="users-list-simple"></div>
-      
-      <div class="offline-section">
-        <div class="users-header-simple">
-          <h3><i class="fas fa-user-slash"></i> غير متصلين <span id="offlineCount">0</span></h3>
-        </div>
-        <div id="offlineUsersList" class="users-list-simple"></div>
-      </div>
-    </div>
-  </div>
-
-  <form id="messageForm">
-    <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" required>
-    <button type="button" id="imageUploadBtn" class="emoji-btn" title="إرسال صورة" onclick="document.getElementById('imageInput').click();">
-      <i class="fas fa-image"></i>
-    </button>
-    <input type="file" id="imageInput" accept="image/*" style="display:none;">
-    <button type="button" id="emojiBtn" class="emoji-btn" title="اختر إيموجي">😊</button>
-    <button type="submit">إرسال</button>
-  </form>
-
-  <div id="emojiPicker" class="emoji-picker hidden">
-    <div class="emoji-tabs">
-      <button class="emoji-tab active" data-tab="common">الأكثر استخداماً</button>
-      <button class="emoji-tab" data-tab="animated">متحركة</button>
-    </div>
-    <div class="emoji-content">
-   <div id="tab-common" class="emoji-grid">
-  <!-- إيموجي ثابت جديدة من موقع -->
-  <img src="https://emojis.slackmojis.com/emojis/images/1643514390/1000/ok_hand.png" style="width:35px;height:35px;cursor:pointer;" alt="ok" title="ok">
-  <img src="https://emojis.slackmojis.com/emojis/images/1643514584/1042/fire.png" style="width:35px;height:35px;cursor:pointer;" alt="fire" title="fire">
-  <img src="https://emojis.slackmojis.com/emojis/images/1643514407/1007/heart.png" style="width:35px;height:35px;cursor:pointer;" alt="heart" title="heart">
-  <img src="https://emojis.slackmojis.com/emojis/images/1643514708/1125/star.png" style="width:35px;height:35px;cursor:pointer;" alt="star" title="star">
-  <img src="https://emojis.slackmojis.com/emojis/images/1643514452/1020/laugh.png" style="width:35px;height:35px;cursor:pointer;" alt="laugh" title="laugh">
-  <img src="https://emojis.slackmojis.com/emojis/images/1643514441/1018/cry.png" style="width:35px;height:35px;cursor:pointer;" alt="cry" title="cry">
-  <img src="https://emojis.slackmojis.com/emojis/images/1643514588/1045/clap.png" style="width:35px;height:35px;cursor:pointer;" alt="clap" title="clap">
-  <img src="https://emojis.slackmojis.com/emojis/images/1643514685/1118/rocket.png" style="width:35px;height:35px;cursor:pointer;" alt="rocket" title="rocket">
-</div>
-      <div id="tab-animated" class="emoji-grid animated-emojis hidden">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/25.gif" alt="قوة" title="قوة">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/26.gif" alt="قلب" title="قلب">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/27.gif" alt="حزين" title="حزين">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/11.gif" alt="هديه" title="هديه">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/9.gif" alt="قبله" title="قبله">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/28.gif" alt="استحمام" title="استحمام">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/4.gif" alt="صوره" title="صوره">
-        <img src="https://www.allsmileys.com/files/kolobok/vishenk/2.gif" alt="دراسه" title="دراسه">
-          <img src="https://www.allsmileys.com/files/kolobok/justcuz/60.gif" alt="ضرب" title="ضرب">
-        <img src="https://www.allsmileys.com/files/kolobok/icq/24.gif" alt="قوة" title="قوة">
-        <img src="https://www.allsmileys.com/files/kolobok/smilesofvisitors/24.gif" alt="قوة" title="قوة">
-        <img src="https://www.allsmileys.com/files/kolobok/light/68.gif" alt="قوة" title="قوة">
-        <img src="https://www.allsmileys.com/files/kolobok/viannen/20.gif" alt="قوة" title="قوة">
-        <img src="https://www.allsmileys.com/files/kolobok/standard/56.gif" alt="قوة" title="قوة">
-        <img src="https://www.allsmileys.com/files/kolobok/justcuz/55.gif" alt="قوة" title="قوة">
-        <img src="https://www.allsmileys.com/files/kolobok/standard/42.gif" alt="قوة" title="قوة">
-        <img src="https://www.allsmileys.com/files/kolobok/standard/52.gif" alt="قوة" title="قوة">
-        <img src="https://www.allsmileys.com/files/kolobok/standard/51.gif" alt="قوة" title="قوة">
-      <img src="https://www.allsmileys.com/files/kolobok/standard/49.gif" alt="قوة" title="قوة">
-        <img src="https://www.allsmileys.com/files/kolobok/standard/33.gif" alt="قوة" title="قوة">
-        <img src="https://www.allsmileys.com/files/kolobok/standard/18.gif" alt="قوة" title="قوة">
-        <img src="https://www.allsmileys.com/files/kolobok/standard/10.gif" alt="قوة" title="قوة">
-        <img src="https://www.allsmileys.com/files/kolobok/standard/6.gif" alt="قوة" title="قوة">
-      </div>
-    </div>
-  </div>
-
-  <div id="myProfilePanel" class="profile-panel">
-    <div class="profile-header">
-      <h3>بروفايلك</h3>
-      <span id="closeMyProfile" class="close-panel">×</span>
-    </div>
-    <div class="profile-cover-section">
-      <div class="cover-photo" id="myCoverPhoto" style="background-image: url('https://via.placeholder.com/800x300/0f172a/ffffff?text=خلفيتك+هنا');"></div>
-      <div class="cover-overlay">
-        <label for="coverUpload" class="change-cover-btn">
-          <i class="fas fa-camera"></i> تغيير الخلفية
-        </label>
-        <input type="file" id="coverUpload" accept="image/*" hidden>
-      </div>
-    </div>
-    <div class="profile-main-content">
-      <div class="avatar-wrapper">
-        <img id="myProfileAvatar" src="https://via.placeholder.com/140" alt="صورتك">
-        <label for="avatarUpload" class="edit-avatar">
-          <i class="fas fa-camera"></i>
-        </label>
-        <input type="file" id="avatarUpload" accept="image/*" hidden>
-      </div>
-      <div class="user-meta">
-        <h4 id="myProfileUsername">MOHAMED-DZ</h4>
-        <p class="user-status">ضع حالتك هنا...</p>
-      </div>
-    </div>
-
-    <div style="padding: 0 25px 15px 25px;">
-      <button id="uploadProfileSongBtn" class="upload-song-btn">
-        <i class="fas fa-music"></i> 🎵 أغنية البروفايل 🎵
-      </button>
-      <input type="file" id="profileSongUpload" accept="audio/*" style="display: none;">
-      <div id="songStatus" class="song-status"></div>
-    </div>
-
-    <div class="modern-tabs">
-      <button class="m-tab active" data-tab="info">معلوماتي</button>
-      <button class="m-tab" data-tab="friends">الأصدقاء</button>
-      <button class="m-tab" data-tab="blocked">تجاهل</button>
-      <button class="m-tab" data-tab="options">خيارات</button>
-      <button class="m-tab highlight" data-tab="features">المميزات</button>
-      <button class="m-tab" data-tab="account">الحساب</button>
-    </div>
-    <div class="tab-content">
-      <div id="tab-info" class="tab-pane active">
-        <div class="profile-info-grid">
-          <div class="info-item"><span class="label">الاسم:</span><span>اسم مستخدم</span></div>
-          <div class="info-item"><span class="label">الجنس:</span><span>ذكر</span></div>
-          <div class="info-item"><span class="label">العمر:</span><span>عدم إظهار</span></div>
-          <div class="info-item"><span class="label">البلد:</span><span>فرنسا</span></div>
-          <div class="info-item"><span class="label">الحالة:</span><span>عدم إظهار</span></div>
-        </div>
-      </div>
-      <div id="tab-friends" class="tab-pane hidden"><p>قائمة أصدقائك ستظهر هنا...</p></div>
-      <div id="tab-blocked" class="tab-pane hidden"><p>الأشخاص الذين تم تجاهلهم...</p></div>
-      <div id="tab-options" class="tab-pane hidden"><p>الإعدادات والخيارات...</p></div>
-      
-      <!-- ========== المميزات - أزرار فقط بدون ألوان ========== -->
-      <div id="tab-features" class="tab-pane hidden">
-        <div class="features-list">
-          
-          <button class="feature-btn" id="featureNameBgBtn">
-            <i class="fas fa-palette"></i>
-            خلفية الاسم
-          </button>
-          
-          <button class="feature-btn" id="featureAnimatedAvatarBtn">
-            <i class="fas fa-film"></i>
-            صورة شخصية متحركة
-          </button>
-          
-          <button class="feature-btn" id="featureNameGlowBtn">
-            <i class="fas fa-magic"></i>
-            توهج خلفية الاسم
-          </button>
-          
-          <button class="feature-btn" id="featureProfileColorsBtn">
-            <i class="fas fa-fill-drip"></i>
-            ألوان البروفايل
-          </button>
-          
-          <button class="feature-btn" id="featureAvatarBorderBtn">
-            <i class="fas fa-border-all"></i>
-            إطار الصورة
-          </button>
-          
-        </div>
-      </div>
-      
-      <div id="tab-account" class="tab-pane hidden"><h4>إدارة الحساب</h4><button class="danger-btn">حذف الحساب</button></div>
-    </div>
-  </div>
-
-  <div id="shopPanel" class="shop-panel" style="display:none;">
-    <div class="shop-header"><h3>المتجر</h3><span id="closeShop" class="close-panel">×</span></div>
-    <div class="shop-body">
-      <h4>رصيد نقاطك: <span id="myPoints">0</span></h4>
-      <div class="shop-items">
-        <div class="shop-item"><div class="item-info"><span class="badge superadmin">سوبر أدمن ⚙️</span><span class="price">5000 نقطة</span></div><button class="buy-btn" data-role="superadmin" data-price="5000">شراء</button></div>
-        <div class="shop-item"><div class="item-info"><span class="badge admin">أدمن 🔰</span><span class="price">3000 نقطة</span></div><button class="buy-btn" data-role="admin" data-price="3000">شراء</button></div>
-        <div class="shop-item"><div class="item-info"><span class="badge premium">بريميوم 💎</span><span class="price">1500 نقطة</span></div><button class="buy-btn" data-role="premium" data-price="1500">شراء</button></div>
-        <div class="shop-item"><div class="item-info"><span class="badge vip">VIP ★</span><span class="price">800 نقطة</span></div><button class="buy-btn" data-role="vip" data-price="800">شراء</button></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="levelPointsPanel" class="level-panel hidden">
-    <div class="level-panel-content">
-      <div class="level-header"><h3>نقاطي ومستواي</h3><span class="close-level-panel">×</span></div>
-      <div class="level-main-info"><div class="level-circle"><span class="current-level">1</span><span class="level-label">المستوى</span></div><div class="points-info"><div class="points-number"><span id="myRealPoints">1</span></div><div class="points-label">نقطة</div></div></div>
-      <div class="level-progress"><div class="progress-bar"><div class="progress-fill" style="width: 0%"></div></div><div class="progress-text"><span>0</span> / <span id="nextLevelPoints">100</span> للمستوى التالي</div></div>
-    </div>
-  </div>
-
-  <!-- نافذة الدردشة الخاصة -->
-  <div id="privateChatPanel" class="private-chat-panel" style="display: none;">
-    <div class="private-header">
-      <h3 id="privateChatWith"></h3>
-      <div style="display: flex; gap: 10px;">
-        <button id="changePrivateBgBtn" class="icon-btn-small" title="تغيير الخلفية" style="background: #3b82f6; width: 32px; height: 32px;">
-          <i class="fas fa-image"></i>
-        </button>
-        <span id="closePrivateChat" class="close-panel" style="cursor:pointer;">×</span>
-      </div>
-    </div>
-    <div id="privateChatMessages" class="private-messages"></div>
-    <form id="privateChatForm">
-      <input type="text" id="privateChatInput" placeholder="اكتب رسالة..." autocomplete="off">
-      <button type="submit"><i class="fas fa-paper-plane"></i></button>
-    </form>
-    <div id="privateBgPicker" class="private-bg-picker">
-      <h4><i class="fas fa-palette"></i> خلفية الدردشة</h4>
-      <button id="uploadPrivateBgBtn"><i class="fas fa-upload"></i> رفع صورة من الجهاز</button>
-      <button id="resetPrivateBgBtn" class="reset-bg"><i class="fas fa-undo"></i> إعادة الخلفية الافتراضية</button>
-      <input type="file" id="privateBgInput" accept="image/*" style="display:none;">
-    </div>
-  </div>
-
-  <div id="otherUserProfileModal" class="other-profile-modal hidden">
-    <div class="modal-content">
-      <span class="close-modal" onclick="closeOtherUserProfile()">×</span>
-      <div class="profile-cover" id="otherUserCover"></div>
-      <div class="profile-header-info">
-        <img id="otherUserAvatarLarge" src="https://via.placeholder.com/140" alt="صورة المستخدم" class="large-avatar">
-        <div class="user-info-text"><h2 id="otherUserDisplayName">اسم المستخدم</h2><p id="otherUserStatus" class="status-text">We will meet in Paradise</p></div>
-      </div>
-      <div class="profile-actions">
-        <button class="action-btn msg-btn" id="sendPrivateMsgBtn">رسالة خاصة</button>
-        <button class="action-btn friend-btn" id="addFriendFromProfile">إضافة صديق</button>
-        <button class="action-btn report-btn">إبلاغ</button>
-        <div id="adminActionsContainer" style="display: none; margin-top: 15px; border-top: 1px solid #333; padding-top: 10px;"></div>
-      </div>
-      <div class="profile-details">
-        <div class="detail-item"><span>رابط الملف</span><span id="otherProfileUrl">https://chat.arabi.com/u/...</span></div>
-        <div class="detail-item"><span>تاريخ الانضمام</span><span id="otherJoinDate">2026-01-05</span></div>
-        <div class="detail-item"><span>البلد</span><span id="otherCountry">الجزائر</span></div>
-        <div class="detail-item"><span>آخر تواجد</span><span id="otherLastSeen">الآن</span></div>
-        <div class="detail-item"><span>النقاط</span><span id="otherPoints">1821</span></div>
-        <div id="adminRankControls" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center; display: none;">
-          <button onclick="toggleRankList()" style="background:#fbbf24; color:black; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;"><i class="fas fa-gift"></i> إهداء رتبة</button>
-          <div id="ranksListMenu" style="display:none; margin-top:10px; background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; grid-template-columns: 1fr 1fr; gap:8px;">
-            <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'superadmin')" style="background:#6d28d9; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">سوبر أدمن</button>
-            <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'admin')" style="background:#3b82f6; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">أدمن</button>
-            <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'premium')" style="background:#10b981; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">بريميوم</button>
-            <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'vip')" style="background:#f59e0b; color:black; border:none; padding:8px; border-radius:4px; cursor:pointer;">VIP</button>
-            <button onclick="setUserRole(document.getElementById('otherUserDisplayName').textContent, 'guest')" style="background:#ef4444; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; grid-column: span 2;">سحب الرتبة</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // ========== لعبة الديناصور كاملة ==========
-    (function() {
-      const canvas = document.getElementById('dinoCanvas');
-      const ctx = canvas.getContext('2d');
-      const scoreSpan = document.getElementById('dinoScore');
-      const maxScoreSpan = document.getElementById('maxScore');
-      const startBtn = document.getElementById('dinoStartBtn');
-      const exitBtn = document.getElementById('dinoExitBtn');
-      const modal = document.getElementById('dinoGameModal');
-      const openBtn = document.getElementById('openDinoGameBtn');
-
-      let gameRunning = false;
-      let score = 0;
-      let animationId = null;
-      let frame = 0;
-      
-      let dino = {
-        x: 50,
-        y: 180,
-        width: 25,
-        height: 30,
-        groundY: 180,
-        isJumping: false,
-        velocity: 0,
-        gravity: 0.8,
-        jumpPower: -12
-      };
-      
-      let obstacles = [];
-      let canJump = true;
-      
-      function drawDino() {
-        ctx.fillStyle = '#2d2d2d';
-        ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
-        ctx.fillStyle = 'white';
-        ctx.fillRect(dino.x + 18, dino.y + 5, 5, 5);
-        ctx.fillStyle = 'black';
-        ctx.fillRect(dino.x + 19, dino.y + 6, 3, 3);
-        ctx.fillStyle = '#2d2d2d';
-        ctx.fillRect(dino.x + 5, dino.y + dino.height - 5, 5, 8);
-        ctx.fillRect(dino.x + 15, dino.y + dino.height - 5, 5, 8);
-        ctx.fillRect(dino.x - 8, dino.y + 20, 8, 8);
-      }
-      
-      function drawObstacle(obs) {
-        ctx.fillStyle = '#2d6a2d';
-        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-        ctx.fillStyle = '#1a4d1a';
-        ctx.fillRect(obs.x + 3, obs.y - 8, 6, 8);
-        ctx.fillRect(obs.x + 12, obs.y - 5, 5, 5);
-      }
-      
-      function drawGround() {
-        ctx.fillStyle = '#8B7355';
-        ctx.fillRect(0, dino.groundY + dino.height, canvas.width, 5);
-        ctx.fillStyle = '#6B5340';
-        ctx.fillRect(0, dino.groundY + dino.height + 5, canvas.width, 3);
-      }
-      
-      function updatePhysics() {
-        if (dino.isJumping) {
-          dino.velocity += dino.gravity;
-          dino.y += dino.velocity;
-          if (dino.y >= dino.groundY) {
-            dino.y = dino.groundY;
-            dino.isJumping = false;
-            dino.velocity = 0;
-            canJump = true;
-          }
-        }
-      }
-      
-      function updateObstacles() {
-        if (frame % 90 === 0 && gameRunning && obstacles.length < 3) {
-          obstacles.push({
-            x: canvas.width,
-            y: dino.groundY + 5,
-            width: 15,
-            height: 30
-          });
-        }
-        for (let i = 0; i < obstacles.length; i++) {
-          obstacles[i].x -= 5;
-          if (obstacles[i].x < dino.x + dino.width &&
-              obstacles[i].x + obstacles[i].width > dino.x &&
-              obstacles[i].y < dino.y + dino.height &&
-              obstacles[i].y + obstacles[i].height > dino.y) {
-            gameOver();
-            return;
-          }
-          if (obstacles[i].x + obstacles[i].width < 0) {
-            obstacles.splice(i, 1);
-            if (gameRunning && score < 99999999) {
-              score++;
-              scoreSpan.textContent = score;
-            }
-            i--;
-          }
-        }
-      }
-      
-      function gameOver() {
-        gameRunning = false;
-        if (animationId) {
-          cancelAnimationFrame(animationId);
-          animationId = null;
-        }
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = 'white';
-        ctx.font = '20px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('انتهت اللعبة! اضغط "بدء اللعبة" للعب مجدداً', canvas.width/2, canvas.height/2);
-        ctx.textAlign = 'left';
-      }
-      
-      function resetGame() {
-        score = 0;
-        scoreSpan.textContent = '0';
-        obstacles = [];
-        dino.y = dino.groundY;
-        dino.isJumping = false;
-        dino.velocity = 0;
-        frame = 0;
-        canJump = true;
-      }
-      
-      function gameLoop() {
-        if (!gameRunning) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawGround();
-        updatePhysics();
-        updateObstacles();
-        drawDino();
-        for (let obs of obstacles) { drawObstacle(obs); }
-        ctx.fillStyle = '#333';
-        ctx.font = '16px Arial';
-        ctx.fillText(`Score: ${score}`, canvas.width - 80, 30);
-        frame++;
-        animationId = requestAnimationFrame(gameLoop);
-      }
-      
-      function startGame() {
-        if (animationId) cancelAnimationFrame(animationId);
-        resetGame();
-        gameRunning = true;
-        gameLoop();
-      }
-      
-      function jump() {
-        if (gameRunning && !dino.isJumping && canJump) {
-          dino.isJumping = true;
-          dino.velocity = dino.jumpPower;
-          canJump = false;
-        }
-      }
-      
-      function handleKeydown(e) {
-        if (e.code === 'Space' || e.code === 'ArrowUp') {
-          e.preventDefault();
-          jump();
-        }
-      }
-      
-      function handleCanvasClick() { jump(); }
-      function openModal() { modal.style.display = 'block'; document.body.style.overflow = 'hidden'; }
-      function closeModal() { modal.style.display = 'none'; document.body.style.overflow = ''; if (animationId) { cancelAnimationFrame(animationId); animationId = null; } gameRunning = false; }
-      
-      if (startBtn) startBtn.addEventListener('click', startGame);
-      if (exitBtn) exitBtn.addEventListener('click', closeModal);
-      if (openBtn) openBtn.addEventListener('click', openModal);
-      if (canvas) canvas.addEventListener('click', handleCanvasClick);
-      document.addEventListener('keydown', handleKeydown);
-      window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-      if (maxScoreSpan) maxScoreSpan.textContent = '99,999,999';
-    })();
-
-    // ========== باقي الكود الأصلي ==========
-    document.addEventListener('DOMContentLoaded', () => {
-      const usersPanel = document.getElementById('usersPanel');
-      const hideBtn = document.getElementById('hideUsersPanelBtn2');
-      const showBtn = document.getElementById('showUsersPanelBtn2');
-      const headerHideBtn = document.getElementById('hideUsersPanelBtn');
-      const headerShowBtn = document.getElementById('showUsersPanelBtn');
-      
-      if (usersPanel && hideBtn && showBtn) {
-        hideBtn.addEventListener('click', () => {
-          usersPanel.style.display = 'none';
-          hideBtn.style.display = 'none';
-          showBtn.style.display = 'inline-flex';
-          if (headerHideBtn) headerHideBtn.style.display = 'none';
-          if (headerShowBtn) headerShowBtn.style.display = 'inline-flex';
-        });
-        showBtn.addEventListener('click', () => {
-          usersPanel.style.display = 'block';
-          showBtn.style.display = 'none';
-          hideBtn.style.display = 'inline-flex';
-          if (headerShowBtn) headerShowBtn.style.display = 'none';
-          if (headerHideBtn) headerHideBtn.style.display = 'inline-flex';
-        });
-      }
-      
-      if (headerHideBtn && headerShowBtn) {
-        headerHideBtn.addEventListener('click', () => {
-          usersPanel.style.display = 'none';
-          headerHideBtn.style.display = 'none';
-          headerShowBtn.style.display = 'inline-flex';
-          if (hideBtn) hideBtn.style.display = 'none';
-          if (showBtn) showBtn.style.display = 'inline-flex';
-        });
-        headerShowBtn.addEventListener('click', () => {
-          usersPanel.style.display = 'block';
-          headerShowBtn.style.display = 'none';
-          headerHideBtn.style.display = 'inline-flex';
-          if (showBtn) showBtn.style.display = 'none';
-          if (hideBtn) hideBtn.style.display = 'inline-flex';
-        });
-      }
-
-      const coverUpload = document.getElementById('coverUpload');
-      const myCoverPhoto = document.getElementById('myCoverPhoto');
-      if (coverUpload && myCoverPhoto) {
-        coverUpload.addEventListener('change', function(e) {
-          const file = e.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-              myCoverPhoto.style.backgroundImage = `url(${event.target.result})`;
-            };
-            reader.readAsDataURL(file);
-          }
-        });
-      }
-
-      document.getElementById('shopBtn')?.addEventListener('click', () => {
-        document.getElementById('shopPanel').style.display = 'block';
-      });
-      document.getElementById('closeShop')?.addEventListener('click', () => {
-        document.getElementById('shopPanel').style.display = 'none';
-      });
-
-      const appsBtn = document.getElementById('appsBtn');
-      const appsPanel = document.getElementById('appsPanel');
-      if (appsBtn && appsPanel) {
-        appsBtn.addEventListener('click', () => {
-          appsPanel.style.display = 'block';
-        });
-      }
-
-      const appBtns = document.querySelectorAll('.app-btn');
-      appBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const appName = btn.getAttribute('data-app');
-          document.querySelectorAll('.app-content').forEach(content => {
-            content.classList.remove('active');
-          });
-          const targetContent = document.getElementById(`app-${appName}`);
-          if (targetContent) {
-            targetContent.classList.add('active');
-          }
-          if (appName === 'wall') {
-            if (typeof loadPosts === 'function') loadPosts();
-          } else if (appName === 'news') {
-            if (typeof loadNews === 'function') loadNews();
-          } else if (appName === 'rooms') {
-            if (typeof loadRoomsList === 'function') loadRoomsList();
-          }
-        });
-      });
-
-      const levelBtn = document.getElementById('myLevelBtn');
-      const levelPanel = document.getElementById('levelPointsPanel');
-      const closeLevel = document.querySelector('.close-level-panel');
-      if (levelBtn && levelPanel) {
-        levelBtn.addEventListener('click', () => {
-          levelPanel.classList.remove('hidden');
-          levelPanel.style.display = 'block';
-        });
-      }
-      if (closeLevel) {
-        closeLevel.addEventListener('click', () => {
-          levelPanel.classList.add('hidden');
-          levelPanel.style.display = 'none';
-        });
-      }
-
-      const emojiBtn = document.getElementById('emojiBtn');
-      const emojiPicker = document.getElementById('emojiPicker');
-      const messageInput = document.getElementById('messageInput');
-      if (emojiBtn && emojiPicker && messageInput) {
-        emojiBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          emojiPicker.classList.toggle('hidden');
-        });
-        document.addEventListener('click', (e) => {
-          if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
-            emojiPicker.classList.add('hidden');
-          }
-        });
-        document.querySelectorAll('.emoji-tab').forEach(tab => {
-          tab.addEventListener('click', () => {
-            document.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            document.querySelectorAll('.emoji-grid').forEach(grid => grid.classList.add('hidden'));
-            document.getElementById(`tab-${tab.dataset.tab}`).classList.remove('hidden');
-          });
-        });
-      }
-
-      document.getElementById('privateMsgBtn')?.addEventListener('click', () => {
-        document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel').forEach(p => p.style.display = 'none');
-        document.getElementById('conversationsPanel').style.display = 'block';
-      });
-      document.getElementById('friendReqBtn')?.addEventListener('click', () => {
-        document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel').forEach(p => p.style.display = 'none');
-        document.getElementById('friendRequestsPanel').style.display = 'block';
-      });
-      document.getElementById('reportsBtn')?.addEventListener('click', () => {
-        document.querySelectorAll('.conversations-panel, .friend-requests-panel, .reports-panel').forEach(p => p.style.display = 'none');
-        document.getElementById('reportsPanel').style.display = 'block';
-      });
-
-      document.getElementById('profileBtn')?.addEventListener('click', () => {
-        document.getElementById('myProfilePanel').style.display = 'block';
-      });
-      document.getElementById('closeMyProfile')?.addEventListener('click', () => {
-        document.getElementById('myProfilePanel').style.display = 'none';
-      });
-
-      document.querySelectorAll('.modern-tabs .m-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-          document.querySelectorAll('.m-tab').forEach(t => t.classList.remove('active'));
-          tab.classList.add('active');
-          document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
-          document.getElementById(`tab-${tab.dataset.tab}`).classList.remove('hidden');
-        });
-      });
-
-      const publishBtn = document.getElementById('publishPostBtn');
-      if (publishBtn && typeof publishPost === 'function') {
-        publishBtn.addEventListener('click', publishPost);
-      }
-    });
-
-    async function loadRoomsList() {
-      try {
-        const res = await fetch('/room-counts');
-        const counts = await res.json();
-        const rooms = [
-          { id: 'general', name: '🏠 الغرفة العامة', icon: '💬', color: '#10b981' },
-          { id: 'algeria', name: '🇩🇿 الجزائر', icon: '🇩🇿', color: '#006233' },
-          { id: 'all_countries', name: '🌍 جميع الدول', icon: '🌍', color: '#3b82f6' }
-        ];
-        const container = document.getElementById('roomsListApp');
-        if (container) {
-          container.innerHTML = rooms.map(room => `
-            <div class="room-item-app" onclick="switchToRoom('${room.id}')">
-              <div class="room-icon-app">${room.icon}</div>
-              <div class="room-info-app">
-                <div class="room-name-app">${room.name}</div>
-                <div class="room-count-app">عدد المتصلين: ${counts[room.id] || 0}</div>
-              </div>
-              <button class="room-join-btn" onclick="event.stopPropagation(); switchToRoom('${room.id}')">دخول ➜</button>
-            </div>
-          `).join('');
-        }
-      } catch (err) {
-        console.error('خطأ في جلب الغرف:', err);
-        const container = document.getElementById('roomsListApp');
-        if (container) container.innerHTML = '<div class="no-data">خطأ في تحميل الغرف</div>';
-      }
-    }
-
-    function switchToRoom(roomId) {
-      localStorage.setItem('lastRoom', roomId);
-      const token = localStorage.getItem('token');
-      fetch('/api/save-last-room', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ roomId: roomId, roomName: roomId === 'general' ? 'الغرفة العامة' : (roomId === 'algeria' ? 'الجزائر' : 'جميع الدول') })
-      }).catch(err => console.log('خطأ في حفظ آخر غرفة:', err));
-      window.location.href = `chat.html?room=${roomId}`;
-    }
-  </script>
-  <script src="chat.js"></script>
-</body>
-</html>
+  
+  header h1 {
+    font-size: 15px;
+  }
+  
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+  }
+  
+  #profileBtn img {
+    width: 34px;
+    height: 34px;
+  }
+  
+  #backToRoomsBtn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    height: 32px;
+  }
+  
+  .header-icons {
+    gap: 2px;
+  }
+  
+  /* في الجوال نخفي بعض الأزرار لتوفير المساحة */
+  .header-icons .icon-btn:nth-child(4),
+  .header-icons .icon-btn:nth-child(5),
+  .header-icons .icon-btn:nth-child(6) {
+    display: none;
+  }
+  
+  .chat-main {
+    flex-direction: column;
+  }
+  
+  #chatWindow {
+    padding: 10px 15px;
+    order: 1;
+    flex: 1;
+  }
+  
+  .message {
+    max-width: 85%;
+  }
+  
+  #usersPanel {
+    width: 100%;
+    max-height: 200px;
+    order: 2;
+    border-right: none;
+    border-top: 1px solid #2a3942;
+  }
+  
+  .users-list-simple {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 8px;
+  }
+  
+  .user-item-simple {
+    flex-direction: column;
+    min-width: 70px;
+    text-align: center;
+    margin-bottom: 0;
+  }
+  
+  .user-item-simple img {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .user-name-simple {
+    font-size: 11px;
+  }
+  
+  #myProfilePanel {
+    width: 95%;
+  }
+  
+  .profile-info-grid,
+  .features-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .private-chat-panel {
+    width: calc(100vw - 20px);
+    right: 10px;
+    bottom: 10px;
+    height: 60vh;
+  }
+}
