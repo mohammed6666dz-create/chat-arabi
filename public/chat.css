@@ -1997,3 +1997,97 @@ body {
   height: auto !important;
   overflow: hidden !important;
 }
+/* ============================================
+   تنسيق الرسائل والقائمة الجانبية (Custom Theme Override)
+============================================ */
+
+/* 1. ضبط منطقة الشات الرئيسية ورسائل المستخدمين */
+#chatWindow {
+  align-items: flex-end !important; /* محاذاة الرسائل من اليمين */
+  padding: 15px 25px !important;
+}
+
+.message, .my-message {
+  align-self: flex-end !important;
+  flex-direction: row-reverse !important; /* الصورة على اليمين ثم النص */
+  max-width: 75% !important;
+  margin-bottom: 8px !important;
+}
+
+/* فقاعة الرسالة */
+.message .message-content,
+.my-message .message-content {
+  background: rgba(18, 28, 36, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  border-top-right-radius: 2px !important;
+  padding: 8px 14px !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* إزالة السهم القديم وإضافة شكل حديث */
+.message .message-content::before,
+.my-message .message-content::before {
+  display: none !important;
+}
+
+/* أسلوب اسم المستخدم والشارات داخل الرسالة */
+.message .message-content strong,
+.my-message .message-content strong {
+  color: #38bdf8 !important; /* لون أزرق سماوي مميز */
+  font-size: 13px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+
+/* 2. تحسين لوحة المستخدمين الجانبية (Users Panel) */
+#usersPanel {
+  background: #111827 !important; /* خلفية داكنة متناسقة */
+  border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.users-header-simple {
+  background: #1f2937 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.users-header-simple h3 {
+  color: #60a5fa !important;
+}
+
+.user-item-simple {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+  border-radius: 8px !important;
+  margin: 2px 4px !important;
+  padding: 6px 10px !important;
+}
+
+.user-item-simple:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* 3. شريط إرسال الرسائل السفلي */
+#messageForm {
+  background: #0f172a !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding: 10px 16px !important;
+}
+
+#messageInput {
+  background: #1e293b !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+}
+
+#messageForm button[type="submit"] {
+  background: #10b981 !important; /* زر إرسال أخضر مدرن */
+  border-radius: 8px !important;
+}
+
+#messageForm button[type="submit"]:hover {
+  background: #059669 !important;
+}
